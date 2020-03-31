@@ -310,58 +310,58 @@ struct QueryCastBridge
 
 namespace Details {
 
-  /// Helper class for query_cast function to allow specializations based on TTarget.
-  template <typename TTarget>
-  struct QueryCastConverter; // Default case is undefined.
+/// Helper class for query_cast function to allow specializations based on TTarget.
+template <typename TTarget>
+struct QueryCastConverter; // Default case is undefined.
 
-  // Specialization for reference conversion
-  template <typename TTarget>
-  struct QueryCastConverter<TTarget&>
+// Specialization for reference conversion
+template <typename TTarget>
+struct QueryCastConverter<TTarget&>
+{
+  template <typename TSource>
+  static TTarget& QueryCast(const TSource& source) noexcept
   {
-    template <typename TSource>
-    static TTarget& QueryCast(const TSource& source) noexcept
-    {
-      using SourceType = std::decay_t<TSource>;
-      using TargetType = std::decay_t<TTarget>;
-      static_assert(!std::is_pointer<SourceType>::value, "Cannot convert pointer to a reference.");
+    using SourceType = std::decay_t<TSource>;
+    using TargetType = std::decay_t<TTarget>;
+    static_assert(!std::is_pointer<SourceType>::value, "Cannot convert pointer to a reference.");
 
-      SourceType* nonConstSource = const_cast<SourceType*>(&source);
+    SourceType* nonConstSource = const_cast<SourceType*>(&source);
+    QueryCastBridge bridge = {nullptr, __uuidof(TargetType)};
+    VerifySucceededElseCrashTag(
+        nonConstSource->QueryInterface(__uuidof(QueryCastBridge), reinterpret_cast<void**>(&bridge)),
+        0x0100370d /* tag_bad2n */);
+
+    TargetType* target = static_cast<TargetType*>(bridge.Object);
+    VerifyElseCrashSzTag(target, "Query cast failed for a reference type.", 0x0100370e /* tag_bad2o */);
+    return static_cast<TTarget&>(*target);
+  }
+};
+
+// Specialization for pointer conversion
+template <typename TTarget>
+struct QueryCastConverter<TTarget*>
+{
+  template <typename TSource>
+  static TTarget* QueryCast(const TSource& source) noexcept
+  {
+    using SourceType = std::remove_const_t<std::remove_pointer_t<std::decay_t<TSource>>>;
+    using TargetType = std::decay_t<TTarget>;
+    static_assert(std::is_pointer<TSource>::value, "Cannot convert non-pointer to a pointer.");
+
+    if (source != nullptr)
+    {
+      SourceType* nonConstSource = const_cast<SourceType*>(source);
       QueryCastBridge bridge = {nullptr, __uuidof(TargetType)};
-      VerifySucceededElseCrashTag(
-          nonConstSource->QueryInterface(__uuidof(QueryCastBridge), reinterpret_cast<void**>(&bridge)),
-          0x0100370d /* tag_bad2n */);
-
-      TargetType* target = static_cast<TargetType*>(bridge.Object);
-      VerifyElseCrashSzTag(target, "Query cast failed for a reference type.", 0x0100370e /* tag_bad2o */);
-      return static_cast<TTarget&>(*target);
-    }
-  };
-
-  // Specialization for pointer conversion
-  template <typename TTarget>
-  struct QueryCastConverter<TTarget*>
-  {
-    template <typename TSource>
-    static TTarget* QueryCast(const TSource& source) noexcept
-    {
-      using SourceType = std::remove_const_t<std::remove_pointer_t<std::decay_t<TSource>>>;
-      using TargetType = std::decay_t<TTarget>;
-      static_assert(std::is_pointer<TSource>::value, "Cannot convert non-pointer to a pointer.");
-
-      if (source != nullptr)
+      if (nonConstSource->QueryInterface(__uuidof(QueryCastBridge), reinterpret_cast<void**>(&bridge)) == S_OK)
       {
-        SourceType* nonConstSource = const_cast<SourceType*>(source);
-        QueryCastBridge bridge = {nullptr, __uuidof(TargetType)};
-        if (nonConstSource->QueryInterface(__uuidof(QueryCastBridge), reinterpret_cast<void**>(&bridge)) == S_OK)
-        {
-          TargetType* target = static_cast<TargetType*>(bridge.Object);
-          return static_cast<TTarget*>(target);
-        }
+        TargetType* target = static_cast<TargetType*>(bridge.Object);
+        return static_cast<TTarget*>(target);
       }
-
-      return nullptr;
     }
-  };
+
+    return nullptr;
+  }
+};
 
 } // namespace Details
 } // namespace Mso

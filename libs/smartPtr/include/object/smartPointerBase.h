@@ -11,10 +11,10 @@
 #include <debugAssertApi/debugAssertApi.h>
 
 #ifdef __cplusplus
-  #pragma warning(push)
-  #pragma warning(disable : 4996) // wmemcpy
-  #include <utility>
-  #pragma warning(pop)
+#pragma warning(push)
+#pragma warning(disable : 4996) // wmemcpy
+#include <utility>
+#pragma warning(pop)
 
 namespace Mso {
 
@@ -96,12 +96,12 @@ public:
     return TEmptyTraits::IsEmpty(m_pT);
   }
 
-  #ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
+#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
   explicit operator bool() const noexcept
   {
     return !IsEmpty();
   }
-  #endif
+#endif
 
   /**
     Access the contained data
@@ -117,7 +117,7 @@ public:
     return this->Get();
   }
 
-  #ifndef MSO_THOLDER_EXPLICIT_GET_ONLY
+#ifndef MSO_THOLDER_EXPLICIT_GET_ONLY
   /**
     cast operator
   */
@@ -125,7 +125,7 @@ public:
   {
     return m_pT;
   }
-  #endif
+#endif
 
   TRefType& operator[](ptrdiff_t iSubscript) noexcept
   {
@@ -224,7 +224,7 @@ public:
     return this->Detach();
   } // equivalent to std::unique_ptr::release()
 
-  #ifndef MSO_THOLDER_NO_ADDR_OPERATOR
+#ifndef MSO_THOLDER_NO_ADDR_OPERATOR
   /**
     & operator to retrieve object, THolder must be empty
   */
@@ -234,7 +234,7 @@ public:
     AssertTag(IsEmpty(), 0x008c2699 /* tag_a9c0z */);
     return &m_pT;
   }
-  #endif // !MSO_THOLDER_NO_ADDR_OPERATOR
+#endif // !MSO_THOLDER_NO_ADDR_OPERATOR
 
   /**
     Retrieves the address of the object. Asserts that THolder is empty.
@@ -335,15 +335,15 @@ private:
       return;
 
     T pT = m_pT;
-  #if defined(__clang__)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  #endif
-  #pragma warning(suppress : 4996) // deprecated function
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+#pragma warning(suppress : 4996) // deprecated function
     TEmptyTraits::UnsafeEmpty(m_pT);
-  #if defined(__clang__)
-    #pragma clang diagnostic pop
-  #endif
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
     THelper::Free(pT);
   }
 
@@ -370,7 +370,7 @@ private:
   void Attach(const THolder<T1, THelper, TEmptyTraits>&); // use Transfer
 }; // class THolder
 
-  #ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
+#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
 /**
   Operators for THolder
 */
@@ -421,42 +421,42 @@ bool operator!=(decltype(__nullptr), const THolder<T1, THelper1, TEmptyTraits1>&
 {
   return a.Get() != nullptr;
 }
-  #endif // MSO_THOLDER_EXPLICIT_GET_ONLY
+#endif // MSO_THOLDER_EXPLICIT_GET_ONLY
 
-  /**
-    Macros to implement a few basic THolder methods in derived classes.
-  */
+/**
+  Macros to implement a few basic THolder methods in derived classes.
+*/
 
-  /**
-    Helper to define operator= in derived classes
-  */
-  #define IMPLEMENT_THOLDER_OPERATOR_EQUALS(T)  \
-    template <typename T1>                      \
-    const T& operator=(_In_opt_ T1 pT) noexcept \
-    {                                           \
-      Super::operator=(pT);                     \
-      return *this;                             \
-    }
+/**
+  Helper to define operator= in derived classes
+*/
+#define IMPLEMENT_THOLDER_OPERATOR_EQUALS(T)  \
+  template <typename T1>                      \
+  const T& operator=(_In_opt_ T1 pT) noexcept \
+  {                                           \
+    Super::operator=(pT);                     \
+    return *this;                             \
+  }
 
-  /**
-    Helper to add RVALUE methods to derived THolder classes
-  */
-  #define IMPLEMENT_THOLDER_RVALUE_REFS_(T, TBase)                       \
-    T(_Inout_ T&& rFrom) noexcept : TBase(std::forward<TBase>(rFrom)) {} \
-    T& operator=(_Inout_ T&& rFrom) noexcept                             \
-    {                                                                    \
-      this->TransferFrom(rFrom);                                         \
-      return *this;                                                      \
-    }
-  #define IMPLEMENT_THOLDER_RVALUE_REFS(T) IMPLEMENT_THOLDER_RVALUE_REFS_(T, Super)
+/**
+  Helper to add RVALUE methods to derived THolder classes
+*/
+#define IMPLEMENT_THOLDER_RVALUE_REFS_(T, TBase)                       \
+  T(_Inout_ T&& rFrom) noexcept : TBase(std::forward<TBase>(rFrom)) {} \
+  T& operator=(_Inout_ T&& rFrom) noexcept                             \
+  {                                                                    \
+    this->TransferFrom(rFrom);                                         \
+    return *this;                                                      \
+  }
+#define IMPLEMENT_THOLDER_RVALUE_REFS(T) IMPLEMENT_THOLDER_RVALUE_REFS_(T, Super)
 
-  /**
-    Try to prevent mixing up constructors
-  */
-  #define PREVENT_MISMATCH_THOLDER_CONSTRUCTORS(T) \
-    template <typename T1, typename THelper>       \
-    T(const THolder<T1, THelper>& ref)             \
-    noexcept;
+/**
+  Try to prevent mixing up constructors
+*/
+#define PREVENT_MISMATCH_THOLDER_CONSTRUCTORS(T) \
+  template <typename T1, typename THelper>       \
+  T(const THolder<T1, THelper>& ref)             \
+  noexcept;
 
 /**
   In some cases, additional data must be stored with the held object.
@@ -573,17 +573,17 @@ public:
     return Super::get();
   }
 
-  #ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
+#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
   explicit operator bool() const noexcept
   {
     return Super::operator bool();
   }
-  #else
+#else
   /*_SA_deprecated_(Get)*/ operator T() const noexcept
   {
     return Get();
   }
-  #endif
+#endif
 
   TRefType& operator[](ptrdiff_t iSubscript) noexcept
   {
@@ -647,7 +647,7 @@ public:
   }
 };
 
-  #ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
+#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
 /**
   Operators for THolderPair
 */
@@ -686,7 +686,7 @@ bool operator!=(decltype(__nullptr), const THolderPair<T1, TData1, THelper1>& a)
 {
   return a.Get() != nullptr;
 }
-  #endif // MSO_THOLDER_EXPLICIT_GET_ONLY
+#endif // MSO_THOLDER_EXPLICIT_GET_ONLY
 
 } // namespace Mso
 

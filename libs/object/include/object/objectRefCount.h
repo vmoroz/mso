@@ -7,11 +7,11 @@
 
 #pragma once
 #ifdef __cplusplus
-  #include <compilerAdapters/cppMacrosDebug.h>
-  #include <object/make.h>
-  #include <object/refCounted.h>
-  #include <cstdint>
-  #include <type_traits>
+#include <compilerAdapters/cppMacrosDebug.h>
+#include <object/make.h>
+#include <object/refCounted.h>
+#include <cstdint>
+#include <type_traits>
 
 //
 // Simple ref counting manages object lifetime using a ref counter.
@@ -19,25 +19,25 @@
 // The ObjectRefCount<TDerived> template does not have a v-table. It calls the TDerived type destructor.
 //
 
-  #pragma pack(push, _CRT_PACKING)
-  #pragma push_macro("new")
-  #undef new
+#pragma pack(push, _CRT_PACKING)
+#pragma push_macro("new")
+#undef new
 
-  #define _MSO_OBJECT_SIMPLEREFCOUNT(TObject)                                                        \
-  public:                                                                                            \
-    bool IsUniqueRef() const noexcept                                                                \
-    {                                                                                                \
-      return m_refCount.load(std::memory_order_acquire) == 1;                                        \
-    }                                                                                                \
-    Debug(uint32_t RefCount() const noexcept { return m_refCount.load(std::memory_order_acquire); }) \
-                                                                                                     \
-        template <typename UseMsoMakeInsteadOfOperatorNew>                                           \
-        void* operator new(size_t, UseMsoMakeInsteadOfOperatorNew* = nullptr);                       \
-    DECLARE_COPYCONSTR_AND_ASSIGNMENT(TObject)
+#define _MSO_OBJECT_SIMPLEREFCOUNT(TObject)                                                        \
+public:                                                                                            \
+  bool IsUniqueRef() const noexcept                                                                \
+  {                                                                                                \
+    return m_refCount.load(std::memory_order_acquire) == 1;                                        \
+  }                                                                                                \
+  Debug(uint32_t RefCount() const noexcept { return m_refCount.load(std::memory_order_acquire); }) \
+                                                                                                   \
+      template <typename UseMsoMakeInsteadOfOperatorNew>                                           \
+      void* operator new(size_t, UseMsoMakeInsteadOfOperatorNew* = nullptr);                       \
+  DECLARE_COPYCONSTR_AND_ASSIGNMENT(TObject)
 
-  #define _MSO_OBJECT_NOREFCOUNT(TObject) \
-  public:                                 \
-    DECLARE_COPYCONSTR_AND_ASSIGNMENT(TObject)
+#define _MSO_OBJECT_NOREFCOUNT(TObject) \
+public:                                 \
+  DECLARE_COPYCONSTR_AND_ASSIGNMENT(TObject)
 
 namespace Mso {
 
@@ -91,7 +91,7 @@ struct SimpleRefCountPolicy
     TAllocator::Deallocate(obj);
   }
 
-  #if DEBUG
+#if DEBUG
   template <typename T>
   static void ValidateObject(MemoryGuard<T>& memoryGuard) noexcept
   {
@@ -105,7 +105,7 @@ struct SimpleRefCountPolicy
         "Ref counted object must be the first type in T inheritance list.",
         0x01105591 /* tag_befwr */);
   }
-  #endif
+#endif
 };
 
 struct DefaultRefCountedDeleter
@@ -122,10 +122,10 @@ struct DefaultRefCountedDeleter
   algorithm. The struct can be changed to a namespace if in future we need many strategies in different files.
 */
 namespace RefCountStrategy {
-  using Simple = SimpleRefCountPolicy<DefaultRefCountedDeleter, MakeAllocator>;
-  struct SimpleNoQuery;
-  struct NoRefCount;
-  struct NoRefCountNoQuery;
+using Simple = SimpleRefCountPolicy<DefaultRefCountedDeleter, MakeAllocator>;
+struct SimpleNoQuery;
+struct NoRefCount;
+struct NoRefCountNoQuery;
 }; // namespace RefCountStrategy
 
 /**
@@ -230,7 +230,7 @@ RefCountedPtr<T> Make_RefCounted(U&&... args) noexcept
 
 } // namespace Mso
 
-  #pragma pop_macro("new")
-  #pragma pack(pop)
+#pragma pop_macro("new")
+#pragma pack(pop)
 
 #endif // __cplusplus

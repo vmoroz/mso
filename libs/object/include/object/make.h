@@ -9,13 +9,13 @@
 
 #ifdef __cplusplus
 
-  #include <compilerAdapters/cppMacrosDebug.h>
-  #include <core/TCntPtr.h>
-  #include <memoryApi/memoryApi.h>
+#include <compilerAdapters/cppMacrosDebug.h>
+#include <core/TCntPtr.h>
+#include <memoryApi/memoryApi.h>
 
-  #pragma pack(push, _CRT_PACKING)
-  #pragma push_macro("new")
-  #undef new
+#pragma pack(push, _CRT_PACKING)
+#pragma push_macro("new")
+#undef new
 
 namespace Mso {
 
@@ -127,73 +127,69 @@ inline Mso::TCntPtr<TResult> MakeAllocElseNull(TAllocArg&& allocArg, TArgs&&... 
 // Make policy defines how an instance is created in the pre-allocated memory.
 namespace MakePolicy {
 
-  /// ThrowCtor MakePolicy passes all parameters to the constructor.
-  /// ThrowCtor::Make may throw an exception if constructor throws.
-  /// To allow this class to access private constructor add "friend MakePolicy;" to your class.
-  struct ThrowCtor
+/// ThrowCtor MakePolicy passes all parameters to the constructor.
+/// ThrowCtor::Make may throw an exception if constructor throws.
+/// To allow this class to access private constructor add "friend MakePolicy;" to your class.
+struct ThrowCtor
+{
+  static const bool IsNoExcept = false;
+
+  template <typename T, typename TMemoryGuard, typename... TArgs>
+  static void Make(TMemoryGuard& memoryGuard, TArgs&&... args)
   {
-    static const bool IsNoExcept = false;
+    OACR_POSSIBLE_THROW;
+    memoryGuard.Obj = ::new (memoryGuard.ObjMemory) T(std::forward<TArgs>(args)...);
+    memoryGuard.ObjMemory = nullptr; // Memory is now controlled by the object. Set to null to avoid memory destruction.
+  }
+};
 
-    template <typename T, typename TMemoryGuard, typename... TArgs>
-    static void Make(TMemoryGuard& memoryGuard, TArgs&&... args)
-    {
-      OACR_POSSIBLE_THROW;
-      memoryGuard.Obj = ::new (memoryGuard.ObjMemory) T(std::forward<TArgs>(args)...);
-      memoryGuard.ObjMemory =
-          nullptr; // Memory is now controlled by the object. Set to null to avoid memory destruction.
-    }
-  };
+/// NoThrowCtor MakePolicy passes all parameters to the constructor.
+/// NoThrowCtor::Make does not throw exception and crashes the app if constructor throws.
+/// To allow this class to access private constructor add "friend MakePolicy;" to your class.
+struct NoThrowCtor
+{
+  static const bool IsNoExcept = true;
 
-  /// NoThrowCtor MakePolicy passes all parameters to the constructor.
-  /// NoThrowCtor::Make does not throw exception and crashes the app if constructor throws.
-  /// To allow this class to access private constructor add "friend MakePolicy;" to your class.
-  struct NoThrowCtor
+  template <typename T, typename TMemoryGuard, typename... TArgs>
+  static void Make(TMemoryGuard& memoryGuard, TArgs&&... args) noexcept
   {
-    static const bool IsNoExcept = true;
+    memoryGuard.Obj = ::new (memoryGuard.ObjMemory) T(std::forward<TArgs>(args)...);
+    memoryGuard.ObjMemory = nullptr; // Memory is now controlled by the object. Set to null to avoid memory destruction.
+  }
+};
 
-    template <typename T, typename TMemoryGuard, typename... TArgs>
-    static void Make(TMemoryGuard& memoryGuard, TArgs&&... args) noexcept
-    {
-      memoryGuard.Obj = ::new (memoryGuard.ObjMemory) T(std::forward<TArgs>(args)...);
-      memoryGuard.ObjMemory =
-          nullptr; // Memory is now controlled by the object. Set to null to avoid memory destruction.
-    }
-  };
+/// ThrowCtorAndInitializeThis MakePolicy calls default constructor and then passes all parameters to InitializeThis
+/// method. ThrowCtor::Make may throw an exception if constructor or InitializeThis throw. To allow this class to
+/// access private constructor add "friend MakePolicy;" to your class.
+struct ThrowCtorAndInitializeThis
+{
+  static const bool IsNoExcept = false;
 
-  /// ThrowCtorAndInitializeThis MakePolicy calls default constructor and then passes all parameters to InitializeThis
-  /// method. ThrowCtor::Make may throw an exception if constructor or InitializeThis throw. To allow this class to
-  /// access private constructor add "friend MakePolicy;" to your class.
-  struct ThrowCtorAndInitializeThis
+  template <typename T, typename TMemoryGuard, typename... TArgs>
+  static void Make(TMemoryGuard& memoryGuard, TArgs&&... args)
   {
-    static const bool IsNoExcept = false;
+    OACR_POSSIBLE_THROW;
+    memoryGuard.Obj = ::new (memoryGuard.ObjMemory) T();
+    memoryGuard.ObjMemory = nullptr; // Memory is now controlled by the object. Set to null to avoid memory destruction.
+    memoryGuard.Obj->InitializeThis(std::forward<TArgs>(args)...);
+  }
+};
 
-    template <typename T, typename TMemoryGuard, typename... TArgs>
-    static void Make(TMemoryGuard& memoryGuard, TArgs&&... args)
-    {
-      OACR_POSSIBLE_THROW;
-      memoryGuard.Obj = ::new (memoryGuard.ObjMemory) T();
-      memoryGuard.ObjMemory =
-          nullptr; // Memory is now controlled by the object. Set to null to avoid memory destruction.
-      memoryGuard.Obj->InitializeThis(std::forward<TArgs>(args)...);
-    }
-  };
+/// NoThrowCtorAndInitializeThis MakePolicy calls default constructor and then passes all parameters to InitializeThis
+/// method. NoThrowCtor::Make does not throw exception and crashes the app if constructor or InitializeThis throw. To
+/// allow this class to access private constructor add "friend MakePolicy;" to your class.
+struct NoThrowCtorAndInitializeThis
+{
+  static const bool IsNoExcept = true;
 
-  /// NoThrowCtorAndInitializeThis MakePolicy calls default constructor and then passes all parameters to InitializeThis
-  /// method. NoThrowCtor::Make does not throw exception and crashes the app if constructor or InitializeThis throw. To
-  /// allow this class to access private constructor add "friend MakePolicy;" to your class.
-  struct NoThrowCtorAndInitializeThis
+  template <typename T, typename TMemoryGuard, typename... TArgs>
+  static void Make(TMemoryGuard& memoryGuard, TArgs&&... args) noexcept
   {
-    static const bool IsNoExcept = true;
-
-    template <typename T, typename TMemoryGuard, typename... TArgs>
-    static void Make(TMemoryGuard& memoryGuard, TArgs&&... args) noexcept
-    {
-      memoryGuard.Obj = ::new (memoryGuard.ObjMemory) T();
-      memoryGuard.ObjMemory =
-          nullptr; // Memory is now controlled by the object. Set to null to avoid memory destruction.
-      memoryGuard.Obj->InitializeThis(std::forward<TArgs>(args)...);
-    }
-  };
+    memoryGuard.Obj = ::new (memoryGuard.ObjMemory) T();
+    memoryGuard.ObjMemory = nullptr; // Memory is now controlled by the object. Set to null to avoid memory destruction.
+    memoryGuard.Obj->InitializeThis(std::forward<TArgs>(args)...);
+  }
+};
 
 } // namespace MakePolicy
 
@@ -216,7 +212,7 @@ struct MakeAllocator
 
 } // namespace Mso
 
-  #pragma pop_macro("new")
-  #pragma pack(pop)
+#pragma pop_macro("new")
+#pragma pack(pop)
 
 #endif // __cplusplus

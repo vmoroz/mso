@@ -189,16 +189,16 @@ private:
 
 namespace Details {
 
-  // Weak reference is always stored in object negative space.
-  inline Mso::ObjectWeakRef* GetWeakRef(const void* obj) noexcept
-  {
-    return *(static_cast<Mso::ObjectWeakRef**>(const_cast<void*>(obj)) - 1);
-  }
+// Weak reference is always stored in object negative space.
+inline Mso::ObjectWeakRef* GetWeakRef(const void* obj) noexcept
+{
+  return *(static_cast<Mso::ObjectWeakRef**>(const_cast<void*>(obj)) - 1);
+}
 
-  inline void SetWeakRef(const void* obj, Mso::ObjectWeakRef* weakRef) noexcept
-  {
-    *(static_cast<Mso::ObjectWeakRef**>(const_cast<void*>(obj)) - 1) = weakRef;
-  }
+inline void SetWeakRef(const void* obj, Mso::ObjectWeakRef* weakRef) noexcept
+{
+  *(static_cast<Mso::ObjectWeakRef**>(const_cast<void*>(obj)) - 1) = weakRef;
+}
 
 } // namespace Details
 
@@ -339,67 +339,67 @@ struct WeakRefCountPolicy
   Extend the supported Object ref count strategies with WeakRef.
 */
 namespace RefCountStrategy {
-  using WeakRef = WeakRefCountPolicy<DefaultRefCountedDeleter, MakeAllocator>;
+using WeakRef = WeakRefCountPolicy<DefaultRefCountedDeleter, MakeAllocator>;
 }
 
 namespace Details {
 
-  /**
-    Mso::MakeWeakRefObject creates a new instance of class T in container TContainer and returns a TCntPtr to the
-    instance of type TResult. TResult is either the original type T (default), or one of its interfaces. Returning an
-    interface type can help to avoid creation of unnecessary TCntPtr template instances.
+/**
+  Mso::MakeWeakRefObject creates a new instance of class T in container TContainer and returns a TCntPtr to the
+  instance of type TResult. TResult is either the original type T (default), or one of its interfaces. Returning an
+  interface type can help to avoid creation of unnecessary TCntPtr template instances.
 
-    Method MakeWeakRefObject is noexcept depending on the Make policy noexcept value.
-  */
-  template <
-      typename T,
-      typename TResult = T,
-      typename TContainer = ObjectWeakRefContainer<T, ObjectWeakRef>,
-      typename... TArgs>
-  inline Mso::TCntPtr<TResult> MakeWeakRefObject(TArgs&&... args) noexcept(T::MakePolicy::IsNoExcept)
-  {
-    typename T::RefCountPolicy::template MemoryGuard<T, TContainer> memoryGuard = {};
-    T::RefCountPolicy::AllocateMemory(memoryGuard);
-    VerifyAllocElseCrashTag(memoryGuard.ObjMemory, 0x0111774a /* tag_bex3k */);
+  Method MakeWeakRefObject is noexcept depending on the Make policy noexcept value.
+*/
+template <
+    typename T,
+    typename TResult = T,
+    typename TContainer = ObjectWeakRefContainer<T, ObjectWeakRef>,
+    typename... TArgs>
+inline Mso::TCntPtr<TResult> MakeWeakRefObject(TArgs&&... args) noexcept(T::MakePolicy::IsNoExcept)
+{
+  typename T::RefCountPolicy::template MemoryGuard<T, TContainer> memoryGuard = {};
+  T::RefCountPolicy::AllocateMemory(memoryGuard);
+  VerifyAllocElseCrashTag(memoryGuard.ObjMemory, 0x0111774a /* tag_bex3k */);
 
-    T::MakePolicy::template Make<T>(memoryGuard, std::forward<TArgs>(args)...);
-    Debug(T::RefCountPolicy::ValidateObject(memoryGuard));
+  T::MakePolicy::template Make<T>(memoryGuard, std::forward<TArgs>(args)...);
+  Debug(T::RefCountPolicy::ValidateObject(memoryGuard));
 
-    TResult* result = memoryGuard.Obj;
-    memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
-    return Mso::TCntPtr<TResult>(result, /*fDoAddRef*/ false);
-  }
+  TResult* result = memoryGuard.Obj;
+  memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
+  return Mso::TCntPtr<TResult>(result, /*fDoAddRef*/ false);
+}
 
-  /**
-    Mso::MakeAllocWeakRefObject is an Mso::MakeWeakRefObject method for types T that use allocators accepting an
-    argument. The allocator argument allows to implement stateful allocators.
+/**
+  Mso::MakeAllocWeakRefObject is an Mso::MakeWeakRefObject method for types T that use allocators accepting an
+  argument. The allocator argument allows to implement stateful allocators.
 
-    MakeAllocWeakRefObject creates a new instance of class T in container TContainer and returns a TCntPtr to the
-    instance of type TResult. TResult is either the original type T (default), or one of its interfaces. Returning an
-    interface type can help to avoid creation of unnecessary TCntPtr template instantiations.
+  MakeAllocWeakRefObject creates a new instance of class T in container TContainer and returns a TCntPtr to the
+  instance of type TResult. TResult is either the original type T (default), or one of its interfaces. Returning an
+  interface type can help to avoid creation of unnecessary TCntPtr template instantiations.
 
-    Method MakeAllocWeakRefObject is noexcept depending on the Make policy noexcept value.
-  */
-  template <
-      typename T,
-      typename TResult = T,
-      typename TContainer = ObjectWeakRefContainer<T, ObjectWeakRef>,
-      typename TAllocArg,
-      typename... TArgs>
-  inline Mso::TCntPtr<TResult> MakeAllocWeakRefObject(TAllocArg&& allocArg, TArgs&&... args) noexcept(
-      T::MakePolicy::IsNoExcept)
-  {
-    typename T::RefCountPolicy::template MemoryGuard<T, TContainer> memoryGuard = {};
-    T::RefCountPolicy::AllocateMemory(memoryGuard, std::forward<TAllocArg>(allocArg));
-    VerifyAllocElseCrashTag(memoryGuard.ObjMemory, 0x0111774b /* tag_bex3l */);
+  Method MakeAllocWeakRefObject is noexcept depending on the Make policy noexcept value.
+*/
+template <
+    typename T,
+    typename TResult = T,
+    typename TContainer = ObjectWeakRefContainer<T, ObjectWeakRef>,
+    typename TAllocArg,
+    typename... TArgs>
+inline Mso::TCntPtr<TResult> MakeAllocWeakRefObject(TAllocArg&& allocArg, TArgs&&... args) noexcept(
+    T::MakePolicy::IsNoExcept)
+{
+  typename T::RefCountPolicy::template MemoryGuard<T, TContainer> memoryGuard = {};
+  T::RefCountPolicy::AllocateMemory(memoryGuard, std::forward<TAllocArg>(allocArg));
+  VerifyAllocElseCrashTag(memoryGuard.ObjMemory, 0x0111774b /* tag_bex3l */);
 
-    T::MakePolicy::template Make<T>(memoryGuard, std::forward<TArgs>(args)...);
-    Debug(T::RefCountPolicy::ValidateObject(memoryGuard));
+  T::MakePolicy::template Make<T>(memoryGuard, std::forward<TArgs>(args)...);
+  Debug(T::RefCountPolicy::ValidateObject(memoryGuard));
 
-    TResult* result = memoryGuard.Obj;
-    memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
-    return Mso::TCntPtr<TResult>(result, /*fDoAddRef*/ false);
-  }
+  TResult* result = memoryGuard.Obj;
+  memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
+  return Mso::TCntPtr<TResult>(result, /*fDoAddRef*/ false);
+}
 
 } // namespace Details
 } // namespace Mso

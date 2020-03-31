@@ -17,35 +17,35 @@ __declspec(noreturn) void ThrowOOM()
 
 namespace Mso { namespace Memory {
 
-  MSOCPPAPI_(size_t) AllocationSize(_In_opt_ const void*) noexcept
-  {
-    VerifyElseCrashTag(false, 0x0115e605 /* tag_bf4yf */);
-  }
+MSOCPPAPI_(size_t) AllocationSize(_In_opt_ const void*) noexcept
+{
+  VerifyElseCrashTag(false, 0x0115e605 /* tag_bf4yf */);
+}
 
-  MSOCPPAPI_(void*) AllocateEx(size_t /*cb*/, DWORD /*allocFlags*/) noexcept
-  {
-    VerifyElseCrashTag(false, 0x006cc64b /* tag_a1mzl */);
-  }
+MSOCPPAPI_(void*) AllocateEx(size_t /*cb*/, DWORD /*allocFlags*/) noexcept
+{
+  VerifyElseCrashTag(false, 0x006cc64b /* tag_a1mzl */);
+}
 
-  MSOCPPAPI_(void*) Reallocate(_Inout_ void** /*ppv*/, size_t /*cb*/) noexcept
-  {
-    VerifyElseCrashTag(false, 0x006cc64c /* tag_a1mzm */);
-  }
+MSOCPPAPI_(void*) Reallocate(_Inout_ void** /*ppv*/, size_t /*cb*/) noexcept
+{
+  VerifyElseCrashTag(false, 0x006cc64c /* tag_a1mzm */);
+}
 
-  MSOCPPAPI_(void) Free(_In_opt_ void* /*pv*/) noexcept
-  {
-    VerifyElseCrashTag(false, 0x006cc64d /* tag_a1mzn */);
-  }
+MSOCPPAPI_(void) Free(_In_opt_ void* /*pv*/) noexcept
+{
+  VerifyElseCrashTag(false, 0x006cc64d /* tag_a1mzn */);
+}
 
 #ifdef DEBUG
-  MSOCPPAPI_(void) RegisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept
-  {
-    VerifyElseCrashTag(false, 0x006cc64e /* tag_a1mzo */);
-  }
-  MSOCPPAPI_(void) UnregisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept
-  {
-    VerifyElseCrashTag(false, 0x006cc64f /* tag_a1mzp */);
-  }
+MSOCPPAPI_(void) RegisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept
+{
+  VerifyElseCrashTag(false, 0x006cc64e /* tag_a1mzo */);
+}
+MSOCPPAPI_(void) UnregisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept
+{
+  VerifyElseCrashTag(false, 0x006cc64f /* tag_a1mzp */);
+}
 #endif
 
 }} // namespace Mso::Memory

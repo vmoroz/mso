@@ -85,17 +85,17 @@
 
 #pragma once
 #ifndef LIBLET_CORE_FUNCTORREF_H
-  #define LIBLET_CORE_FUNCTORREF_H
+#define LIBLET_CORE_FUNCTORREF_H
 
-  #include <compilerAdapters/cppMacros.h>
-  #include <crash/verifyElseCrash.h>
+#include <compilerAdapters/cppMacros.h>
+#include <crash/verifyElseCrash.h>
 
-  #include <memory>
-  #include <type_traits>
-  #include <utility>
+#include <memory>
+#include <type_traits>
+#include <utility>
 
-  #pragma push_macro("new")
-  #undef new
+#pragma push_macro("new")
+#undef new
 
 namespace Mso {
 
@@ -109,18 +109,18 @@ class FunctorRefThrow;
 
 namespace Details {
 
-  // FunctorRefStorage should be big enough to contain a v-table pointer and a reference.
-  // We use 8-byte alignment. On 32-bit platform the storage will be 8 bytes, and for 64-bit - 16 bytes.
-  using FunctorRefStorage = std::aligned_storage<sizeof(uintptr_t) * 2, 8>::type;
+// FunctorRefStorage should be big enough to contain a v-table pointer and a reference.
+// We use 8-byte alignment. On 32-bit platform the storage will be 8 bytes, and for 64-bit - 16 bytes.
+using FunctorRefStorage = std::aligned_storage<sizeof(uintptr_t) * 2, 8>::type;
 
 } // namespace Details
 
 //! Reference to a non-throwing function object.
 template <typename TResult, typename... TArgs>
 class FunctorRef<TResult(TArgs...)>
-  #if !defined(__cpp_noexcept_function_type) && (_HAS_NOEXCEPT_FUNCTION_TYPES != 1)
+#if !defined(__cpp_noexcept_function_type) && (_HAS_NOEXCEPT_FUNCTION_TYPES != 1)
     final
-  #endif
+#endif
 {
 public:
   //! Creates an empty FunctorRef
@@ -202,7 +202,7 @@ private:
   Details::FunctorRefStorage m_storage{0};
 };
 
-  #if defined(__cpp_noexcept_function_type) || (_HAS_NOEXCEPT_FUNCTION_TYPES == 1)
+#if defined(__cpp_noexcept_function_type) || (_HAS_NOEXCEPT_FUNCTION_TYPES == 1)
 
 // Treat the noexcept in function signature the same way as if it was not there.
 
@@ -213,7 +213,7 @@ public:
   using FunctorRef<TResult(TArgs...)>::FunctorRef;
 };
 
-  #endif
+#endif
 
 //! Reference to a throwing function object.
 template <typename TResult, typename... TArgs>
@@ -303,6 +303,6 @@ using VoidFunctorRefThrow = FunctorRefThrow<void()>;
 
 } // namespace Mso
 
-  #pragma pop_macro("new")
+#pragma pop_macro("new")
 
 #endif // LIBLET_CORE_FUNCTORREF_H

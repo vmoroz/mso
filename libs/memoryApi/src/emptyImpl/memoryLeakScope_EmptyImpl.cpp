@@ -13,23 +13,23 @@
 
 namespace Mso { namespace Memory {
 
-  bool IsInShutdownLeakScope() noexcept
-  {
-    return false;
-  }
+bool IsInShutdownLeakScope() noexcept
+{
+  return false;
+}
 
-  void EnterShutdownLeakScope(unsigned int /*framesToSkip*/) noexcept {}
+void EnterShutdownLeakScope(unsigned int /*framesToSkip*/) noexcept {}
 
-  void LeaveShutdownLeakScope() noexcept {}
+void LeaveShutdownLeakScope() noexcept {}
 
-  bool IsInIgnoreLeakScope() noexcept
-  {
-    return false;
-  }
+bool IsInIgnoreLeakScope() noexcept
+{
+  return false;
+}
 
-  void EnterIgnoreLeakScope(unsigned int /*framesToSkip*/) noexcept {}
+void EnterIgnoreLeakScope(unsigned int /*framesToSkip*/) noexcept {}
 
-  void LeaveIgnoreLeakScope() noexcept {}
+void LeaveIgnoreLeakScope() noexcept {}
 
 }} // namespace Mso::Memory
 

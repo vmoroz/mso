@@ -8,21 +8,21 @@ namespace Mso { namespace DebugAsserts {
 
 #ifdef DEBUG
 
-  /**
-    Legacy APIs for disabling asserts
-  */
-  LIBLET_PUBLICAPI void DisableAssertTag(uint32_t tag) noexcept;
-  LIBLET_PUBLICAPI void EnableAssertTag(uint32_t tag) noexcept;
-  LIBLET_PUBLICAPI bool IsAssertTagDisabled(uint32_t tag) noexcept;
+/**
+  Legacy APIs for disabling asserts
+*/
+LIBLET_PUBLICAPI void DisableAssertTag(uint32_t tag) noexcept;
+LIBLET_PUBLICAPI void EnableAssertTag(uint32_t tag) noexcept;
+LIBLET_PUBLICAPI bool IsAssertTagDisabled(uint32_t tag) noexcept;
 
 #else
 
-  inline void DisableAssertTag(uint32_t) noexcept {}
-  inline void EnableAssertTag(uint32_t) noexcept {}
-  inline bool IsAssertTagDisabled(uint32_t) noexcept
-  {
-    return false;
-  }
+inline void DisableAssertTag(uint32_t) noexcept {}
+inline void EnableAssertTag(uint32_t) noexcept {}
+inline bool IsAssertTagDisabled(uint32_t) noexcept
+{
+  return false;
+}
 
 #endif
 

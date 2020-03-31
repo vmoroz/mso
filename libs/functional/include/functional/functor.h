@@ -25,61 +25,61 @@
 
 #pragma once
 #ifndef LIBLET_CORE_FUNCTOR_H
-  #define LIBLET_CORE_FUNCTOR_H
-  #include <object/refCountedObject.h>
-  #include <object/unknownObject.h>
-  #include <functional>
-  #include <type_traits>
+#define LIBLET_CORE_FUNCTOR_H
+#include <object/refCountedObject.h>
+#include <object/unknownObject.h>
+#include <functional>
+#include <type_traits>
 
-  #pragma push_macro("new")
-  #undef new
+#pragma push_macro("new")
+#undef new
 
-  //! These are set of macros to generate code that depends on
-  //! calling conventions and other function decorators.
-  #ifdef __clang__
-    #define MSO_EMIT_CDECL(func, cvOpt, refOpt, noexceptOpt) func(, cvOpt, refOpt, noexceptOpt)
-  #else
-    #define MSO_EMIT_CDECL(func, cvOpt, refOpt, noexceptOpt) func(__cdecl, cvOpt, refOpt, noexceptOpt)
-  #endif
+//! These are set of macros to generate code that depends on
+//! calling conventions and other function decorators.
+#ifdef __clang__
+#define MSO_EMIT_CDECL(func, cvOpt, refOpt, noexceptOpt) func(, cvOpt, refOpt, noexceptOpt)
+#else
+#define MSO_EMIT_CDECL(func, cvOpt, refOpt, noexceptOpt) func(__cdecl, cvOpt, refOpt, noexceptOpt)
+#endif
 
-  #if !defined(__clang__) && defined(_M_CEE)
-    #define MSO_EMIT_CLRCALL(func, cvOpt, refOpt, noexceptOpt) func(__clrcall, cvOpt, refOpt, noexceptOpt)
-  #else
-    #define MSO_EMIT_CLRCALL(func, cvOpt, refOpt, noexceptOpt)
-  #endif
+#if !defined(__clang__) && defined(_M_CEE)
+#define MSO_EMIT_CLRCALL(func, cvOpt, refOpt, noexceptOpt) func(__clrcall, cvOpt, refOpt, noexceptOpt)
+#else
+#define MSO_EMIT_CLRCALL(func, cvOpt, refOpt, noexceptOpt)
+#endif
 
-  #if !defined(__clang__) && defined(_M_IX86) && !defined(_M_CEE)
-    #define MSO_EMIT_FASTCALL(func, cvOpt, refOpt, noexceptOpt) func(__fastcall, cvOpt, refOpt, noexceptOpt)
-  #else
-    #define MSO_EMIT_FASTCALL(func, cvOpt, refOpt, noexceptOpt)
-  #endif
+#if !defined(__clang__) && defined(_M_IX86) && !defined(_M_CEE)
+#define MSO_EMIT_FASTCALL(func, cvOpt, refOpt, noexceptOpt) func(__fastcall, cvOpt, refOpt, noexceptOpt)
+#else
+#define MSO_EMIT_FASTCALL(func, cvOpt, refOpt, noexceptOpt)
+#endif
 
-  #if !defined(__clang__) && defined(_M_IX86)
-    #define MSO_EMIT_STDCALL(func, cvOpt, refOpt, noexceptOpt) func(__stdcall, cvOpt, refOpt, noexceptOpt)
-  #else
-    #define MSO_EMIT_STDCALL(func, cvOpt, refOpt, noexceptOpt)
-  #endif
+#if !defined(__clang__) && defined(_M_IX86)
+#define MSO_EMIT_STDCALL(func, cvOpt, refOpt, noexceptOpt) func(__stdcall, cvOpt, refOpt, noexceptOpt)
+#else
+#define MSO_EMIT_STDCALL(func, cvOpt, refOpt, noexceptOpt)
+#endif
 
-  #if !defined(__clang__) && ((defined(_M_IX86) && _M_IX86_FP >= 2) || defined(_M_X64)) && !defined(_M_CEE)
-    #define MSO_EMIT_VECTORCALL(func, cvOpt, refOpt, noexceptOpt) func(__vectorcall, cvOpt, refOpt, noexceptOpt)
-  #else
-    #define MSO_EMIT_VECTORCALL(func, cvOpt, refOpt, noexceptOpt)
-  #endif
+#if !defined(__clang__) && ((defined(_M_IX86) && _M_IX86_FP >= 2) || defined(_M_X64)) && !defined(_M_CEE)
+#define MSO_EMIT_VECTORCALL(func, cvOpt, refOpt, noexceptOpt) func(__vectorcall, cvOpt, refOpt, noexceptOpt)
+#else
+#define MSO_EMIT_VECTORCALL(func, cvOpt, refOpt, noexceptOpt)
+#endif
 
-  #define MSO_NON_MEMBER_CALL(func, noexceptOpt) \
-    MSO_EMIT_CDECL(func, , , noexceptOpt)        \
-    MSO_EMIT_CLRCALL(func, , , noexceptOpt)      \
-    MSO_EMIT_FASTCALL(func, , , noexceptOpt)     \
-    MSO_EMIT_STDCALL(func, , , noexceptOpt)      \
-    MSO_EMIT_VECTORCALL(func, , , noexceptOpt)
+#define MSO_NON_MEMBER_CALL(func, noexceptOpt) \
+  MSO_EMIT_CDECL(func, , , noexceptOpt)        \
+  MSO_EMIT_CLRCALL(func, , , noexceptOpt)      \
+  MSO_EMIT_FASTCALL(func, , , noexceptOpt)     \
+  MSO_EMIT_STDCALL(func, , , noexceptOpt)      \
+  MSO_EMIT_VECTORCALL(func, , , noexceptOpt)
 
-  #if defined(__cpp_noexcept_function_type) || (_HAS_NOEXCEPT_FUNCTION_TYPES == 1)
-    #define MSO_NON_MEMBER_CALL_NOEXCEPT(func) \
-      MSO_NON_MEMBER_CALL(func, )              \
-      MSO_NON_MEMBER_CALL(func, noexcept)
-  #else
-    #define MSO_NON_MEMBER_CALL_NOEXCEPT(func) MSO_NON_MEMBER_CALL(func, )
-  #endif
+#if defined(__cpp_noexcept_function_type) || (_HAS_NOEXCEPT_FUNCTION_TYPES == 1)
+#define MSO_NON_MEMBER_CALL_NOEXCEPT(func) \
+  MSO_NON_MEMBER_CALL(func, )              \
+  MSO_NON_MEMBER_CALL(func, noexcept)
+#else
+#define MSO_NON_MEMBER_CALL_NOEXCEPT(func) MSO_NON_MEMBER_CALL(func, )
+#endif
 
 namespace Mso {
 
@@ -104,240 +104,240 @@ struct DECLSPEC_NOVTABLE IFunctorThrow : IUnknown
 
 namespace Details {
 
-  //! The library that we use for Android and Apple platforms
-  //! has a bug in std::is_function implementation where it does not recognize the
-  //! functions with 'noexcept' in signature as functions.
-  //! This code is to fix it for the non-MSVC platforms
+//! The library that we use for Android and Apple platforms
+//! has a bug in std::is_function implementation where it does not recognize the
+//! functions with 'noexcept' in signature as functions.
+//! This code is to fix it for the non-MSVC platforms
 
-  #ifdef __clang__
+#ifdef __clang__
+template <typename T>
+struct IsFunction : std::false_type
+{
+};
+
+#define MSO_IS_FUNCTION(CALL_OPT, X1, X2, NOEXCEPT_OPT)                       \
+  template <typename TResult, typename... TArgs>                              \
+  struct IsFunction<TResult CALL_OPT(TArgs...) NOEXCEPT_OPT> : std::true_type \
+  {                                                                           \
+  };
+
+MSO_NON_MEMBER_CALL_NOEXCEPT(MSO_IS_FUNCTION)
+#undef MSO_IS_FUNCTION
+
+template <typename T>
+struct Decay
+{
+  using NoRefType = std::remove_reference_t<T>;
+  using Type =
+      std::conditional_t<IsFunction<NoRefType>::value, std::add_pointer_t<NoRefType>, std::remove_cv_t<NoRefType>>;
+};
+
+template <typename T>
+using Decay_t = typename Decay<T>::Type;
+
+#else // __clang__
+
+template <typename T>
+using IsFunction = std::is_function<T>;
+
+template <typename T>
+using Decay_t = std::decay_t<T>;
+
+#endif // __clang__
+
+//! Base class for functor objects that need constexpr constructors
+//! Mostly equivalent to Mso::UnknownObject<Mso::RefCountStrategy::NoRefCountNoQuery>.
+//! The tradeoff is that it doesn't have a virtual destructor, which simplifies
+//! construction of static instances, but means that anything using this base class
+//! cannot have any non-trivial member variables.
+template <typename TIFunctor>
+struct ConstexprFunctorBase : public TIFunctor
+{
+  _Success_(return == S_OK)
+      STDMETHOD(QueryInterface)(const GUID& /*riid*/, _Outptr_ void** /*ppvObject*/) noexcept override
+  {
+    return E_FAIL;
+  }
+  STDMETHOD_(ULONG, AddRef)() noexcept override
+  {
+    return 1;
+  }
+  STDMETHOD_(ULONG, Release)() noexcept override
+  {
+    return 1;
+  }
+};
+
+//! Function object wrapper. It can be a lambda or a class implementing call operator().
+template <typename TFunc, typename TResult, typename... TArgs>
+class FunctionObjectWrapper final
+    : public Mso::UnknownObject<Mso::RefCountStrategy::SimpleNoQuery, Mso::IFunctor<TResult, TArgs...>>
+{
+public:
+  FunctionObjectWrapper() = delete;
+  DECLARE_COPYCONSTR_AND_ASSIGNMENT(FunctionObjectWrapper);
+
   template <typename T>
-  struct IsFunction : std::false_type
+  FunctionObjectWrapper(T&& func) noexcept : m_func(std::forward<T>(func))
   {
-  };
-
-    #define MSO_IS_FUNCTION(CALL_OPT, X1, X2, NOEXCEPT_OPT)                       \
-      template <typename TResult, typename... TArgs>                              \
-      struct IsFunction<TResult CALL_OPT(TArgs...) NOEXCEPT_OPT> : std::true_type \
-      {                                                                           \
-      };
-
-  MSO_NON_MEMBER_CALL_NOEXCEPT(MSO_IS_FUNCTION)
-    #undef MSO_IS_FUNCTION
-
-  template <typename T>
-  struct Decay
-  {
-    using NoRefType = std::remove_reference_t<T>;
-    using Type =
-        std::conditional_t<IsFunction<NoRefType>::value, std::add_pointer_t<NoRefType>, std::remove_cv_t<NoRefType>>;
-  };
-
-  template <typename T>
-  using Decay_t = typename Decay<T>::Type;
-
-  #else // __clang__
-
-  template <typename T>
-  using IsFunction = std::is_function<T>;
-
-  template <typename T>
-  using Decay_t = std::decay_t<T>;
-
-  #endif // __clang__
-
-  //! Base class for functor objects that need constexpr constructors
-  //! Mostly equivalent to Mso::UnknownObject<Mso::RefCountStrategy::NoRefCountNoQuery>.
-  //! The tradeoff is that it doesn't have a virtual destructor, which simplifies
-  //! construction of static instances, but means that anything using this base class
-  //! cannot have any non-trivial member variables.
-  template <typename TIFunctor>
-  struct ConstexprFunctorBase : public TIFunctor
-  {
-    _Success_(return == S_OK)
-        STDMETHOD(QueryInterface)(const GUID& /*riid*/, _Outptr_ void** /*ppvObject*/) noexcept override
-    {
-      return E_FAIL;
-    }
-    STDMETHOD_(ULONG, AddRef)() noexcept override
-    {
-      return 1;
-    }
-    STDMETHOD_(ULONG, Release)() noexcept override
-    {
-      return 1;
-    }
-  };
-
-  //! Function object wrapper. It can be a lambda or a class implementing call operator().
-  template <typename TFunc, typename TResult, typename... TArgs>
-  class FunctionObjectWrapper final
-      : public Mso::UnknownObject<Mso::RefCountStrategy::SimpleNoQuery, Mso::IFunctor<TResult, TArgs...>>
-  {
-  public:
-    FunctionObjectWrapper() = delete;
-    DECLARE_COPYCONSTR_AND_ASSIGNMENT(FunctionObjectWrapper);
-
-    template <typename T>
-    FunctionObjectWrapper(T&& func) noexcept : m_func(std::forward<T>(func))
-    {
-    }
-
-    virtual TResult Invoke(TArgs&&... args) noexcept override
-    {
-      return m_func(std::forward<TArgs>(args)...);
-    }
-
-  private:
-    TFunc m_func;
-  };
-
-  //! Throwing function object wrapper. It can be a lambda or a class implementing call operator().
-  template <typename TFunc, typename TResult, typename... TArgs>
-  class FunctionObjectWrapperThrow final
-      : public Mso::UnknownObject<Mso::RefCountStrategy::SimpleNoQuery, Mso::IFunctorThrow<TResult, TArgs...>>
-  {
-  public:
-    FunctionObjectWrapperThrow() = delete;
-    DECLARE_COPYCONSTR_AND_ASSIGNMENT(FunctionObjectWrapperThrow);
-
-    template <typename T>
-    FunctionObjectWrapperThrow(T&& func) noexcept : m_func(std::forward<T>(func))
-    {
-    }
-
-    virtual TResult Invoke(TArgs&&... args) override
-    {
-      return m_func(std::forward<TArgs>(args)...);
-    }
-
-  private:
-    TFunc m_func;
-  };
-
-  //! Function pointer wrapper. For function pointers, we can avoid a heap allocation by making a
-  //! static wrapper object for each function that we want to use, because we don't need to store
-  //! per-Functor state.
-  template <typename TFunc, typename TResult, typename... TArgs>
-  class FunctionPointerWrapper final : public ConstexprFunctorBase<Mso::IFunctor<TResult, TArgs...>>
-  {
-    static_assert(std::is_pointer<TFunc>::value, "Must be a pointer");
-    static_assert(Mso::Details::IsFunction<std::remove_pointer_t<TFunc>>::value, "Must be a function pointer");
-
-  public:
-    constexpr FunctionPointerWrapper(TFunc func) noexcept : m_func(func) {}
-
-    TResult Invoke(TArgs&&... args) noexcept override
-    {
-      return (*m_func)(std::forward<TArgs>(args)...);
-    }
-
-  private:
-    TFunc m_func;
-  };
-
-  //! Throwing function pointer wrapper
-  template <typename TFunc, typename TResult, typename... TArgs>
-  class FunctionPointerWrapperThrow final : public ConstexprFunctorBase<Mso::IFunctorThrow<TResult, TArgs...>>
-  {
-    static_assert(std::is_pointer<TFunc>::value, "Must be a pointer");
-    static_assert(Mso::Details::IsFunction<std::remove_pointer_t<TFunc>>::value, "Must be a function pointer");
-
-  public:
-    constexpr FunctionPointerWrapperThrow(TFunc func) noexcept : m_func(func) {}
-
-    TResult Invoke(TArgs&&... args) override
-    {
-      return (*m_func)(std::forward<TArgs>(args)...);
-    }
-
-  private:
-    TFunc m_func;
-  };
-
-  //! Stateless function wrapper. For function objects that carry no state, we
-  //! can take a shortcut and reuse a static instance of IFunctor rather than
-  //! allocating a new wrapper object on the heap each time.
-  //! I'm not aware of this existing previously, so I'm going to take the
-  //! opportunity to name this technique the "Really Small Functor Optimization".
-  template <typename TFunc, typename TResult, typename... TArgs>
-  class StatelessFunctorWrapper final : public ConstexprFunctorBase<Mso::IFunctor<TResult, TArgs...>>
-  {
-  public:
-    constexpr StatelessFunctorWrapper(TFunc& func) noexcept : m_func(func) {}
-
-    TResult Invoke(TArgs&&... args) noexcept override
-    {
-      return m_func(std::forward<TArgs>(args)...);
-    }
-
-  private:
-    TFunc& m_func;
-  };
-
-  //! Throwing stateless functor wrapper
-  template <typename TFunc, typename TResult, typename... TArgs>
-  class StatelessFunctorWrapperThrow final : public ConstexprFunctorBase<Mso::IFunctorThrow<TResult, TArgs...>>
-  {
-  public:
-    constexpr StatelessFunctorWrapperThrow(TFunc& func) noexcept : m_func(func) {}
-
-    TResult Invoke(TArgs&&... args) override
-    {
-      return m_func(std::forward<TArgs>(args)...);
-    }
-
-  private:
-    TFunc& m_func;
-  };
-
-  template <typename TResult, typename... TArgs>
-  TResult DoNothingFunction(TArgs...) noexcept
-  {
-    return TResult();
   }
 
-  template <typename TFunc, typename TResult, typename... TArgs>
-  struct IsFunctionObject
+  virtual TResult Invoke(TArgs&&... args) noexcept override
   {
-  private:
-    template <typename T>
-    static auto CheckFunctionObject(T&& t, int)
-        -> decltype(static_cast<TResult>(std::forward<T>(t)(std::declval<TArgs>()...)), std::true_type());
+    return m_func(std::forward<TArgs>(args)...);
+  }
 
-    template <typename T>
-    static std::false_type CheckFunctionObject(T&& t, void*);
+private:
+  TFunc m_func;
+};
 
-  public:
-    //! IsFunctionObject is true when provided TFunc type is a function object with operator() that accepts
-    //! arguments of type TArgs... and its result can be converted to TResult.
-    constexpr static const bool Value = decltype(CheckFunctionObject<TFunc>(std::declval<TFunc>(), 0))::value;
-  };
+//! Throwing function object wrapper. It can be a lambda or a class implementing call operator().
+template <typename TFunc, typename TResult, typename... TArgs>
+class FunctionObjectWrapperThrow final
+    : public Mso::UnknownObject<Mso::RefCountStrategy::SimpleNoQuery, Mso::IFunctorThrow<TResult, TArgs...>>
+{
+public:
+  FunctionObjectWrapperThrow() = delete;
+  DECLARE_COPYCONSTR_AND_ASSIGNMENT(FunctionObjectWrapperThrow);
 
-  //! Checks if T is an Mso::Functor
   template <typename T>
-  struct IsMsoFunctor : std::false_type
+  FunctionObjectWrapperThrow(T&& func) noexcept : m_func(std::forward<T>(func))
   {
-  };
-  template <typename T>
-  struct IsMsoFunctor<Mso::Functor<T>> : std::true_type
-  {
-  };
+  }
 
-  //! Checks if T is an Mso::FunctorThrow
-  template <typename T>
-  struct IsMsoFunctorThrow : std::false_type
+  virtual TResult Invoke(TArgs&&... args) override
   {
-  };
-  template <typename T>
-  struct IsMsoFunctorThrow<Mso::FunctorThrow<T>> : std::true_type
-  {
-  };
+    return m_func(std::forward<TArgs>(args)...);
+  }
 
-  template <typename TFunc, typename... TArgs>
-  struct IsNoExceptFunctionObject
+private:
+  TFunc m_func;
+};
+
+//! Function pointer wrapper. For function pointers, we can avoid a heap allocation by making a
+//! static wrapper object for each function that we want to use, because we don't need to store
+//! per-Functor state.
+template <typename TFunc, typename TResult, typename... TArgs>
+class FunctionPointerWrapper final : public ConstexprFunctorBase<Mso::IFunctor<TResult, TArgs...>>
+{
+  static_assert(std::is_pointer<TFunc>::value, "Must be a pointer");
+  static_assert(Mso::Details::IsFunction<std::remove_pointer_t<TFunc>>::value, "Must be a function pointer");
+
+public:
+  constexpr FunctionPointerWrapper(TFunc func) noexcept : m_func(func) {}
+
+  TResult Invoke(TArgs&&... args) noexcept override
   {
-    constexpr static const bool Value = noexcept(std::declval<TFunc>()(std::declval<TArgs>()...));
-  };
+    return (*m_func)(std::forward<TArgs>(args)...);
+  }
+
+private:
+  TFunc m_func;
+};
+
+//! Throwing function pointer wrapper
+template <typename TFunc, typename TResult, typename... TArgs>
+class FunctionPointerWrapperThrow final : public ConstexprFunctorBase<Mso::IFunctorThrow<TResult, TArgs...>>
+{
+  static_assert(std::is_pointer<TFunc>::value, "Must be a pointer");
+  static_assert(Mso::Details::IsFunction<std::remove_pointer_t<TFunc>>::value, "Must be a function pointer");
+
+public:
+  constexpr FunctionPointerWrapperThrow(TFunc func) noexcept : m_func(func) {}
+
+  TResult Invoke(TArgs&&... args) override
+  {
+    return (*m_func)(std::forward<TArgs>(args)...);
+  }
+
+private:
+  TFunc m_func;
+};
+
+//! Stateless function wrapper. For function objects that carry no state, we
+//! can take a shortcut and reuse a static instance of IFunctor rather than
+//! allocating a new wrapper object on the heap each time.
+//! I'm not aware of this existing previously, so I'm going to take the
+//! opportunity to name this technique the "Really Small Functor Optimization".
+template <typename TFunc, typename TResult, typename... TArgs>
+class StatelessFunctorWrapper final : public ConstexprFunctorBase<Mso::IFunctor<TResult, TArgs...>>
+{
+public:
+  constexpr StatelessFunctorWrapper(TFunc& func) noexcept : m_func(func) {}
+
+  TResult Invoke(TArgs&&... args) noexcept override
+  {
+    return m_func(std::forward<TArgs>(args)...);
+  }
+
+private:
+  TFunc& m_func;
+};
+
+//! Throwing stateless functor wrapper
+template <typename TFunc, typename TResult, typename... TArgs>
+class StatelessFunctorWrapperThrow final : public ConstexprFunctorBase<Mso::IFunctorThrow<TResult, TArgs...>>
+{
+public:
+  constexpr StatelessFunctorWrapperThrow(TFunc& func) noexcept : m_func(func) {}
+
+  TResult Invoke(TArgs&&... args) override
+  {
+    return m_func(std::forward<TArgs>(args)...);
+  }
+
+private:
+  TFunc& m_func;
+};
+
+template <typename TResult, typename... TArgs>
+TResult DoNothingFunction(TArgs...) noexcept
+{
+  return TResult();
+}
+
+template <typename TFunc, typename TResult, typename... TArgs>
+struct IsFunctionObject
+{
+private:
+  template <typename T>
+  static auto CheckFunctionObject(T&& t, int)
+      -> decltype(static_cast<TResult>(std::forward<T>(t)(std::declval<TArgs>()...)), std::true_type());
+
+  template <typename T>
+  static std::false_type CheckFunctionObject(T&& t, void*);
+
+public:
+  //! IsFunctionObject is true when provided TFunc type is a function object with operator() that accepts
+  //! arguments of type TArgs... and its result can be converted to TResult.
+  constexpr static const bool Value = decltype(CheckFunctionObject<TFunc>(std::declval<TFunc>(), 0))::value;
+};
+
+//! Checks if T is an Mso::Functor
+template <typename T>
+struct IsMsoFunctor : std::false_type
+{
+};
+template <typename T>
+struct IsMsoFunctor<Mso::Functor<T>> : std::true_type
+{
+};
+
+//! Checks if T is an Mso::FunctorThrow
+template <typename T>
+struct IsMsoFunctorThrow : std::false_type
+{
+};
+template <typename T>
+struct IsMsoFunctorThrow<Mso::FunctorThrow<T>> : std::true_type
+{
+};
+
+template <typename TFunc, typename... TArgs>
+struct IsNoExceptFunctionObject
+{
+  constexpr static const bool Value = noexcept(std::declval<TFunc>()(std::declval<TArgs>()...));
+};
 
 } // namespace Details
 
@@ -531,7 +531,7 @@ private:
   Mso::TCntPtr<IFunctor> m_impl;
 };
 
-  #if defined(__cpp_noexcept_function_type) || (_HAS_NOEXCEPT_FUNCTION_TYPES == 1)
+#if defined(__cpp_noexcept_function_type) || (_HAS_NOEXCEPT_FUNCTION_TYPES == 1)
 
 // Treat the noexcept in function signature the same way as if it was not there.
 
@@ -547,7 +547,7 @@ public:
   }
 };
 
-  #endif
+#endif
 
 /**
   FunctorThrow is a smart pointer to a IFunctorThrow instance.
@@ -800,6 +800,6 @@ inline void swap(Mso::FunctorThrow<T>& left, Mso::FunctorThrow<T>& right) noexce
 
 } // namespace std
 
-  #pragma pop_macro("new")
+#pragma pop_macro("new")
 
 #endif // LIBLET_CORE_FUNCTOR_H

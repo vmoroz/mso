@@ -8,11 +8,11 @@ CRT based implementation for Mso::Memory on Apple platform
 #include <malloc.h>
 
 namespace Mso { namespace Memory {
-  MSOCPPAPI_(size_t) AllocationSize(_In_opt_ const void* pv) noexcept
-  {
-    if (pv == nullptr)
-      return 0;
+MSOCPPAPI_(size_t) AllocationSize(_In_opt_ const void* pv) noexcept
+{
+  if (pv == nullptr)
+    return 0;
 
-    return ::malloc_size(const_cast<void*>(pv));
-  }
+  return ::malloc_size(const_cast<void*>(pv));
+}
 }} // namespace Mso::Memory

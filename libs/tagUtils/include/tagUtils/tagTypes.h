@@ -3,9 +3,9 @@
 
 #pragma once
 #ifndef LIBLET_TAGUTILS_TAGTYPES_H
-  #define LIBLET_TAGUTILS_TAGTYPES_H
+#define LIBLET_TAGUTILS_TAGTYPES_H
 
-  #if __cplusplus && !defined(MS_TARGET_POSIX)
+#if __cplusplus && !defined(MS_TARGET_POSIX)
 /**
 Default tag to use, will be replaced later by tagging script.
 ie: AssertTag(FALSE, UNTAGGED);
@@ -40,23 +40,23 @@ constexpr inline MsoReserveTag MsoReserve() noexcept
   return MsoReserveTag(UNTAGGED);
 }
 
-  #else
+#else
 
-    #if __OBJC__
-      #define UNTAGGED ('0' << 24 | '0' << 16 | '0' << 8 | '0')
-    #else
-      #define UNTAGGED '0000'
-    #endif
+#if __OBJC__
+#define UNTAGGED ('0' << 24 | '0' << 16 | '0' << 8 | '0')
+#else
+#define UNTAGGED '0000'
+#endif
 
-    #define MsoReserve() MsoReserveTag(UNTAGGED)
-    #define MsoReserveTag(x) x
+#define MsoReserve() MsoReserveTag(UNTAGGED)
+#define MsoReserveTag(x) x
 
-  #endif
+#endif
 
-  /**
-  Used for legacy 4-character tags
-  AssertTag(FALSE, ASSERTTAG('abcd'));
-  */
-  #define ASSERTTAG(x) x
+/**
+Used for legacy 4-character tags
+AssertTag(FALSE, ASSERTTAG('abcd'));
+*/
+#define ASSERTTAG(x) x
 
 #endif // LIBLET_TAGUTILS_TAGTYPES_H

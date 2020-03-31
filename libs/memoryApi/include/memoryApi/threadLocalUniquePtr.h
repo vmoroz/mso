@@ -4,8 +4,8 @@
 #ifndef _CPPEXTENSIONS_THREADLOCALUNIQUEPTR_H_
 #define _CPPEXTENSIONS_THREADLOCALUNIQUEPTR_H_
 #ifdef __cplusplus
-  #include <memoryleakscope/memoryleakscope.h>
-  #include <threadlocal/threadlocal.h>
+#include <memoryleakscope/memoryleakscope.h>
+#include <threadlocal/threadlocal.h>
 
 namespace Mso {
 
@@ -41,9 +41,9 @@ public:
     auto t = get();
     if (!t)
     {
-  #ifdef DEBUG
+#ifdef DEBUG
       Mso::Memory::AutoIgnoreLeakScope ignoreTlsVar;
-  #endif
+#endif
       t = new T();
       reset(t);
     }

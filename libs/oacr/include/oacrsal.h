@@ -400,13 +400,13 @@
 // The file and line at the annotation site is collected automatically by OACR_CAPTURE_CALLS_FILE_LINE
 
 #if !defined(OACR_CAPTURE_CALLS)
-  #define OACR_CAPTURE_CALLS(tag) _SA_annotes1(SAL_OACRCapture, tag)
+#define OACR_CAPTURE_CALLS(tag) _SA_annotes1(SAL_OACRCapture, tag)
 #endif
 
 #if !defined(OACR_CAPTURE_CALLS_FILE_LINE)
-  #define OACR_CAPTURE_CALLS_FILE_LINE(tag) _SA_annotes3(SAL_OACRCapture, tag, __FILE__, __LINE__)
+#define OACR_CAPTURE_CALLS_FILE_LINE(tag) _SA_annotes3(SAL_OACRCapture, tag, __FILE__, __LINE__)
 #endif
 
 #if !defined(OACR_CAPTURE_FIXUP)
-  #define OACR_CAPTURE_FIXUP(tag, match, replace) _SA_annotes3(SAL_OACRCapture, tag_FIXUP, match, replace)
+#define OACR_CAPTURE_FIXUP(tag, match, replace) _SA_annotes3(SAL_OACRCapture, tag_FIXUP, match, replace)
 #endif

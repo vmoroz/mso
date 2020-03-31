@@ -6,13 +6,13 @@
 */
 #pragma once
 #ifndef LIBLET_PLATFORMADAPTERS_MSOGUID_H
-  #define LIBLET_PLATFORMADAPTERS_MSOGUID_H
+#define LIBLET_PLATFORMADAPTERS_MSOGUID_H
 
-  #include <guiddef.h>
-  #include <oacr.h>
+#include <guiddef.h>
+#include <oacr.h>
 
-  #ifdef __cplusplus
-    #include <platformAdapters/msoGuidDetails.h>
+#ifdef __cplusplus
+#include <platformAdapters/msoGuidDetails.h>
 
 /**
 MSO_STRUCT_GUID or MSO_CLASS_GUID are used to associate a GUID with a type in platform independent way:
@@ -123,5 +123,5 @@ const GUID* ResolveGuidPtr<T, static_cast<const GUID*>(nullptr)>::Guid = &__uuid
 OACR_WARNING_POP
 } // namespace Mso
 
-  #endif // __cplusplus
+#endif // __cplusplus
 #endif // LIBLET_PLATFORMADAPTERS_MSOGUID_H

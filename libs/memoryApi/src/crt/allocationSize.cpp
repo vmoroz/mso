@@ -8,11 +8,11 @@
 #include <malloc.h>
 
 namespace Mso { namespace Memory {
-  MSOCPPAPI_(size_t) AllocationSize(_In_opt_ const void* pv) noexcept
-  {
-    if (pv == nullptr)
-      return 0;
+MSOCPPAPI_(size_t) AllocationSize(_In_opt_ const void* pv) noexcept
+{
+  if (pv == nullptr)
+    return 0;
 
-    return ::_msize(const_cast<void*>(pv));
-  }
+  return ::_msize(const_cast<void*>(pv));
+}
 }} // namespace Mso::Memory

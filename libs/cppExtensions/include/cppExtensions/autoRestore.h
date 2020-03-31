@@ -11,19 +11,19 @@
 #include <cppType/typeTraits.h>
 
 #ifdef __cplusplus
-  // 4091: extern __declspec(dllimport)' : ignored on left of 'double' when no variable is declared
-  // 4472: 'pointer_safety' is a native enum: add an access specifier (private/public) to declare a managed enum
-  // 4996: 'wmemcpy': This function or variable may be unsafe. Consider using wmemcpy_s instead
-  #pragma warning(push)
-  #pragma warning(disable : 4091 4472 4996)
-  #include <memory>
-  #pragma warning(pop)
+// 4091: extern __declspec(dllimport)' : ignored on left of 'double' when no variable is declared
+// 4472: 'pointer_safety' is a native enum: add an access specifier (private/public) to declare a managed enum
+// 4996: 'wmemcpy': This function or variable may be unsafe. Consider using wmemcpy_s instead
+#pragma warning(push)
+#pragma warning(disable : 4091 4472 4996)
+#include <memory>
+#pragma warning(pop)
 
-  // 4996: 'wmemcpy': This function or variable may be unsafe. Consider using wmemcpy_s instead
-  #pragma warning(push)
-  #pragma warning(disable : 4996)
-  #include <utility>
-  #pragma warning(pop)
+// 4996: 'wmemcpy': This function or variable may be unsafe. Consider using wmemcpy_s instead
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#include <utility>
+#pragma warning(pop)
 
 namespace Mso {
 
@@ -174,81 +174,81 @@ private:
 };
 
 namespace TCleanup {
-  /**
-    TCleanup
-    The last resort.  If none of the other helper classes work for you,
-    or there is only a single occurrence that you feel doesn't warrant its own
-    helper class, the cleanup lambda option is available.
+/**
+  TCleanup
+  The last resort.  If none of the other helper classes work for you,
+  or there is only a single occurrence that you feel doesn't warrant its own
+  helper class, the cleanup lambda option is available.
 
-    Runs the passed cleanup function on destruction.
-    This is a handy utility to use previous "goto LError" style cleanup code
-    with the early return pattern.
+  Runs the passed cleanup function on destruction.
+  This is a handy utility to use previous "goto LError" style cleanup code
+  with the early return pattern.
 
-    EXAMPLE:
-      // Specify the code to run on return in a capture-by-reference lambda
-      auto cleanupCloseOLDoc = TCleanup::Make([&m_pOrigFile, &m_pNewFile]
+  EXAMPLE:
+    // Specify the code to run on return in a capture-by-reference lambda
+    auto cleanupCloseOLDoc = TCleanup::Make([&m_pOrigFile, &m_pNewFile]
+    {
+      // Close out the local file if appropriate
+      if (m_pOrigFile != m_pNewFile && m_pNewFile->GetOpenCount())
       {
-        // Close out the local file if appropriate
-        if (m_pOrigFile != m_pNewFile && m_pNewFile->GetOpenCount())
-        {
-          m_pNewFile->BeginCmd(msoiolcmdClose);
-          m_pNewFile->RecordEvent(msoiolevtCmdCompleted);
-        }
-      });
+        m_pNewFile->BeginCmd(msoiolcmdClose);
+        m_pNewFile->RecordEvent(msoiolevtCmdCompleted);
+      }
+    });
 
-      hr = /some code that uses and OLDocument/;
-      if (FAILED(hr))
-        return hr;
-        // Runs the cleanup code above before returning
+    hr = /some code that uses and OLDocument/;
+    if (FAILED(hr))
+      return hr;
+      // Runs the cleanup code above before returning
 
-     If you want to be able to disable the TCleanup from running on exit,
-     you can do so by:
+   If you want to be able to disable the TCleanup from running on exit,
+   you can do so by:
 
-      if (/some condition/)
-        cleanupCloseOLDoc.disable();	// The TCleanup will now not run on exit
-  */
-  template <typename Func>
-  struct TCleanup
+    if (/some condition/)
+      cleanupCloseOLDoc.disable();	// The TCleanup will now not run on exit
+*/
+template <typename Func>
+struct TCleanup
+{
+public:
+  explicit TCleanup(const Func& fnCleanup) noexcept : m_fnCleanup(fnCleanup) {}
+
+  explicit TCleanup(Func&& fnCleanup) noexcept : m_fnCleanup(std::move(fnCleanup)) {}
+
+  TCleanup(TCleanup&& rVal) noexcept : m_fnCleanup(rVal.m_fnCleanup), m_isEnabled(rVal.m_isEnabled)
   {
-  public:
-    explicit TCleanup(const Func& fnCleanup) noexcept : m_fnCleanup(fnCleanup) {}
-
-    explicit TCleanup(Func&& fnCleanup) noexcept : m_fnCleanup(std::move(fnCleanup)) {}
-
-    TCleanup(TCleanup&& rVal) noexcept : m_fnCleanup(rVal.m_fnCleanup), m_isEnabled(rVal.m_isEnabled)
-    {
-      // We don't want to run the cleanup twice, so disable the original
-      rVal.disable();
-    }
-
-    ~TCleanup() noexcept
-    {
-      if (m_isEnabled)
-        m_fnCleanup();
-    }
-
-    DECLARE_COPYCONSTR_AND_ASSIGNMENT(TCleanup);
-
-    void enable() noexcept
-    {
-      m_isEnabled = true;
-    }
-    void disable() noexcept
-    {
-      m_isEnabled = false;
-    }
-
-  private:
-    const Func m_fnCleanup;
-    bool m_isEnabled = true;
-  };
-
-  // Constructs a TCleanup from the passed function or lambda
-  template <typename Func>
-  inline TCleanup<Func> Make(const Func& pfnCleanup) noexcept
-  {
-    return TCleanup<Func>(pfnCleanup);
+    // We don't want to run the cleanup twice, so disable the original
+    rVal.disable();
   }
+
+  ~TCleanup() noexcept
+  {
+    if (m_isEnabled)
+      m_fnCleanup();
+  }
+
+  DECLARE_COPYCONSTR_AND_ASSIGNMENT(TCleanup);
+
+  void enable() noexcept
+  {
+    m_isEnabled = true;
+  }
+  void disable() noexcept
+  {
+    m_isEnabled = false;
+  }
+
+private:
+  const Func m_fnCleanup;
+  bool m_isEnabled = true;
+};
+
+// Constructs a TCleanup from the passed function or lambda
+template <typename Func>
+inline TCleanup<Func> Make(const Func& pfnCleanup) noexcept
+{
+  return TCleanup<Func>(pfnCleanup);
+}
 
 } // namespace TCleanup
 

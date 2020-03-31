@@ -40,64 +40,64 @@ namespace Mso {
 
 namespace Details {
 
-  /**
-    Storage for FixedSwarmBase class. In some sense this is a specialized std::tuple.
-  */
-  template <typename... Ts>
-  struct FixedSwarmStorage;
+/**
+  Storage for FixedSwarmBase class. In some sense this is a specialized std::tuple.
+*/
+template <typename... Ts>
+struct FixedSwarmStorage;
 
-  template <>
-  struct FixedSwarmStorage<>
+template <>
+struct FixedSwarmStorage<>
+{
+  void DestroyObject() const noexcept
   {
-    void DestroyObject() const noexcept
-    {
-      // Do nothing because there is no storage in this class
-      UNREFERENCED_OACR(this);
-    }
-  };
+    // Do nothing because there is no storage in this class
+    UNREFERENCED_OACR(this);
+  }
+};
 
-  template <typename T0, typename... Ts>
-  struct FixedSwarmStorage<T0, Ts...> : public FixedSwarmStorage<Ts...>
+template <typename T0, typename... Ts>
+struct FixedSwarmStorage<T0, Ts...> : public FixedSwarmStorage<Ts...>
+{
+  using Super = FixedSwarmStorage<Ts...>;
+
+  FixedSwarmStorage() noexcept
   {
-    using Super = FixedSwarmStorage<Ts...>;
+    Mso::Details::SetWeakRef(&m_memberStorage, nullptr);
+  }
 
-    FixedSwarmStorage() noexcept
+  void DestroyObject() const noexcept
+  {
+    if (Mso::Details::GetWeakRef(&m_memberStorage))
     {
-      Mso::Details::SetWeakRef(&m_memberStorage, nullptr);
-    }
-
-    void DestroyObject() const noexcept
-    {
-      if (Mso::Details::GetWeakRef(&m_memberStorage))
-      {
-        T0::RefCountPolicy::Deleter::template Delete(static_cast<typename T0::TypeToDelete*>((void*)&m_memberStorage));
-      }
-
-      Super::DestroyObject();
+      T0::RefCountPolicy::Deleter::template Delete(static_cast<typename T0::TypeToDelete*>((void*)&m_memberStorage));
     }
 
-    ObjectWeakRef* m_weakRefPlaceholder; // reserves negative space before m_memberStorage.
-    typename std::aligned_storage<sizeof(T0), std::alignment_of<T0>::value>::type m_memberStorage;
-  };
+    Super::DestroyObject();
+  }
 
-  /**
-    A helper type to access FixedSwarmStorage member by index similar to std::tuple.
-  */
-  template <size_t Index, typename Storage>
-  struct FixedSwarmStorageMember;
+  ObjectWeakRef* m_weakRefPlaceholder; // reserves negative space before m_memberStorage.
+  typename std::aligned_storage<sizeof(T0), std::alignment_of<T0>::value>::type m_memberStorage;
+};
 
-  template <typename T, typename... Ts>
-  struct FixedSwarmStorageMember<0, FixedSwarmStorage<T, Ts...>>
-  {
-    using Type = T;
-    using StorageType = FixedSwarmStorage<T, Ts...>;
-  };
+/**
+  A helper type to access FixedSwarmStorage member by index similar to std::tuple.
+*/
+template <size_t Index, typename Storage>
+struct FixedSwarmStorageMember;
 
-  template <size_t Index, typename T, typename... Ts>
-  struct FixedSwarmStorageMember<Index, FixedSwarmStorage<T, Ts...>>
-      : public FixedSwarmStorageMember<Index - 1, FixedSwarmStorage<Ts...>>
-  {
-  };
+template <typename T, typename... Ts>
+struct FixedSwarmStorageMember<0, FixedSwarmStorage<T, Ts...>>
+{
+  using Type = T;
+  using StorageType = FixedSwarmStorage<T, Ts...>;
+};
+
+template <size_t Index, typename T, typename... Ts>
+struct FixedSwarmStorageMember<Index, FixedSwarmStorage<T, Ts...>>
+    : public FixedSwarmStorageMember<Index - 1, FixedSwarmStorage<Ts...>>
+{
+};
 
 } // namespace Details
 

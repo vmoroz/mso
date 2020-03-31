@@ -3,13 +3,13 @@
 
 #pragma once
 #ifndef MOTIFCPP_ASSERT_MOTIFAPI_H
-  #define MOTIFCPP_ASSERT_MOTIFAPI_H
-  #include "motifCppTest.h"
+#define MOTIFCPP_ASSERT_MOTIFAPI_H
+#include "motifCppTest.h"
 
-  #define BeginSupportFileMap()
+#define BeginSupportFileMap()
 
-  #define Dependency(filepath)
+#define Dependency(filepath)
 
-  #define EndSupportFileMap()
+#define EndSupportFileMap()
 
 #endif // MOTIFCPP_ASSERT_MOTIFAPI_H

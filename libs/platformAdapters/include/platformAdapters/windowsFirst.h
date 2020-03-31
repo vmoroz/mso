@@ -6,20 +6,20 @@
 */
 #pragma once
 #ifndef LIBLET_PLATFORMADAPTERS_WINDOWSFIRST_H
-  #define LIBLET_PLATFORMADAPTERS_WINDOWSFIRST_H
+#define LIBLET_PLATFORMADAPTERS_WINDOWSFIRST_H
 
-  #if defined(MS_TARGET_POSIX)
+#if defined(MS_TARGET_POSIX)
 typedef unsigned short WORD;
 typedef unsigned long DWORD;
-  #else
+#else
 
-    #ifndef NOMINMAX
-      #define NOMINMAX
-    #endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 
-    #include <windows.h>
-    #include <winsock2.h>
+#include <windows.h>
+#include <winsock2.h>
 
-  #endif // defined(MS_TARGET_POSIX)
+#endif // defined(MS_TARGET_POSIX)
 
 #endif // LIBLET_PLATFORMADAPTERS_WINDOWSFIRST_H

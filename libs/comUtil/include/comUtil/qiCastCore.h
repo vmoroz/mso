@@ -3,10 +3,10 @@
 
 #pragma once
 #ifndef LIBLET_COMUTIL_QICASTCORE_H
-  #define LIBLET_COMUTIL_QICASTCORE_H
-  #include <core/TCntPtr.h>
-  #include <guiddef.h>
-  #include <object/IUnknownShim.h>
+#define LIBLET_COMUTIL_QICASTCORE_H
+#include <core/TCntPtr.h>
+#include <guiddef.h>
+#include <object/IUnknownShim.h>
 
 //============================================================================
 //
@@ -64,9 +64,9 @@ Mso::TCntPtr<TTarget> qi_cast(const TSource* piSource, const IID& riid = __uuido
   return qi_cast<TTarget, TSource*>(piSourceNonConst, riid);
 }
 
-  #pragma warning(push)
-  #pragma warning(disable : 4995) // VerifyElseCrashSz gives "warning C4995: 'IsDebuggerPresent': name was marked as
-                                  // #pragma deprecated"
+#pragma warning(push)
+#pragma warning(disable : 4995) // VerifyElseCrashSz gives "warning C4995: 'IsDebuggerPresent': name was marked as
+                                // #pragma deprecated"
 
 /**
   qi_cast_or_crash<Type>(source, optional riid)
@@ -96,7 +96,7 @@ Mso::TCntPtr<TTarget> qi_cast_or_crash(const TSource* piSource, const IID& riid 
   return target;
 }
 
-  #pragma warning(pop)
+#pragma warning(pop)
 
 /**
   simpleqi_cast<Type>(source, optional riid)
@@ -137,92 +137,91 @@ TTarget* simpleqi_cast(const TSource* piSource, const IID& riid = __uuidof(TTarg
 
 namespace Mso { namespace ComUtil {
 
-  template <typename T, typename TOther>
-  HRESULT HrQueryFrom(Mso::TCntPtr<T>& target, const TOther* pOther, const IID& riid = __uuidof(T)) noexcept
-  {
-    if (pOther == nullptr)
-      return E_POINTER;
-    return const_cast<TOther*>(pOther)->QueryInterface(riid, reinterpret_cast<void**>(target.ClearAndGetAddressOf()));
-  }
+template <typename T, typename TOther>
+HRESULT HrQueryFrom(Mso::TCntPtr<T>& target, const TOther* pOther, const IID& riid = __uuidof(T)) noexcept
+{
+  if (pOther == nullptr)
+    return E_POINTER;
+  return const_cast<TOther*>(pOther)->QueryInterface(riid, reinterpret_cast<void**>(target.ClearAndGetAddressOf()));
+}
 
-  template <typename T, typename TOther>
-  HRESULT HrQueryFrom(Mso::TCntPtr<T>& target, const TOther& other, const IID& riid = __uuidof(T)) noexcept
-  {
-    if (other == nullptr)
-      return E_POINTER;
-    return const_cast<TOther&>(other)->QueryInterface(riid, reinterpret_cast<void**>(target.ClearAndGetAddressOf()));
-  }
+template <typename T, typename TOther>
+HRESULT HrQueryFrom(Mso::TCntPtr<T>& target, const TOther& other, const IID& riid = __uuidof(T)) noexcept
+{
+  if (other == nullptr)
+    return E_POINTER;
+  return const_cast<TOther&>(other)->QueryInterface(riid, reinterpret_cast<void**>(target.ClearAndGetAddressOf()));
+}
 
-  template <typename T, typename TOther>
-  HRESULT
-  HrQueryFrom(Mso::TCntPtr<T>& target, const Mso::TCntPtr<TOther>& other, const IID& riid = __uuidof(T)) noexcept
-  {
-    if (other == nullptr)
-      return E_POINTER;
-    return const_cast<Mso::TCntPtr<TOther>&>(other)->QueryInterface(
-        riid, reinterpret_cast<void**>(target.ClearAndGetAddressOf()));
-  }
+template <typename T, typename TOther>
+HRESULT HrQueryFrom(Mso::TCntPtr<T>& target, const Mso::TCntPtr<TOther>& other, const IID& riid = __uuidof(T)) noexcept
+{
+  if (other == nullptr)
+    return E_POINTER;
+  return const_cast<Mso::TCntPtr<TOther>&>(other)->QueryInterface(
+      riid, reinterpret_cast<void**>(target.ClearAndGetAddressOf()));
+}
 
-  template <typename T, typename TOther>
-  bool FQueryFrom(Mso::TCntPtr<T>& target, const TOther* pOther, const IID& riid = __uuidof(T)) noexcept
-  {
-    return SUCCEEDED(HrQueryFrom(target, pOther, riid));
-  }
+template <typename T, typename TOther>
+bool FQueryFrom(Mso::TCntPtr<T>& target, const TOther* pOther, const IID& riid = __uuidof(T)) noexcept
+{
+  return SUCCEEDED(HrQueryFrom(target, pOther, riid));
+}
 
-  template <typename T, typename TOther>
-  bool FQueryFrom(Mso::TCntPtr<T>& target, const TOther& other, const IID& riid = __uuidof(T)) noexcept
-  {
-    return SUCCEEDED(HrQueryFrom(target, other, riid));
-  }
+template <typename T, typename TOther>
+bool FQueryFrom(Mso::TCntPtr<T>& target, const TOther& other, const IID& riid = __uuidof(T)) noexcept
+{
+  return SUCCEEDED(HrQueryFrom(target, other, riid));
+}
 
-  template <typename T, typename TOther>
-  bool FQueryFrom(Mso::TCntPtr<T>& target, const Mso::TCntPtr<TOther>& other, const IID& riid = __uuidof(T)) noexcept
-  {
-    return SUCCEEDED(HrQueryFrom(target, other, riid));
-  }
+template <typename T, typename TOther>
+bool FQueryFrom(Mso::TCntPtr<T>& target, const Mso::TCntPtr<TOther>& other, const IID& riid = __uuidof(T)) noexcept
+{
+  return SUCCEEDED(HrQueryFrom(target, other, riid));
+}
 
-  /// Checks if two IUnknown objects are equal.
-  template <typename T1, typename T2>
-  bool AreEqualObjects(const T1* pLeft, const T2* pRight) noexcept
-  {
-    if (reinterpret_cast<const void*>(pLeft) == reinterpret_cast<const void*>(pRight))
-      return true; // Both pointers are the same
-    if (pLeft == nullptr || pRight == nullptr)
-      return false; // One is null the other is not
+/// Checks if two IUnknown objects are equal.
+template <typename T1, typename T2>
+bool AreEqualObjects(const T1* pLeft, const T2* pRight) noexcept
+{
+  if (reinterpret_cast<const void*>(pLeft) == reinterpret_cast<const void*>(pRight))
+    return true; // Both pointers are the same
+  if (pLeft == nullptr || pRight == nullptr)
+    return false; // One is null the other is not
 
-    // Compare IUnknown pointers.
-    auto punk1 = qi_cast<IUnknown>(pLeft);
-    if (!punk1)
-      return false;
+  // Compare IUnknown pointers.
+  auto punk1 = qi_cast<IUnknown>(pLeft);
+  if (!punk1)
+    return false;
 
-    auto punk2 = qi_cast<IUnknown>(pRight);
-    if (!punk2)
-      return false;
+  auto punk2 = qi_cast<IUnknown>(pRight);
+  if (!punk2)
+    return false;
 
-    IUnknown* pComp1 = Details::TCntPtrAddRefStrategyImpl<
-        Details::AddRefStrategyForType<T1>::TAddRefStrategy::Strategy>::GetIUnknownForObjectCompare(punk1.Get());
-    IUnknown* pComp2 = Details::TCntPtrAddRefStrategyImpl<
-        Details::AddRefStrategyForType<T2>::TAddRefStrategy::Strategy>::GetIUnknownForObjectCompare(punk2.Get());
-    return (pComp1 == pComp2);
-  }
+  IUnknown* pComp1 = Details::TCntPtrAddRefStrategyImpl<
+      Details::AddRefStrategyForType<T1>::TAddRefStrategy::Strategy>::GetIUnknownForObjectCompare(punk1.Get());
+  IUnknown* pComp2 = Details::TCntPtrAddRefStrategyImpl<
+      Details::AddRefStrategyForType<T2>::TAddRefStrategy::Strategy>::GetIUnknownForObjectCompare(punk2.Get());
+  return (pComp1 == pComp2);
+}
 
-  template <typename T1, typename T2>
-  bool AreEqualObjects(const T1* pLeft, const Mso::TCntPtr<T2>& right) noexcept
-  {
-    return Mso::ComUtil::AreEqualObjects(pLeft, right.Get());
-  }
+template <typename T1, typename T2>
+bool AreEqualObjects(const T1* pLeft, const Mso::TCntPtr<T2>& right) noexcept
+{
+  return Mso::ComUtil::AreEqualObjects(pLeft, right.Get());
+}
 
-  template <typename T1, typename T2>
-  bool AreEqualObjects(const Mso::TCntPtr<T1>& left, const T2* pRight) noexcept
-  {
-    return Mso::ComUtil::AreEqualObjects(left.Get(), pRight);
-  }
+template <typename T1, typename T2>
+bool AreEqualObjects(const Mso::TCntPtr<T1>& left, const T2* pRight) noexcept
+{
+  return Mso::ComUtil::AreEqualObjects(left.Get(), pRight);
+}
 
-  template <typename T1, typename T2>
-  bool AreEqualObjects(const Mso::TCntPtr<T1>& left, const Mso::TCntPtr<T2>& right) noexcept
-  {
-    return Mso::ComUtil::AreEqualObjects(left.Get(), right.Get());
-  }
+template <typename T1, typename T2>
+bool AreEqualObjects(const Mso::TCntPtr<T1>& left, const Mso::TCntPtr<T2>& right) noexcept
+{
+  return Mso::ComUtil::AreEqualObjects(left.Get(), right.Get());
+}
 
 }} // namespace Mso::ComUtil
 

@@ -47,17 +47,17 @@ namespace Mso {
 
 namespace Details {
 
-  template <typename T>
-  struct ObjectWeakRefContainerDeleter
+template <typename T>
+struct ObjectWeakRefContainerDeleter
+{
+  void operator()(T* ptr) noexcept
   {
-    void operator()(T* ptr) noexcept
+    if (ptr)
     {
-      if (ptr)
-      {
-        ptr->DestroyContainer();
-      }
+      ptr->DestroyContainer();
     }
-  };
+  }
+};
 
 } // namespace Details
 
@@ -340,9 +340,9 @@ public:
   SwarmMemberPtr() noexcept {}
 
 #if __clang__
-  // save the clang warning state and silence warnings about [-Wtautological-undefined-compare].
-  #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wtautological-undefined-compare"
+// save the clang warning state and silence warnings about [-Wtautological-undefined-compare].
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-undefined-compare"
 #endif
 
   template <typename TOther, typename = std::enable_if_t<std::is_base_of<T, TOther>::value>>
@@ -373,7 +373,7 @@ public:
 
 // resume clang warning state
 #if __clang__
-  #pragma clang diagnostic pop
+#pragma clang diagnostic pop
 #endif
   SwarmMemberPtr(SwarmMemberPtr&& from) noexcept : m_ptr(from.m_ptr), m_isDifferentSwarm(from.m_isDifferentSwarm)
   {

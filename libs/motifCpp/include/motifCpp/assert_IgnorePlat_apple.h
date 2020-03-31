@@ -9,11 +9,11 @@
 
 #pragma once
 #ifndef MOTIFCPP_ASSERT_IGNOREPLAT_APPLE_H
-  #define MOTIFCPP_ASSERT_IGNOREPLAT_APPLE_H
+#define MOTIFCPP_ASSERT_IGNOREPLAT_APPLE_H
 
-  #include <cstdint>
+#include <cstdint>
 
-  #if DEBUG
+#if DEBUG
 // Forward decl, this is because including mbuassert.h brings in macro definitions such as
 // UNTAGGED that can conflict with tagutils.h.
 extern "C"
@@ -27,11 +27,11 @@ extern "C"
   void NLDisableAssertByTag(nl_assert_tag_t inTag);
   void NLEnableAssertByTag(nl_assert_tag_t inTag);
 }
-  #endif
+#endif
 
 namespace Mso {
 
-  #if DEBUG
+#if DEBUG
 class IgnoreAllAssertsPlatformImpl
 {
 public:
@@ -72,7 +72,7 @@ private:
   const bool m_tagEnabled;
   const nl_assert_tag_t m_tag;
 };
-  #else // DEBUG
+#else // DEBUG
 class IgnoreAllAssertsPlatformImpl
 {
 };
@@ -81,7 +81,7 @@ class IgnoreAssertPlatformImpl
 public:
   IgnoreAssertPlatformImpl(uint32_t) {}
 };
-  #endif
+#endif
 
 } // namespace Mso
 

@@ -22,49 +22,48 @@ BEGIN_DISABLE_WARNING_INCONSISTENT_MISSING_OVERRIDE()
 namespace Mso {
 namespace Details {
 
-  template <typename T>
-  struct QueryInterfaceHelper
+template <typename T>
+struct QueryInterfaceHelper
+{
+  _Success_(return == S_OK) static HRESULT QueryInterface(T* obj, const GUID& riid, _Outptr_ void** ppvObject) noexcept
   {
-    _Success_(return == S_OK) static HRESULT
-        QueryInterface(T* obj, const GUID& riid, _Outptr_ void** ppvObject) noexcept
-    {
-      VerifyElseCrashSzTag(ppvObject != nullptr, "ppvObject must not be null.", 0x01003717 /* tag_bad2x */);
+    VerifyElseCrashSzTag(ppvObject != nullptr, "ppvObject must not be null.", 0x01003717 /* tag_bad2x */);
 
 #if defined(MSO_ENABLE_QICHECK) && defined(DEBUG) && !defined(__clang__)
-      // Windows gives un-initialized pointers when querying for IMarshal and IAgileObjectthese interfaces. Ignore them.
-      if (riid != __uuidof(IMarshal) && riid != __uuidof(IAgileObject))
-      {
-        VerifyElseCrashSzTag(
-            *ppvObject == nullptr, "*ppvObject must be null to avoid memory leaks.", 0x01003718 /* tag_bad2y */);
-      }
+    // Windows gives un-initialized pointers when querying for IMarshal and IAgileObjectthese interfaces. Ignore them.
+    if (riid != __uuidof(IMarshal) && riid != __uuidof(IAgileObject))
+    {
+      VerifyElseCrashSzTag(
+          *ppvObject == nullptr, "*ppvObject must be null to avoid memory leaks.", 0x01003718 /* tag_bad2y */);
+    }
 #endif
 
-      // QueryCastBridge is used to QI for an interface without AddRef
-      const GUID& intfGuid =
-          (riid == __uuidof(QueryCastBridge)) ? reinterpret_cast<QueryCastBridge*>(ppvObject)->ObjectId : riid;
+    // QueryCastBridge is used to QI for an interface without AddRef
+    const GUID& intfGuid =
+        (riid == __uuidof(QueryCastBridge)) ? reinterpret_cast<QueryCastBridge*>(ppvObject)->ObjectId : riid;
 
-      if (intfGuid == __uuidof(IUnknown))
-      {
-        *ppvObject = obj->template StaticCastElseNull<IUnknown*>();
-      }
-      else
-      {
-        *ppvObject = obj->QueryCast(intfGuid);
-      }
-
-      if (!*ppvObject)
-      {
-        return E_NOINTERFACE;
-      }
-
-      if (&riid == &intfGuid)
-      {
-        obj->AddRef();
-      }
-
-      return S_OK;
+    if (intfGuid == __uuidof(IUnknown))
+    {
+      *ppvObject = obj->template StaticCastElseNull<IUnknown*>();
     }
-  };
+    else
+    {
+      *ppvObject = obj->QueryCast(intfGuid);
+    }
+
+    if (!*ppvObject)
+    {
+      return E_NOINTERFACE;
+    }
+
+    if (&riid == &intfGuid)
+    {
+      obj->AddRef();
+    }
+
+    return S_OK;
+  }
+};
 
 } // namespace Details
 

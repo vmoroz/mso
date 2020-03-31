@@ -6,11 +6,11 @@
 */
 #pragma once
 #ifndef LIBLET_CPPTYPE_TYPETRAITS_H
-  #define LIBLET_CPPTYPE_TYPETRAITS_H
-  #ifdef __cplusplus
+#define LIBLET_CPPTYPE_TYPETRAITS_H
+#ifdef __cplusplus
 
-    #include <compilerAdapters/declspecDefinitions.h>
-    #include <type_traits>
+#include <compilerAdapters/declspecDefinitions.h>
+#include <type_traits>
 
 namespace Mso {
 
@@ -281,6 +281,6 @@ struct LargestType<T1, T2, Ts...>
 
 } // namespace Mso
 
-  #endif // __cplusplus
+#endif // __cplusplus
 
 #endif // LIBLET_CPPTYPE_TYPETRAITS_H

@@ -4,15 +4,15 @@
 #pragma once
 
 #ifndef LIBLET_CORE_TCNTPTR_H
-  #define LIBLET_CORE_TCNTPTR_H
+#define LIBLET_CORE_TCNTPTR_H
 
-  #include <compilerAdapters/declspecDefinitions.h>
-  #include <crash/verifyElseCrash.h>
-  #include <debugAssertApi/debugAssertApi.h>
-  #include <object/smartPointerBase.h>
-  #include <atomic>
+#include <compilerAdapters/declspecDefinitions.h>
+#include <crash/verifyElseCrash.h>
+#include <debugAssertApi/debugAssertApi.h>
+#include <object/smartPointerBase.h>
+#include <atomic>
 
-  #ifdef __cplusplus
+#ifdef __cplusplus
 namespace Mso {
 
 class ObjectWeakRef;
@@ -83,7 +83,7 @@ protected:
 
 private:
   mutable std::atomic<uint32_t> m_ref;
-    #pragma warning(suppress : 4820) // 4 bytes padding added after data member
+#pragma warning(suppress : 4820) // 4 bytes padding added after data member
 };
 
 /**
@@ -106,82 +106,82 @@ class TCntPtr;
 // Code in details namespace is for internal usage only
 namespace Details {
 
-  /// Used for TCntPtr operator& implementation.
-  /// It allows to avoid memory leaks when non-empty TCntPtr is used as output parameter T**.
-  /// For TCntRef class, please find its definition below TCntPtr class
-  template <typename T>
-  class TCntPtrRef
+/// Used for TCntPtr operator& implementation.
+/// It allows to avoid memory leaks when non-empty TCntPtr is used as output parameter T**.
+/// For TCntRef class, please find its definition below TCntPtr class
+template <typename T>
+class TCntPtrRef
+{
+  // We only allow TCntPtr to make instance of this type
+  template <typename U>
+  friend class Mso::TCntPtr;
+
+public:
+  operator Mso::TCntPtr<T> *() noexcept
   {
-    // We only allow TCntPtr to make instance of this type
-    template <typename U>
-    friend class Mso::TCntPtr;
-
-  public:
-    operator Mso::TCntPtr<T> *() noexcept
-    {
-      return m_pTCntPtr;
-    }
-    operator void*() noexcept
-    {
-      return m_pTCntPtr;
-    }
-    operator T* *() noexcept
-    {
-      return m_pTCntPtr->GetAddressOf();
-    }
-    operator void* *() noexcept
-    {
-      return reinterpret_cast<void**>(m_pTCntPtr->GetAddressOf());
-    }
-    operator const void* *() noexcept
-    {
-      return reinterpret_cast<const void**>(const_cast<const T**>(m_pTCntPtr->GetAddressOf()));
-    }
-
-    // If you are sure it is safe, use static_cast<U**>(&p) to access this operator
-    template <typename U, typename = std::enable_if_t<std::is_base_of<U, T>::value>>
-    explicit operator U* *() const noexcept
-    {
-      return reinterpret_cast<U**>(m_pTCntPtr->GetAddressOf());
-    }
-
-    T*& operator*() noexcept
-    {
-      return *(m_pTCntPtr->GetAddressOf());
-    }
-    T** GetRaw() const noexcept
-    {
-      return m_pTCntPtr->GetRaw();
-    }
-    T* const* GetAddressOf() const noexcept
-    {
-      return m_pTCntPtr->GetAddressOf();
-    }
-    T** ClearAndGetAddressOf() noexcept
-    {
-      return m_pTCntPtr->ClearAndGetAddressOf();
-    }
-
-  private:
-    TCntPtrRef(_In_ Mso::TCntPtr<T>* pT) noexcept : m_pTCntPtr(pT) {}
-
-  private:
-    Mso::TCntPtr<T>* m_pTCntPtr;
-  };
-
-  template <typename T, typename U>
-  bool operator==(const TCntPtrRef<T>& left, const TCntPtrRef<U>& right) noexcept
+    return m_pTCntPtr;
+  }
+  operator void*() noexcept
   {
-    static_assert(
-        std::is_base_of<T, U>::value || std::is_base_of<U, T>::value, "'T' and 'U' pointers must be comparable");
-    return left.GetRaw() == right.GetRaw();
+    return m_pTCntPtr;
+  }
+  operator T* *() noexcept
+  {
+    return m_pTCntPtr->GetAddressOf();
+  }
+  operator void* *() noexcept
+  {
+    return reinterpret_cast<void**>(m_pTCntPtr->GetAddressOf());
+  }
+  operator const void* *() noexcept
+  {
+    return reinterpret_cast<const void**>(const_cast<const T**>(m_pTCntPtr->GetAddressOf()));
   }
 
-  template <typename T, typename U>
-  bool operator!=(const TCntPtrRef<T>& left, const TCntPtrRef<U>& right) noexcept
+  // If you are sure it is safe, use static_cast<U**>(&p) to access this operator
+  template <typename U, typename = std::enable_if_t<std::is_base_of<U, T>::value>>
+  explicit operator U* *() const noexcept
   {
-    return !(left == right);
+    return reinterpret_cast<U**>(m_pTCntPtr->GetAddressOf());
   }
+
+  T*& operator*() noexcept
+  {
+    return *(m_pTCntPtr->GetAddressOf());
+  }
+  T** GetRaw() const noexcept
+  {
+    return m_pTCntPtr->GetRaw();
+  }
+  T* const* GetAddressOf() const noexcept
+  {
+    return m_pTCntPtr->GetAddressOf();
+  }
+  T** ClearAndGetAddressOf() noexcept
+  {
+    return m_pTCntPtr->ClearAndGetAddressOf();
+  }
+
+private:
+  TCntPtrRef(_In_ Mso::TCntPtr<T>* pT) noexcept : m_pTCntPtr(pT) {}
+
+private:
+  Mso::TCntPtr<T>* m_pTCntPtr;
+};
+
+template <typename T, typename U>
+bool operator==(const TCntPtrRef<T>& left, const TCntPtrRef<U>& right) noexcept
+{
+  static_assert(
+      std::is_base_of<T, U>::value || std::is_base_of<U, T>::value, "'T' and 'U' pointers must be comparable");
+  return left.GetRaw() == right.GetRaw();
+}
+
+template <typename T, typename U>
+bool operator!=(const TCntPtrRef<T>& left, const TCntPtrRef<U>& right) noexcept
+{
+  return !(left == right);
+}
 
 } // namespace Details
 
@@ -208,52 +208,52 @@ struct TCntPtrAddRefStrategyForType
 // Code in details namespace is for internal usage only
 namespace Details {
 
+/**
+  Implements CheckedAddRef for ref counted interfaces that are not using RefTrack
+
+  Q: What is this strategy only applied to TCntPtr and not TCntRef
+  A: TCntRef has a Copy method that does AddRef and then returns a reference to the
+     object. This is not compatible with RefTrack and so the strategy is not applied.
+*/
+template <TCntPtrAddRefStrategy ARS>
+struct TCntPtrAddRefStrategyImpl
+{
   /**
-    Implements CheckedAddRef for ref counted interfaces that are not using RefTrack
-
-    Q: What is this strategy only applied to TCntPtr and not TCntRef
-    A: TCntRef has a Copy method that does AddRef and then returns a reference to the
-       object. This is not compatible with RefTrack and so the strategy is not applied.
-  */
-  template <TCntPtrAddRefStrategy ARS>
-  struct TCntPtrAddRefStrategyImpl
-  {
-    /**
-      Safely performs an AddRef on the newly assigned ptr value, this means that the caller does
-      not currently have a reference on the supplied value.
-    */
-    template <typename T>
-    static void CheckedAddRefOnNewlyAssignedPtr(_Inout_ _Deref_pre_valid_ _Deref_post_valid_ T** ppT) noexcept
-    {
-      using TNonConst = typename std::remove_const<T>::type; // For AddRef() and Release() calls
-
-      if (*ppT)
-      {
-        const_cast<TNonConst*>(*ppT)->AddRef();
-      }
-    }
-
-    /**
-      Depending upon the RefCount strategy used it may be necessary to unwrap the IUnknown before
-      it is used for comparing to determine object identity. By default we just use the provided
-      IUnknown value.
-    */
-    template <typename T>
-    static T* GetIUnknownForObjectCompare(T* pValue)
-    {
-      return pValue;
-    }
-  };
-
-  /**
-    Allows for the AddRefStrategy for the type to be obtained. This is needed when using the
-    strategy outside of a tempalte class.
+    Safely performs an AddRef on the newly assigned ptr value, this means that the caller does
+    not currently have a reference on the supplied value.
   */
   template <typename T>
-  struct AddRefStrategyForType
+  static void CheckedAddRefOnNewlyAssignedPtr(_Inout_ _Deref_pre_valid_ _Deref_post_valid_ T** ppT) noexcept
   {
-    using TAddRefStrategy = TCntPtrAddRefStrategyForType<T>;
-  };
+    using TNonConst = typename std::remove_const<T>::type; // For AddRef() and Release() calls
+
+    if (*ppT)
+    {
+      const_cast<TNonConst*>(*ppT)->AddRef();
+    }
+  }
+
+  /**
+    Depending upon the RefCount strategy used it may be necessary to unwrap the IUnknown before
+    it is used for comparing to determine object identity. By default we just use the provided
+    IUnknown value.
+  */
+  template <typename T>
+  static T* GetIUnknownForObjectCompare(T* pValue)
+  {
+    return pValue;
+  }
+};
+
+/**
+  Allows for the AddRefStrategy for the type to be obtained. This is needed when using the
+  strategy outside of a tempalte class.
+*/
+template <typename T>
+struct AddRefStrategyForType
+{
+  using TAddRefStrategy = TCntPtrAddRefStrategyForType<T>;
+};
 
 } // namespace Details
 
@@ -328,13 +328,13 @@ public:
     return *const_cast<TCntRef*>(this)->m_pT;
   }
 
-    #ifndef MSO_THOLDER_EXPLICIT_GET_ONLY
+#ifndef MSO_THOLDER_EXPLICIT_GET_ONLY
   /// Implicit cast operator
   /*_SA_deprecated_(Get)*/ operator T&() const noexcept
   {
     return Get();
   }
-    #endif
+#endif
 
   /// Returns an AddRef'd raw reference
   T& Copy() const noexcept
@@ -353,12 +353,12 @@ public:
       *ppT = Copy();
   }
 
-    #ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
+#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
   explicit operator bool() const noexcept
   {
     return !IsEmpty();
   }
-    #endif
+#endif
 
   T* operator->() const noexcept
   {
@@ -395,7 +395,7 @@ private:
   friend class TCntRef;
 };
 
-    #ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
+#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
 /**
   Operators for TCntRef
 */
@@ -411,7 +411,7 @@ bool operator!=(const TCntRef<T1>& left, const TCntRef<T2>& right) noexcept
 {
   return !(left == right);
 }
-    #endif // MSO_THOLDER_EXPLICIT_GET_ONLY
+#endif // MSO_THOLDER_EXPLICIT_GET_ONLY
 
 /**
   Ref-counted smart pointer, possibly null
@@ -563,7 +563,7 @@ public:
     return (m_pT == nullptr);
   }
 
-    #ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
+#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
   explicit operator bool() const noexcept
   {
     return !IsEmpty();
@@ -573,20 +573,20 @@ public:
   {
     return *Get();
   }
-    #endif
+#endif
 
   T* Get() const noexcept
   {
     return const_cast<TCntPtr*>(this)->m_pT;
   }
 
-    #ifndef MSO_THOLDER_EXPLICIT_GET_ONLY
+#ifndef MSO_THOLDER_EXPLICIT_GET_ONLY
   /// Implicit cast operator
   /*_SA_deprecated_(Get)*/ operator T*() const noexcept
   {
     return m_pT;
   }
-    #endif
+#endif
 
   T* operator->() const noexcept
   {
@@ -728,7 +728,7 @@ private:
   T* m_pT;
 };
 
-    #ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
+#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
 /**
   Operators for TCntPtr
 */
@@ -768,8 +768,8 @@ bool operator!=(std::nullptr_t, const TCntPtr<T>& right) noexcept
 {
   return !right.IsEmpty();
 }
-    #endif // MSO_THOLDER_EXPLICIT_GET_ONLY
+#endif // MSO_THOLDER_EXPLICIT_GET_ONLY
 
 } // namespace Mso
-  #endif // __cplusplus
+#endif // __cplusplus
 #endif // LIBLET_CORE_TCNTPTR_H

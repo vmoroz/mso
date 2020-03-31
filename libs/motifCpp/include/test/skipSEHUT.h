@@ -12,7 +12,7 @@
 #pragma once
 
 #ifdef __clang__
-  #define TESTMETHOD_REQUIRES_SEH(Name) SKIPTESTMETHOD(Name)
+#define TESTMETHOD_REQUIRES_SEH(Name) SKIPTESTMETHOD(Name)
 #else
-  #define TESTMETHOD_REQUIRES_SEH(Name) TEST_METHOD(Name)
+#define TESTMETHOD_REQUIRES_SEH(Name) TEST_METHOD(Name)
 #endif

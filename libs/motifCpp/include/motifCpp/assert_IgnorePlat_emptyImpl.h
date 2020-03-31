@@ -6,9 +6,9 @@
 ----------------------------------------------------------------------------*/
 #pragma once
 #ifndef MOTIFCPP_ASSERT_IGNOREPLAT_EMPTYIMPL_H
-  #define MOTIFCPP_ASSERT_IGNOREPLAT_EMPTYIMPL_H
+#define MOTIFCPP_ASSERT_IGNOREPLAT_EMPTYIMPL_H
 
-  #include <cstdint>
+#include <cstdint>
 
 namespace Mso {
 

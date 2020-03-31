@@ -3,9 +3,9 @@
 
 #pragma once
 #ifdef __cplusplus
-  #include <sal.h>
-  #include <climits>
-  #include <cstddef>
+#include <sal.h>
+#include <climits>
+#include <cstddef>
 //#include <intsafe.h>
 /*
  * MsoCbBufSizeT
@@ -45,10 +45,10 @@ _Ret_range_(==, (cElements + cExtra) * sizeof(T)) size_t
   if (cExtra > cMax || // cExtra is too large
       cElements > cMaxAllowed) // real check here
   {
-  #if DEBUG
-      // TODO: This should be changed to a tagged function
-      //__asm int 3
-  #endif
+#if DEBUG
+    // TODO: This should be changed to a tagged function
+    //__asm int 3
+#endif
     // we have a problem
     return INVALID_BUFFER_SIZE;
   }
@@ -94,10 +94,10 @@ _Ret_range_(==, (cElements + cExtra) * sizeof(T) + cbExtra) size_t MsoCbBufSizeE
       cElements > cMaxAllowed //"real" buf size check here
   )
   {
-  #if DEBUG
-      // TODO: This should be changed to a tagged function
-      //__asm int 3
-  #endif
+#if DEBUG
+    // TODO: This should be changed to a tagged function
+    //__asm int 3
+#endif
     // we have a problem
     return INVALID_BUFFER_SIZE;
   }

@@ -7,15 +7,15 @@
 #pragma once
 
 #ifndef LIBLET_TAGUTILS_TAGUTILS_H
-  #define LIBLET_TAGUTILS_TAGUTILS_H
+#define LIBLET_TAGUTILS_TAGUTILS_H
 
-  #include <math.h>
-  #include <sal.h>
-  #include <stdint.h>
-  #include <stdio.h>
-  #include <tagUtils/tagTypes.h>
+#include <math.h>
+#include <sal.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <tagUtils/tagTypes.h>
 
-  #ifdef __cplusplus
+#ifdef __cplusplus
 
 /**
   MAX_TAG_CCH denotes the maximum tag string buffer size, including null termination.
@@ -24,96 +24,96 @@ const uint32_t MAX_TAG_CCH = 6;
 
 namespace TaggingUtilities {
 namespace details {
-  template <typename T>
-  struct SymbolSpace
-  {
-    const T lowAlpha;
-    const T highAlpha;
-    const T lowDecimal;
-    const T highDecimal;
-    T const* const empty = nullptr;
-    T const value[1] = "*";
-  };
+template <typename T>
+struct SymbolSpace
+{
+  const T lowAlpha;
+  const T highAlpha;
+  const T lowDecimal;
+  const T highDecimal;
+  T const* const empty = nullptr;
+  T const value[1] = "*";
+};
 
-  template <>
-  struct SymbolSpace<char>
-  {
-    SymbolSpace<char>() noexcept {};
-    SymbolSpace<char>& operator=(const SymbolSpace<char>&) = delete;
+template <>
+struct SymbolSpace<char>
+{
+  SymbolSpace<char>() noexcept {};
+  SymbolSpace<char>& operator=(const SymbolSpace<char>&) = delete;
 
-    const char lowAlpha = 'a';
-    const char highAlpha = 'z';
-    const char lowDecimal = '0';
-    const char highDecimal = '9';
-    char const* const empty = "00000";
-    char const value[65] = "abcdefghijklmnopqrstuvwxyz0123456789****************************";
-  };
+  const char lowAlpha = 'a';
+  const char highAlpha = 'z';
+  const char lowDecimal = '0';
+  const char highDecimal = '9';
+  char const* const empty = "00000";
+  char const value[65] = "abcdefghijklmnopqrstuvwxyz0123456789****************************";
+};
 
-  template <>
-  struct SymbolSpace<wchar_t>
-  {
-    SymbolSpace<wchar_t>() noexcept {};
-    SymbolSpace<wchar_t>& operator=(const SymbolSpace<wchar_t>&) = delete;
+template <>
+struct SymbolSpace<wchar_t>
+{
+  SymbolSpace<wchar_t>() noexcept {};
+  SymbolSpace<wchar_t>& operator=(const SymbolSpace<wchar_t>&) = delete;
 
-    const wchar_t lowAlpha = L'a';
-    const wchar_t highAlpha = L'z';
-    const wchar_t lowDecimal = L'0';
-    const wchar_t highDecimal = L'9';
-    wchar_t const* const empty = L"00000";
-    wchar_t const value[65] = L"abcdefghijklmnopqrstuvwxyz0123456789****************************";
-  };
+  const wchar_t lowAlpha = L'a';
+  const wchar_t highAlpha = L'z';
+  const wchar_t lowDecimal = L'0';
+  const wchar_t highDecimal = L'9';
+  wchar_t const* const empty = L"00000";
+  wchar_t const value[65] = L"abcdefghijklmnopqrstuvwxyz0123456789****************************";
+};
 
-  template <>
-  struct SymbolSpace<char16_t>
-  {
-    SymbolSpace<char16_t>() noexcept {};
-    SymbolSpace<char16_t>& operator=(const SymbolSpace<char16_t>&) = delete;
+template <>
+struct SymbolSpace<char16_t>
+{
+  SymbolSpace<char16_t>() noexcept {};
+  SymbolSpace<char16_t>& operator=(const SymbolSpace<char16_t>&) = delete;
 
-    const char16_t lowAlpha = u'a';
-    const char16_t highAlpha = u'z';
-    const char16_t lowDecimal = u'0';
-    const char16_t highDecimal = u'9';
-    char16_t const* const empty = u"00000";
-    char16_t const value[65] = u"abcdefghijklmnopqrstuvwxyz0123456789****************************";
-  };
+  const char16_t lowAlpha = u'a';
+  const char16_t highAlpha = u'z';
+  const char16_t lowDecimal = u'0';
+  const char16_t highDecimal = u'9';
+  char16_t const* const empty = u"00000";
+  char16_t const value[65] = u"abcdefghijklmnopqrstuvwxyz0123456789****************************";
+};
 
-  template <>
-  struct SymbolSpace<char32_t>
-  {
-    SymbolSpace<char32_t>() noexcept {};
-    SymbolSpace<char32_t>& operator=(const SymbolSpace<char32_t>&) = delete;
+template <>
+struct SymbolSpace<char32_t>
+{
+  SymbolSpace<char32_t>() noexcept {};
+  SymbolSpace<char32_t>& operator=(const SymbolSpace<char32_t>&) = delete;
 
-    const char32_t lowAlpha = U'a';
-    const char32_t highAlpha = U'z';
-    const char32_t lowDecimal = U'0';
-    const char32_t highDecimal = U'9';
-    char32_t const* const empty = U"00000";
-    char32_t const value[65] = U"abcdefghijklmnopqrstuvwxyz0123456789****************************";
-  };
+  const char32_t lowAlpha = U'a';
+  const char32_t highAlpha = U'z';
+  const char32_t lowDecimal = U'0';
+  const char32_t highDecimal = U'9';
+  char32_t const* const empty = U"00000";
+  char32_t const value[65] = U"abcdefghijklmnopqrstuvwxyz0123456789****************************";
+};
 
-  template <typename T>
-  static T TagLetterConvertValue(T character) noexcept
-  {
-    static const SymbolSpace<T> ss;
+template <typename T>
+static T TagLetterConvertValue(T character) noexcept
+{
+  static const SymbolSpace<T> ss;
 
-    // a-z
-    if (character >= ss.lowAlpha && character <= ss.highAlpha)
-      return static_cast<T>(character - ss.lowAlpha);
-    // 0-9: 0 is at index 26 in details::m_szSymbolSpace. (z - a) + 1 = (122 - 97) + 1 = 26
-    if (character >= ss.lowDecimal && character <= ss.highDecimal)
-      return static_cast<T>(character - ss.lowDecimal + (ss.highAlpha - ss.lowAlpha) + 1);
+  // a-z
+  if (character >= ss.lowAlpha && character <= ss.highAlpha)
+    return static_cast<T>(character - ss.lowAlpha);
+  // 0-9: 0 is at index 26 in details::m_szSymbolSpace. (z - a) + 1 = (122 - 97) + 1 = 26
+  if (character >= ss.lowDecimal && character <= ss.highDecimal)
+    return static_cast<T>(character - ss.lowDecimal + (ss.highAlpha - ss.lowAlpha) + 1);
 
-    // should not be calling with characters that are not a-z or 0-9, if they do give it back to them
-    return character;
-  }
+  // should not be calling with characters that are not a-z or 0-9, if they do give it back to them
+  return character;
+}
 
-  static const int m_iMaxNumericTag = 0x0000FFFF;
-  static const int m_iMinOldSchemeHighByteValue = 36;
+static const int m_iMaxNumericTag = 0x0000FFFF;
+static const int m_iMinOldSchemeHighByteValue = 36;
 
-  inline bool IsUntagged(uint32_t value) noexcept
-  {
-    return (value == 0 || value == UNTAGGED);
-  }
+inline bool IsUntagged(uint32_t value) noexcept
+{
+  return (value == 0 || value == UNTAGGED);
+}
 } // namespace details
 
 template <typename T>
@@ -353,6 +353,6 @@ using WzTag = TagHolder<wchar_t>;
 using SzTag = TagHolder<char>;
 }; // namespace TaggingUtilities
 
-  #endif // __cplusplus
+#endif // __cplusplus
 
 #endif // LIBLET_TAGUTILS_TAGUTILS_H

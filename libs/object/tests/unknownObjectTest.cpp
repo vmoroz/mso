@@ -17,7 +17,7 @@ Unit tests for classes in the msoUnknownObject.h
 
 //#define TEST_BAD_INHERITANCE1 // Uncomment to see compilation error
 //#define TEST_BAD_INHERITANCE2 // Uncomment to confirm VEC, but observe a memory leak. We cannot safely destroy this
-//class.
+// class.
 
 MSO_STRUCT_GUID(IBaseSample1, "16872411-FA64-436C-92F4-22FE6B536FC8")
 struct DECLSPEC_NOVTABLE IBaseSample1 : public IUnknown

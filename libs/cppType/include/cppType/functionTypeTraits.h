@@ -6,10 +6,10 @@
 */
 #pragma once
 #ifndef LIBLET_CPPTYPE_FUNCTIONTYPETRAITS_H
-  #define LIBLET_CPPTYPE_FUNCTIONTYPETRAITS_H
+#define LIBLET_CPPTYPE_FUNCTIONTYPETRAITS_H
 
-  #include <tuple>
-  #include <type_traits>
+#include <tuple>
+#include <type_traits>
 
 namespace Mso {
 
@@ -47,7 +47,7 @@ struct fnptr_to_fn<Return (*)(Arguments...)>
   typedef typename std::remove_reference<Return(Arguments...)>::type type;
 };
 
-  #if defined(__cpp_noexcept_function_type) || (_HAS_NOEXCEPT_FUNCTION_TYPES == 1)
+#if defined(__cpp_noexcept_function_type) || (_HAS_NOEXCEPT_FUNCTION_TYPES == 1)
 
 // Handle a noexcept member function pointer that is non-const
 template <typename Return, typename Class, typename... Arguments>
@@ -70,7 +70,7 @@ struct fnptr_to_fn<Return (*)(Arguments...) noexcept>
   typedef typename std::remove_reference<Return(Arguments...)>::type type;
 };
 
-  #endif
+#endif
 
 /**
 
@@ -97,45 +97,45 @@ struct are_function_types_convertible;
 
 namespace details {
 
-  template <typename FromTuple, typename ToTuple>
-  struct are_function_types_convertible_arguments_helper;
+template <typename FromTuple, typename ToTuple>
+struct are_function_types_convertible_arguments_helper;
 
-  // base case - true - tuples are empty, no arguments left.
-  template <>
-  struct are_function_types_convertible_arguments_helper<std::tuple<>, std::tuple<>>
-  {
-    static bool const value = true;
-  };
+// base case - true - tuples are empty, no arguments left.
+template <>
+struct are_function_types_convertible_arguments_helper<std::tuple<>, std::tuple<>>
+{
+  static bool const value = true;
+};
 
-  // base case - false - too many arguments in From.
-  template <typename... FromArguments>
-  struct are_function_types_convertible_arguments_helper<std::tuple<FromArguments...>, std::tuple<>>
-  {
-    static const bool value = false;
-  };
+// base case - false - too many arguments in From.
+template <typename... FromArguments>
+struct are_function_types_convertible_arguments_helper<std::tuple<FromArguments...>, std::tuple<>>
+{
+  static const bool value = false;
+};
 
-  // base case - false - too many arguments in To.
-  template <typename... ToArguments>
-  struct are_function_types_convertible_arguments_helper<std::tuple<>, std::tuple<ToArguments...>>
-  {
-    static const bool value = false;
-  };
+// base case - false - too many arguments in To.
+template <typename... ToArguments>
+struct are_function_types_convertible_arguments_helper<std::tuple<>, std::tuple<ToArguments...>>
+{
+  static const bool value = false;
+};
 
-  // recursive step - valid if the head arguments are compatible and the recursive check on the tails are compatible.
-  template <
-      typename FromArgumentsHead,
-      typename... FromArgumentsTail,
-      typename ToArgumentsHead,
-      typename... ToArgumentsTail>
-  struct are_function_types_convertible_arguments_helper<
-      std::tuple<FromArgumentsHead, FromArgumentsTail...>,
-      std::tuple<ToArgumentsHead, ToArgumentsTail...>>
-  {
-    static const bool value = std::is_convertible<FromArgumentsHead, ToArgumentsHead>::value
-        && are_function_types_convertible_arguments_helper<
-                                  std::tuple<FromArgumentsTail...>,
-                                  std::tuple<ToArgumentsTail...>>::value;
-  };
+// recursive step - valid if the head arguments are compatible and the recursive check on the tails are compatible.
+template <
+    typename FromArgumentsHead,
+    typename... FromArgumentsTail,
+    typename ToArgumentsHead,
+    typename... ToArgumentsTail>
+struct are_function_types_convertible_arguments_helper<
+    std::tuple<FromArgumentsHead, FromArgumentsTail...>,
+    std::tuple<ToArgumentsHead, ToArgumentsTail...>>
+{
+  static const bool value = std::is_convertible<FromArgumentsHead, ToArgumentsHead>::value
+      && are_function_types_convertible_arguments_helper<
+                                std::tuple<FromArgumentsTail...>,
+                                std::tuple<ToArgumentsTail...>>::value;
+};
 
 } // namespace details
 

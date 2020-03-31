@@ -16,138 +16,138 @@ class WeakPtr;
 
 namespace Details {
 
-  class WeakPtrBase
+class WeakPtrBase
+{
+public:
+  void Reset() noexcept
   {
-  public:
-    void Reset() noexcept
-    {
-      CheckedReleaseWeakRef();
-      m_ptr = nullptr;
-      m_weakRef = nullptr;
-    }
+    CheckedReleaseWeakRef();
+    m_ptr = nullptr;
+    m_weakRef = nullptr;
+  }
 
-    bool IsEmpty() const noexcept
-    {
-      return m_ptr == nullptr;
-    }
+  bool IsEmpty() const noexcept
+  {
+    return m_ptr == nullptr;
+  }
 
-    bool IsExpired() const noexcept
-    {
-      return !m_ptr || m_weakRef->IsExpired();
-    }
+  bool IsExpired() const noexcept
+  {
+    return !m_ptr || m_weakRef->IsExpired();
+  }
 
-    template <class T>
-    static Mso::ObjectWeakRef* GetWeakRef(_In_opt_ T* from) noexcept
-    {
-      return GetWeakRefCore(from, 0, 0);
-    }
+  template <class T>
+  static Mso::ObjectWeakRef* GetWeakRef(_In_opt_ T* from) noexcept
+  {
+    return GetWeakRefCore(from, 0, 0);
+  }
 
-  protected:
-    enum
-    {
-      AttachTag = 0
-    };
-
-    WeakPtrBase() noexcept : m_ptr(nullptr), m_weakRef(nullptr) {}
-
-    WeakPtrBase(_In_opt_ void* ptr, _In_opt_ Mso::ObjectWeakRef* weakRef) noexcept
-        : m_ptr(ptr), m_weakRef(ptr ? weakRef : nullptr)
-    {
-      CheckedAddWeakRef();
-    }
-
-    WeakPtrBase(_In_opt_ void* ptr, _In_opt_ Mso::ObjectWeakRef* weakRef, int /*attachTag*/) noexcept
-        : m_ptr(ptr), m_weakRef(weakRef)
-    {
-    }
-
-    ~WeakPtrBase() noexcept
-    {
-      CheckedReleaseWeakRef();
-    }
-
-    void Assign(_In_opt_ void* ptr, _In_opt_ ObjectWeakRef* weakRef) noexcept
-    {
-      CheckedReleaseWeakRef();
-      m_ptr = ptr;
-      m_weakRef = weakRef;
-      CheckedAddWeakRef();
-    }
-
-    void Assign(_In_opt_ void* ptr, _In_opt_ ObjectWeakRef* weakRef, int /*attachTag*/) noexcept
-    {
-      CheckedReleaseWeakRef();
-      m_ptr = ptr;
-      m_weakRef = weakRef;
-    }
-
-    bool IncrementRefCountIfNotZero() const noexcept
-    {
-      return m_weakRef && m_weakRef->IncrementRefCountIfNotZero();
-    }
-
-  private:
-    void CheckedAddWeakRef() const noexcept
-    {
-      if (m_weakRef)
-        m_weakRef->AddWeakRef();
-    }
-
-    void CheckedReleaseWeakRef() const noexcept
-    {
-      if (m_weakRef)
-        m_weakRef->ReleaseWeakRef();
-    }
-
-    // Called when T has GetWeakRef method.
-    template <class T>
-    static auto GetWeakRefCore(_In_opt_ T* from, int, int) noexcept -> decltype(&from->GetWeakRef())
-    {
-      if (from)
-      {
-        Mso::ObjectWeakRef* result = &from->GetWeakRef();
-        VerifyElseCrashSzTag(result, "GetWeakRef() returned null", 0x0100371a /* tag_bad20 */);
-        return result;
-      }
-
-      return nullptr;
-    }
-
-    // Called when T has QueryInterface method.
-    template <class T>
-    static auto GetWeakRefCore(_In_opt_ T* from, int, ...) noexcept
-        -> decltype(from->QueryInterface(__uuidof(Mso::ObjectWeakRef), nullptr), (Mso::ObjectWeakRef*)nullptr)
-    {
-      if (from)
-      {
-        Mso::ObjectWeakRef* result = query_cast<Mso::ObjectWeakRef*>(from);
-        VerifyElseCrashSzTag(result, "query_cast<Mso::ObjectWeakRef*>() returned null", 0x0100371b /* tag_bad21 */);
-        return result;
-      }
-
-      return nullptr;
-    }
-
-    // Called when T does not have GetWeakRef method.
-    template <class T>
-    static Mso::ObjectWeakRef* GetWeakRefCore(_In_opt_ T* /*from*/, ...) noexcept
-    {
-      VerifyElseCrashSzTag(false, "Cannot get ObjectWeakRef for an object.", 0x0100371c /* tag_bad22 */);
-      return nullptr;
-    }
-
-    friend const void* GetUnsafePtr(const WeakPtrBase& weakPtrBase) noexcept
-    {
-      return weakPtrBase.m_ptr;
-    }
-
-  private:
-    void* m_ptr;
-    Mso::ObjectWeakRef* m_weakRef;
-
-    template <class T>
-    friend class Mso::WeakPtr;
+protected:
+  enum
+  {
+    AttachTag = 0
   };
+
+  WeakPtrBase() noexcept : m_ptr(nullptr), m_weakRef(nullptr) {}
+
+  WeakPtrBase(_In_opt_ void* ptr, _In_opt_ Mso::ObjectWeakRef* weakRef) noexcept
+      : m_ptr(ptr), m_weakRef(ptr ? weakRef : nullptr)
+  {
+    CheckedAddWeakRef();
+  }
+
+  WeakPtrBase(_In_opt_ void* ptr, _In_opt_ Mso::ObjectWeakRef* weakRef, int /*attachTag*/) noexcept
+      : m_ptr(ptr), m_weakRef(weakRef)
+  {
+  }
+
+  ~WeakPtrBase() noexcept
+  {
+    CheckedReleaseWeakRef();
+  }
+
+  void Assign(_In_opt_ void* ptr, _In_opt_ ObjectWeakRef* weakRef) noexcept
+  {
+    CheckedReleaseWeakRef();
+    m_ptr = ptr;
+    m_weakRef = weakRef;
+    CheckedAddWeakRef();
+  }
+
+  void Assign(_In_opt_ void* ptr, _In_opt_ ObjectWeakRef* weakRef, int /*attachTag*/) noexcept
+  {
+    CheckedReleaseWeakRef();
+    m_ptr = ptr;
+    m_weakRef = weakRef;
+  }
+
+  bool IncrementRefCountIfNotZero() const noexcept
+  {
+    return m_weakRef && m_weakRef->IncrementRefCountIfNotZero();
+  }
+
+private:
+  void CheckedAddWeakRef() const noexcept
+  {
+    if (m_weakRef)
+      m_weakRef->AddWeakRef();
+  }
+
+  void CheckedReleaseWeakRef() const noexcept
+  {
+    if (m_weakRef)
+      m_weakRef->ReleaseWeakRef();
+  }
+
+  // Called when T has GetWeakRef method.
+  template <class T>
+  static auto GetWeakRefCore(_In_opt_ T* from, int, int) noexcept -> decltype(&from->GetWeakRef())
+  {
+    if (from)
+    {
+      Mso::ObjectWeakRef* result = &from->GetWeakRef();
+      VerifyElseCrashSzTag(result, "GetWeakRef() returned null", 0x0100371a /* tag_bad20 */);
+      return result;
+    }
+
+    return nullptr;
+  }
+
+  // Called when T has QueryInterface method.
+  template <class T>
+  static auto GetWeakRefCore(_In_opt_ T* from, int, ...) noexcept
+      -> decltype(from->QueryInterface(__uuidof(Mso::ObjectWeakRef), nullptr), (Mso::ObjectWeakRef*)nullptr)
+  {
+    if (from)
+    {
+      Mso::ObjectWeakRef* result = query_cast<Mso::ObjectWeakRef*>(from);
+      VerifyElseCrashSzTag(result, "query_cast<Mso::ObjectWeakRef*>() returned null", 0x0100371b /* tag_bad21 */);
+      return result;
+    }
+
+    return nullptr;
+  }
+
+  // Called when T does not have GetWeakRef method.
+  template <class T>
+  static Mso::ObjectWeakRef* GetWeakRefCore(_In_opt_ T* /*from*/, ...) noexcept
+  {
+    VerifyElseCrashSzTag(false, "Cannot get ObjectWeakRef for an object.", 0x0100371c /* tag_bad22 */);
+    return nullptr;
+  }
+
+  friend const void* GetUnsafePtr(const WeakPtrBase& weakPtrBase) noexcept
+  {
+    return weakPtrBase.m_ptr;
+  }
+
+private:
+  void* m_ptr;
+  Mso::ObjectWeakRef* m_weakRef;
+
+  template <class T>
+  friend class Mso::WeakPtr;
+};
 
 } // namespace Details
 

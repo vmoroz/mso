@@ -6,12 +6,12 @@
 */
 #pragma once
 #ifndef LIBLET_CORE_SMARTHANDLES_H
-  #define LIBLET_CORE_SMARTHANDLES_H
-  #ifdef __cplusplus
-    #ifdef MS_TARGET_WINDOWS
-      #include <platformadapters/windowsfirst.h>
-    #endif
-    #include <core/smartPointerBase.h>
+#define LIBLET_CORE_SMARTHANDLES_H
+#ifdef __cplusplus
+#ifdef MS_TARGET_WINDOWS
+#include <platformadapters/windowsfirst.h>
+#endif
+#include <core/smartPointerBase.h>
 
 namespace Mso {
 
@@ -33,6 +33,6 @@ typedef THolder<HANDLE, HandleHelper> HandleHolder;
 
 } // namespace Mso
 
-  #endif // __cplusplus
+#endif // __cplusplus
 
 #endif // LIBLET_CORE_SMARTHANDLES_H

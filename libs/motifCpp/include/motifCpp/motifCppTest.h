@@ -11,11 +11,11 @@
 #include <type_traits>
 
 #if defined(MSO_USE_GTEST)
-  #include <motifCpp/gTestAdapter.h>
+#include <motifCpp/gTestAdapter.h>
 #elif defined(MSO_USE_XCTEST)
-  #include <motifCpp/xcTestAdapter.h>
+#include <motifCpp/xcTestAdapter.h>
 #else
-  #error "Undefined unit test framework"
+#error "Undefined unit test framework"
 #endif
 
 typedef wchar_t WCHAR;

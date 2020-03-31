@@ -457,7 +457,7 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
 		Mso::Functor<int(int)> f1 = ([](int) noexcept -> int
 		{
 			OACR_NOEXCEPT_MAYTERMINATE;
-  #pragma warning(suppress : 4297) // Suppress warning about throwing in noexcept function.
+#pragma warning(suppress : 4297) // Suppress warning about throwing in noexcept function.
 			throw std::runtime_error("Test error");
 		});
 		TestCheckTerminate(f1(5));
@@ -1544,7 +1544,7 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
 		Mso::Functor<int(int) noexcept> f1 = ([](int) noexcept -> int
 		{
 			OACR_NOEXCEPT_MAYTERMINATE;
-  #pragma warning(suppress : 4297) // Suppress warning about throwing in noexcept function.
+#pragma warning(suppress : 4297) // Suppress warning about throwing in noexcept function.
 			throw std::runtime_error("Test error");
 		});
 		TestCheckTerminate(f1(5));

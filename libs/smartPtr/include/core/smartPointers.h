@@ -6,9 +6,9 @@
 */
 #pragma once
 #ifndef LIBLET_CORE_SMARTPOINTERS_H
-  #define LIBLET_CORE_SMARTPOINTERS_H
-  #ifdef __cplusplus
-    #include "smartPointerBase.h"
+#define LIBLET_CORE_SMARTPOINTERS_H
+#ifdef __cplusplus
+#include "smartPointerBase.h"
 
 namespace Mso {
 
@@ -210,6 +210,6 @@ struct TPfnHelper
 
 } // namespace Mso
 
-  #endif // __cplusplus
+#endif // __cplusplus
 
 #endif // LIBLET_CORE_SMARTPOINTERS_H

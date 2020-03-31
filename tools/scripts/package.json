@@ -10,6 +10,6 @@
     "directory": "tools/scripts"
   },
   "devDependencies": {
-    "clang-format": "1.2.4"
+    "clang-format": "1.4.0"
   }
 }

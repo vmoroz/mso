@@ -6,20 +6,22 @@
 ----------------------------------------------------------------------------*/
 #pragma once
 #ifndef MOTIFCPP_ASSERT_IGNOREPLAT_EMPTYIMPL_H
-#define MOTIFCPP_ASSERT_IGNOREPLAT_EMPTYIMPL_H
+  #define MOTIFCPP_ASSERT_IGNOREPLAT_EMPTYIMPL_H
 
-#include <cstdint>
+  #include <cstdint>
 
 namespace Mso {
 
-    class IgnoreAllAssertsPlatformImpl {};
+class IgnoreAllAssertsPlatformImpl
+{
+};
 
-    class IgnoreAssertPlatformImpl
-    {
-    public:
-        IgnoreAssertPlatformImpl(uint32_t) {}
-    };
+class IgnoreAssertPlatformImpl
+{
+public:
+  IgnoreAssertPlatformImpl(uint32_t) {}
+};
 
-} // Mso
+} // namespace Mso
 
 #endif // MOTIFCPP_ASSERT_IGNOREPLAT_EMPTYIMPL_H

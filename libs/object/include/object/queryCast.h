@@ -6,7 +6,7 @@
 */
 #pragma once
 #include <debugAssertApi/debugAssertApi.h>
-#include <platformAdapters/msoGuid.h>
+#include <guid/msoGuid.h>
 #include <crash/verifyElseCrash.h>
 #include <object/IUnknownShim.h>
 #include <type_traits>

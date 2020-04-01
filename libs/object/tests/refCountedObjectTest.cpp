@@ -15,7 +15,7 @@ Unit tests for classes in the msoRefCountedObject.h
 
 //#define TEST_BAD_INHERITANCE1 // Uncomment to see compilation error
 //#define TEST_BAD_INHERITANCE2 // Uncomment to confirm VEC, but observe a memory leak. We cannot safely destroy this
-//class.
+// class.
 
 struct DECLSPEC_NOVTABLE IRefBaseSample1 : public Mso::IRefCounted
 {

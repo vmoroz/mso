@@ -13,7 +13,7 @@ Unit tests for classes in the ObjectSwarm.h
 #include <test/testCheck.h>
 
 //#define TEST_BAD_INHERITANCE1 // Uncomment to confirm VEC, but observe a memory leak. We cannot safely destroy this
-//class.
+// class.
 
 MSO_STRUCT_GUID(IFixedSwarmSample1, "AA2EB60A-06DD-486F-AC9B-DBF1DDE21408")
 struct DECLSPEC_NOVTABLE IFixedSwarmSample1 : IUnknown

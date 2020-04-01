@@ -90,7 +90,8 @@ using BYTE = uint8_t;
 #ifndef __GNUC__ // Redefinition (see line ~5)
 MSO_STRUCT_GUID(IUnknown, "00000000-0000-0000-C000-000000000046")
 #endif
-struct IUnknown {
+struct IUnknown
+{
   virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) = 0;
   virtual ULONG STDMETHODCALLTYPE AddRef(void) = 0;
   virtual ULONG STDMETHODCALLTYPE Release(void) = 0;

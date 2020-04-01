@@ -1,17 +1,15 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-//#include "precomp.h"
-
-#include <crash/verifyElseCrash.h>
-#include <compilerAdapters/cppMacros.h>
-#include <platformAdapters/windowsFirst.h>
+#include "compilerAdapters/cppMacros.h"
+#include "crash/verifyElseCrash.h"
+#include "platformAdapters/windowsFirst.h"
 
 #if defined(MS_TARGET_POSIX)
 
 void CrashWithRecovery(uint32_t /*tag*/) noexcept
 {
-  *((volatile int*)0) = 1;
+  *((int*)0) = 1;
   __builtin_trap();
 }
 

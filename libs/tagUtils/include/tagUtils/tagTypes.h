@@ -2,8 +2,8 @@
 // Licensed under the MIT license.
 
 #pragma once
-#ifndef LIBLET_TAGUTILS_TAGTYPES_H
-#define LIBLET_TAGUTILS_TAGTYPES_H
+#ifndef MSO_TAGUTILS_TAGTYPES_H
+#define MSO_TAGUTILS_TAGTYPES_H
 
 #if __cplusplus && !defined(MS_TARGET_POSIX)
 /**
@@ -12,9 +12,8 @@ ie: AssertTag(FALSE, UNTAGGED);
 */
 constexpr unsigned int UNTAGGED = static_cast<unsigned int>(0x0000);
 
-class MsoReserveTag final
-{
-public:
+class MsoReserveTag final {
+ public:
   /**
    * Creates a tag from underlying value.
    * @param v the value of the tag.
@@ -26,17 +25,15 @@ public:
 
   // This is an unfortunate work around at the moment to allow conversion back to the underlying
   // type so that existing comparisons and function signatures work
-  constexpr operator unsigned int() const noexcept
-  {
+  constexpr operator unsigned int() const noexcept {
     return m_value;
   }
 
-private:
+ private:
   const unsigned int m_value;
 };
 
-constexpr inline MsoReserveTag MsoReserve() noexcept
-{
+constexpr inline MsoReserveTag MsoReserve() noexcept {
   return MsoReserveTag(UNTAGGED);
 }
 
@@ -59,4 +56,4 @@ AssertTag(FALSE, ASSERTTAG('abcd'));
 */
 #define ASSERTTAG(x) x
 
-#endif // LIBLET_TAGUTILS_TAGTYPES_H
+#endif // MSO_TAGUTILS_TAGTYPES_H

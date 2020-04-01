@@ -1,14 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-#include <compilerAdapters/cppMacrosDebug.h>
-#include <compilerAdapters/functionDecorations.h>
-#include <cppExtensions/autoRestore.h>
-#include <debugAssertApi/debugAssertApi.h>
-#include <debugAssertApi/debugAssertDisabler.h>
+#include "debugAssertApi/debugAssertApi.h"
 #include <algorithm>
-#include <set>
 #include <memory>
+#include <set>
+#include "compilerAdapters/cppMacrosDebug.h"
+#include "cppExtensions/autoRestore.h"
 
 #ifdef DEBUG
 
@@ -127,14 +125,14 @@ bool IsInAssertHandler() noexcept
 
 }} // namespace Mso::DebugAsserts
 
-LIBLET_PUBLICAPI_APPLE MSOAPI_(void) MsoFAddIgnoredAssertTag(uint32_t tag) noexcept
-{
-  Mso::DebugAsserts::DisableAssertTag(tag);
-}
-
-LIBLET_PUBLICAPI_APPLE MSOAPI_(void) MsoFRemoveIgnoredAssertTag(uint32_t tag) noexcept
-{
-  Mso::DebugAsserts::EnableAssertTag(tag);
-}
+// LIBLET_PUBLICAPI_APPLE MSOAPI_(void) MsoFAddIgnoredAssertTag(uint32_t tag) noexcept
+//{
+//	Mso::DebugAsserts::DisableAssertTag(tag);
+//}
+//
+// LIBLET_PUBLICAPI_APPLE MSOAPI_(void) MsoFRemoveIgnoredAssertTag(uint32_t tag) noexcept
+//{
+//	Mso::DebugAsserts::EnableAssertTag(tag);
+//}
 
 #endif // DEBUG

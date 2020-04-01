@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+#pragma once
+#ifndef MSO_COMPILERADAPTERS_FUNCTIONDECORATIONS_H
+#define MSO_COMPILERADAPTERS_FUNCTIONDECORATIONS_H
+
 /**
   Cross-platform/language macros to decorate APIs
 */
-#pragma once
-#ifndef COMPILERADAPTERS_FUNCTIONDECORATIONS_H
-#define COMPILERADAPTERS_FUNCTIONDECORATIONS_H
 
 /**
   The Liblet::PublicApi attribute is used to mark a function, class or
@@ -205,26 +206,4 @@
 #define MSO_STATIC_FRIEND friend static
 #endif
 
-// Don't use any of these macros, they are being eliminated
-// The definitions are a mess to prevent removed macros from sneaking back in
-
-#if defined(__cplusplus) && !defined(__clang__)
-
-/* SSS_WARNINGS_OFF */
-#define MSOCPPAPI_(t) extern "C++" __declspec(nothrow) t __cdecl
-#if defined(_M_X64)
-#define MSOAPI_(t) MSOEXTERN_C __declspec(nothrow) t __fastcall
-#else
-#define MSOAPI_(t) MSOEXTERN_C __declspec(nothrow) t __stdcall
-#endif
-/* SSS_WARNINGS_ON */
-#else
-#define MSOCPPAPI_(t) extern "C++" t __cdecl
-#if defined(_M_X64)
-#define MSOAPI_(t) MSOEXTERN_C t __fastcall
-#else
-#define MSOAPI_(t) MSOEXTERN_C t __stdcall
-#endif
-#endif
-
-#endif
+#endif // MSO_COMPILERADAPTERS_FUNCTIONDECORATIONS_H

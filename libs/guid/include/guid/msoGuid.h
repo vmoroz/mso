@@ -1,22 +1,23 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+#pragma once
+#ifndef MSO_GUID_MSOGUID_H
+#define MSO_GUID_MSOGUID_H
+
 /**
   Support for multi-platform GUID implementation.
 */
-#pragma once
-#ifndef LIBLET_PLATFORMADAPTERS_MSOGUID_H
-#define LIBLET_PLATFORMADAPTERS_MSOGUID_H
 
-#include <oacr.h>
 #include <guiddef.h>
+#include "oacr/oacr.h"
 
 #ifdef __cplusplus
-#include <platformAdapters/msoGuidDetails.h>
+#include "guid/msoGuidDetails.h"
 
 /**
-MSO_STRUCT_GUID or MSO_CLASS_GUID are used to associate a GUID with a type in platform independent way:
 
+MSO_STRUCT_GUID or MSO_CLASS_GUID are used to associate a GUID with a type in platform independent way:
 
   MSO_STRUCT_GUID(IMyInterface, "8665E4CE-50ED-4C12-A96D-13BD1432C219")
   struct DECLSPEC_NOVTABLE IMyInterface : IBaseInterface
@@ -80,17 +81,13 @@ OACR_WARNING_DISABLE(VAR_IN_HEADER, "False Positive for variable in header with 
 
 /// To return false in TypeHasGuid<T>::Value if type has no GUID defined by MSO_STRUCT_GUID/MSO_CLASS_GUID
 template <typename T>
-::Mso::Details::GuidUtils::FalseType MsoTypeHasGuid(T*);
+::Mso::Details::GuidUtils::FalseType MsoTypeHasGuid(T *);
 
 /// Type traits to check if type has a GUID defined by MSO_STRUCT_GUID/MSO_CLASS_GUID
 template <typename T>
-struct TypeHasGuid
-{
-  typedef decltype(MsoTypeHasGuid(static_cast<T*>(nullptr))) Type;
-  enum
-  {
-    Value = Type::Value
-  };
+struct TypeHasGuid {
+  typedef decltype(MsoTypeHasGuid(static_cast<T *>(nullptr))) Type;
+  enum { Value = Type::Value };
 };
 
 /**
@@ -102,26 +99,24 @@ struct TypeHasGuid
   and we should use Mso::ResolveGuidPtr<T, piid>::Guid instead of piid inside of the template.
   The Mso::ResolveGuidPtr has a specialization for nullptr that does all the "magic".
 */
-template <typename T, const GUID* guidPtr>
-struct ResolveGuidPtr
-{
-  static const GUID* Guid;
+template <typename T, const GUID *guidPtr>
+struct ResolveGuidPtr {
+  static const GUID *Guid;
 };
 
-template <typename T, const GUID* guidPtr>
-const GUID* ResolveGuidPtr<T, guidPtr>::Guid = guidPtr;
+template <typename T, const GUID *guidPtr>
+const GUID *ResolveGuidPtr<T, guidPtr>::Guid = guidPtr;
 
 template <typename T>
-struct ResolveGuidPtr<T, static_cast<const GUID*>(nullptr)>
-{
-  static const GUID* Guid;
+struct ResolveGuidPtr<T, static_cast<const GUID *>(nullptr)> {
+  static const GUID *Guid;
 };
 
 template <typename T>
-const GUID* ResolveGuidPtr<T, static_cast<const GUID*>(nullptr)>::Guid = &__uuidof(T);
+const GUID *ResolveGuidPtr<T, static_cast<const GUID *>(nullptr)>::Guid = &__uuidof(T);
 
 OACR_WARNING_POP
 } // namespace Mso
 
 #endif // __cplusplus
-#endif // LIBLET_PLATFORMADAPTERS_MSOGUID_H
+#endif // MSO_GUID_MSOGUID_H

@@ -2,12 +2,12 @@
 // Licensed under the MIT license.
 
 #pragma once
-#ifndef LIBLET_MEMORYAPI_SCOPE
-#define LIBLET_MEMORYAPI_SCOPE
-#ifdef __cplusplus
-#include <compilerAdapters/functionDecorations.h>
+#ifndef MSO_MEMORYAPI_MEMORYLEAKSCOPE_H
+#define MSO_MEMORYAPI_MEMORYLEAKSCOPE_H
 
-namespace Mso { namespace Memory {
+#include "compilerAdapters/functionDecorations.h"
+
+namespace Mso::Memory {
 
 /**
   Is the ShutdownLeakScope currently active?
@@ -15,8 +15,7 @@ namespace Mso { namespace Memory {
 #ifdef DEBUG
 LIBLET_PUBLICAPI bool IsInShutdownLeakScope() noexcept;
 #else
-inline bool IsInShutdownLeakScope() noexcept
-{
+inline bool IsInShutdownLeakScope() noexcept {
   return false;
 }
 #endif
@@ -47,8 +46,7 @@ inline void LeaveShutdownLeakScope() noexcept {}
 #ifdef DEBUG
 LIBLET_PUBLICAPI bool IsInIgnoreLeakScope() noexcept;
 #else
-inline bool IsInIgnoreLeakScope() noexcept
-{
+inline bool IsInIgnoreLeakScope() noexcept {
   return false;
 }
 #endif
@@ -73,39 +71,32 @@ LIBLET_PUBLICAPI void LeaveIgnoreLeakScope() noexcept;
 inline void LeaveIgnoreLeakScope() noexcept {}
 #endif
 
-struct AutoShutdownLeakScope
-{
-  AutoShutdownLeakScope(unsigned int framesToSkip = 0) noexcept
-  {
+struct AutoShutdownLeakScope {
+  AutoShutdownLeakScope(unsigned int framesToSkip = 0) noexcept {
     EnterShutdownLeakScope(++framesToSkip);
   }
 
-  AutoShutdownLeakScope(const AutoShutdownLeakScope& /*other*/) noexcept : AutoShutdownLeakScope(1) {}
-  AutoShutdownLeakScope(AutoShutdownLeakScope&& /*other*/) noexcept : AutoShutdownLeakScope(1) {}
+  AutoShutdownLeakScope(const AutoShutdownLeakScope & /*other*/) noexcept : AutoShutdownLeakScope(1) {}
+  AutoShutdownLeakScope(AutoShutdownLeakScope && /*other*/) noexcept : AutoShutdownLeakScope(1) {}
 
-  ~AutoShutdownLeakScope() noexcept
-  {
+  ~AutoShutdownLeakScope() noexcept {
     LeaveShutdownLeakScope();
   }
 };
 
-struct AutoIgnoreLeakScope
-{
-  AutoIgnoreLeakScope(unsigned int framesToSkip = 0) noexcept
-  {
+struct AutoIgnoreLeakScope {
+  AutoIgnoreLeakScope(unsigned int framesToSkip = 0) noexcept {
     EnterIgnoreLeakScope(++framesToSkip);
   }
 
-  AutoIgnoreLeakScope(const AutoIgnoreLeakScope& /*other*/) noexcept : AutoIgnoreLeakScope(1) {}
-  AutoIgnoreLeakScope(AutoIgnoreLeakScope&& /*other*/) noexcept : AutoIgnoreLeakScope(1) {}
+  AutoIgnoreLeakScope(const AutoIgnoreLeakScope & /*other*/) noexcept : AutoIgnoreLeakScope(1) {}
+  AutoIgnoreLeakScope(AutoIgnoreLeakScope && /*other*/) noexcept : AutoIgnoreLeakScope(1) {}
 
-  ~AutoIgnoreLeakScope() noexcept
-  {
+  ~AutoIgnoreLeakScope() noexcept {
     LeaveIgnoreLeakScope();
   }
 };
 
-}} // namespace Mso::Memory
+} // namespace Mso::Memory
 
-#endif // C++
-#endif // LIBLET_MEMORYAPI_SCOPE
+#endif // MSO_MEMORYAPI_MEMORYLEAKSCOPE_H

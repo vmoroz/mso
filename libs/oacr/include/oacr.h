@@ -2,6 +2,9 @@
 // Licensed under the MIT license.
 
 #pragma once
+#ifndef MSO_OACR_OACR_H
+#define MSO_OACR_OACR_H
+
 /*****************************************************************************
 
    Module  : OACR
@@ -15,16 +18,14 @@
 // SAL annotations are #defined in this file
 #include <sal.h>
 #include <specstrings.h>
-#include "oacrsal.h"
 #include <stddef.h>
 
-// Allow deprecated Pre Orcas style annotations by default
-#if !defined(OACR_DEPRECATED)
-#define OACR_DEPRECATED 1
-#endif
+// Don't allow deprecated Pre Orcas style annotations
+#undef OACR_DEPRECATED
+#define OACR_DEPRECATED 0
 
 #ifndef __oacr_noop
-#define __oacr_noop() /*__noop*/
+#define __oacr_noop __noop
 #endif
 
 #if defined(__cplusplus)
@@ -108,8 +109,28 @@
 // Example:
 //   void SubmitTimer(int x, int y, _Norefcapture_asynclambda_ Func& fn)
 //
-#define _Norefcapture_asynclambda_ __oacr_norefcapture_asynclambda
+#define _Norefcapture_asynclambda_ __oacr_asynclambda
 #endif // _Norefcapture_asynclambda_
+
+#if !defined(_Asynclambda_)
+//
+// use _Asynclambda_ on async function. This warns user of possible unsafe variable capture.
+//
+// Example:
+//   void SubmitTimer(int x, int y, _Asynclambda_ Func& fn)
+//
+#define _Asynclambda_ __oacr_asynclambda
+#endif // _Asynclambda_
+
+#if !defined(_Synclambda_)
+//
+// use _Synclambda_ indicate lambda is synchronous
+//
+// Example:
+//   void Compute(int x, int y, _Synclambda_ Func& fn)
+//
+#define _Synclambda_ __oacr_synclambda
+#endif // _Synclambda_
 
 #if !defined(_Nodecl_lambda_)
 // use _Nodecl_lambda_, this warns user about temporary lambda object declared on declaration.
@@ -149,6 +170,14 @@
 //   _Dont_swap_ int m_foo;
 #define _Dont_swap_ __oacr_dont_swap
 #endif // _Dont_swap_
+
+#if !defined(_RAII_)
+// _RAII_ declare a class is RAII
+//
+// Example:
+//   class _RAII_ CriticalSectionLocker {..}
+#define _RAII_ __oacr_raii
+#endif // _RAII_
 
 #if !defined(_Rpc_)
 // use _Rpc_ for functions that used as remote procedure calls, the keyword will silence
@@ -216,7 +245,7 @@
 #if !defined(_Noheap_)
 // use _Noheap_ classes that should not be instantiated on the heap
 // e.g.:
-// _Noheap_ class CriticalSection
+// class _Noheap_ CriticalSection
 // {
 // public:
 //    CriticalSection();
@@ -245,7 +274,7 @@
 // special reason.
 // e.g. a wrapper function to another function that needs to be reviewed
 //_Needsreview_ __inline BOOL MsoGetStringTypeExW(LCID Locale, DWORD dwInfoType, LPCWSTR lpSrcStr, int cchSrc, LPWORD
-//lpCharType)
+// lpCharType)
 //{
 //   return OACR_REVIEWED_CALL("hannesr", GetStringTypeExW(Locale, dwInfoType, lpSrcStr, cchSrc, lpCharType));
 //}
@@ -367,10 +396,12 @@
 // NONCONST_LOCAL (25003), NONCONST_PARAM( 25004), NONCONST_FUNCTION (25005),
 // NONCONST_LOCAL_BUFFERPTR (25032), NONCONST_BUFFER_PARAM (25033)
 #if (defined(OACR) && OACR)
-__extern_c void OACRUsePtr(void* p);
+__extern_c void OACRUsePtr(void *p);
 #define OACR_USE_PTR(p) OACRUsePtr(p)
-#else
+#elif defined(__clang__)
 #define OACR_USE_PTR(p) __oacr_noop()
+#else
+#define OACR_USE_PTR(p) (p)
 #endif
 #endif // OACR_USE_PTR
 
@@ -411,13 +442,10 @@ __extern_cplus void OACRPossibleThrow();
 // context macro pair needs to be on the same scope
 #if (defined(OACR) && OACR)
 __extern_c __noreturn void OACRNoReturn();
-#define OACR_ASSUME_NOTHROW_BEGIN \
-  try                             \
-  {
+#define OACR_ASSUME_NOTHROW_BEGIN try {
 #define OACR_ASSUME_NOTHROW_END \
   }                             \
-  catch (...)                   \
-  {                             \
+  catch (...) {                 \
     OACRNoReturn();             \
   }
 #else
@@ -439,7 +467,7 @@ __extern_c __noreturn void OACRNoReturn();
 // can be used for objects that attach themselves to an owner
 // in their constructors
 #if (defined(OACR) && OACR)
-__extern_c void OACROwnPtr(const void* p);
+__extern_c void OACROwnPtr(const void *p);
 #define OACR_OWN_PTR(p) OACROwnPtr(p)
 #else
 #define OACR_OWN_PTR(p) __oacr_noop()
@@ -457,7 +485,7 @@ __extern_c void OACROwnPtr(const void* p);
 
 #if !defined(OACR_NOT_IMPLEMENTED_MEMBER)
 #if (defined(OACR) && OACR)
-#define OACR_NOT_IMPLEMENTED_MEMBER OACR_USE_PTR((void*)this)
+#define OACR_NOT_IMPLEMENTED_MEMBER OACR_USE_PTR((void *)this)
 #else
 #define OACR_NOT_IMPLEMENTED_MEMBER
 #endif
@@ -495,7 +523,7 @@ __extern_c void __OACRReviewedUrl();
 // use to suppress warnings MISSING_MEMBER_SWAP (25146) for nonswappable data members like refcounts, critical sections,
 // etc.
 #if (defined(OACR) && OACR)
-__extern_c void OACRDontSwap(void* p);
+__extern_c void OACRDontSwap(void *p);
 #define OACR_DONT_SWAP(m) OACRDontSwap(&(m))
 #else
 #define OACR_DONT_SWAP(m) __oacr_noop()
@@ -523,7 +551,7 @@ __extern_c void OACRDontSwap(void* p);
 // use to suppress false positives from OACR
 // e.g.
 // if( fPointerNotNull )
-//    OACR_WARNING_SUPRESS( DEREF_NULL_PTR, "pointer access is guarded by 'fPointerNotNull'" )
+//    OACR_WARNING_SUPPRESS( DEREF_NULL_PTR, "pointer access is guarded by 'fPointerNotNull'" )
 //    p->Foo();
 
 #if !defined(OACR_WARNING_PUSH)
@@ -608,8 +636,8 @@ __extern_c void OACRDontSwap(void* p);
 
 // macro to tell OACR that a string is null terminated at this point of execution
 #if (defined(OACR) && OACR && defined(_Post_z_))
-__extern_c void __OACRAssumeNullterminated(_Post_z_ const char* sz);
-#define OACR_ASSUME_NULLTERMINATED(string) __OACRAssumeNullterminated((const char*)string)
+__extern_c void __OACRAssumeNullterminated(_Post_z_ const char *sz);
+#define OACR_ASSUME_NULLTERMINATED(string) __OACRAssumeNullterminated((const char *)string)
 
 #else
 #define OACR_ASSUME_NULLTERMINATED(string) __oacr_noop()
@@ -618,7 +646,7 @@ __extern_c void __OACRAssumeNullterminated(_Post_z_ const char* sz);
 
 // macro to tell OACR that a pointer is null valid at this point of execution
 #if (defined(OACR) && OACR && defined(_Post_valid_))
-__extern_c void __OACRAssumeValid(_Post_valid_ const void* pv);
+__extern_c void __OACRAssumeValid(_Post_valid_ const void *pv);
 #define OACR_ASSUME_VALID(ptr) __OACRAssumeValid(ptr)
 
 #else
@@ -629,7 +657,7 @@ __extern_c void __OACRAssumeValid(_Post_valid_ const void* pv);
 // macro to tell OACR that a buffer has a certain readable extent at this point of execution
 // it can be used to silent noisy espX INCORRECT_ANNOTATION warnings
 #if (defined(OACR) && OACR && defined(_Post_bytecount_))
-__extern_c void __OACRAssumeByteCount(_Post_bytecount_(cb) const void* pv, size_t cb);
+__extern_c void __OACRAssumeByteCount(_Post_bytecount_(cb) const void *pv, size_t cb);
 #define OACR_ASSUME_BYTECOUNT(pv, cb) __OACRAssumeByteCount(pv, cb)
 
 #else
@@ -643,8 +671,8 @@ void _lambda_noexcept_mayterminate_() noexcept {};
 #define OACR_LAMBDA_NOEXCEPT_MAYTERMINATE _lambda_noexcept_mayterminate_()
 #define OACR_NOEXCEPT_MAYTERMINATE _lambda_noexcept_mayterminate_()
 #else
-#define OACR_LAMBDA_NOEXCEPT_MAYTERMINATE __oacr_noop()
-#define OACR_NOEXCEPT_MAYTERMINATE __oacr_noop()
+#define OACR_LAMBDA_NOEXCEPT_MAYTERMINATE __oacr_noop
+#define OACR_NOEXCEPT_MAYTERMINATE __oacr_noop
 #endif
 
 // macro indicate mayterminate ignore stl
@@ -652,15 +680,15 @@ void _lambda_noexcept_mayterminate_() noexcept {};
 void _noexcept_mayterminate_ignore_stl_() noexcept {};
 #define OACR_NOEXCEPT_MAYTERMINATE_IGNORE_STL _noexcept_mayterminate_ignore_stl_()
 #else
-#define OACR_NOEXCEPT_MAYTERMINATE_IGNORE_STL __oacr_noop()
+#define OACR_NOEXCEPT_MAYTERMINATE_IGNORE_STL __oacr_noop
 #endif
 
 // macro indicate mayterminate ignore
 #if (defined(OACR) && OACR && defined(__cplusplus))
-__extern_c void _noexcept_mayterminate_ignore_(const char*) noexcept;
+__extern_c void _noexcept_mayterminate_ignore_(const char *) noexcept;
 #define OACR_NOEXCEPT_MAYTERMINATE_IGNORE(funcs) _noexcept_mayterminate_ignore_(funcs)
 #else
-#define OACR_NOEXCEPT_MAYTERMINATE_IGNORE(funcs) __oacr_noop()
+#define OACR_NOEXCEPT_MAYTERMINATE_IGNORE(funcs) __oacr_noop
 #endif
 
 // OACR custom plugin specific extensions
@@ -690,8 +718,8 @@ __ANNOTATION(_Intl_deprecated_(void));
 __ANNOTATION(_Noinference_(void));
 __ANNOTATION(_Canthrow_(void));
 __ANNOTATION(_BindReturn_(void));
-__ANNOTATION(_SA_deprecated_(__AuToQuOtE char*));
-__ANNOTATION(_Oleo_deprecated_(__AuToQuOtE char*));
+__ANNOTATION(_SA_deprecated_(__AuToQuOtE char *));
+__ANNOTATION(_Oleo_deprecated_(__AuToQuOtE char *));
 __ANNOTATION(_Genericfunctype_(void));
 __ANNOTATION(__nothrowfunctype(void));
 __ANNOTATION(_Noheap_(void));
@@ -699,11 +727,13 @@ __ANNOTATION(_Notrunccast_(void));
 __ANNOTATION(_Sealed_(void));
 __ANNOTATION(_Allow_implicit_ctor_(void));
 __ANNOTATION(_Norefcapture_asynclambda_(void));
+__ANNOTATION(_Synclambda_(void));
 __ANNOTATION(_Nodecl_lambda_(void));
 __ANNOTATION(_Noexcept_maythrow_(void));
 __ANNOTATION(_Noexcept_mayterminate_(void));
-__ANNOTATION(_Noexcept_mayterminate_ignore_(__AuToQuOtE char*));
+__ANNOTATION(_Noexcept_mayterminate_ignore_(__AuToQuOtE char *));
 __ANNOTATION(_Dont_swap_(void));
+__ANNOTATION(_RAII_(void));
 
 #define __oacr_callback __declspec("_Callback_")
 #define __oacr_rpc __declspec("_Rpc_")
@@ -725,13 +755,15 @@ __ANNOTATION(_Dont_swap_(void));
 #define __oacr_notrunccast __declspec("_Notrunccast_")
 #define __oacr_sealed_class __declspec("_Sealed_")
 #define __oacr_allow_implicit_ctor __declspec("_Allow_implicit_ctor_")
-#define __oacr_norefcapture_asynclambda __declspec("_Norefcapture_asynclambda_")
+#define __oacr_asynclambda __declspec("_Norefcapture_asynclambda_")
+#define __oacr_synclambda __declspec("_Synclambda_")
 #define __oacr_nodecl_lambda __declspec("_Nodecl_lambda_")
 #define __oacr_noexcept_maythrow __declspec("_Noexcept_maythrow_")
 #define __oacr_noexcept_mayterminate __declspec("_Noexcept_mayterminate_")
 #define __oacr_noexcept_mayterminate_ignore(FunctionName) \
   __declspec("_Noexcept_mayterminate_ignore_("_SA_SPECSTRIZE(FunctionName) ")")
 #define __oacr_dont_swap __declspec("_Dont_swap_")
+#define __oacr_raii __declspec("_RAII_")
 
 __extern_c int __RequireNoThrow();
 #define __oacr_requireNoThrow __RequireNoThrow();
@@ -758,11 +790,15 @@ __extern_c int __RequireNoThrow();
 #define __oacr_sealed_class
 #define __oacr_requireNoThrow
 #define __oacr_allow_implicit_ctor
-#define __oacr_norefcapture_asynclambda
+#define __oacr_asynclambda
+#define __oacr_synclambda
 #define __oacr_nodecl_lambda
 #define __oacr_noexcept_maythrow
 #define __oacr_noexcept_mayterminate
 #define __oacr_noexcept_mayterminate_ignore(FunctionName)
 #define __oacr_dont_swap
+#define __oacr_raii
 
 #endif
+
+#endif // MSO_OACR_OACR_H

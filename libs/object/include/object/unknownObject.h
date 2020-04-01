@@ -1,71 +1,18 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-  IUnknown implementation.
-*/
-
 #pragma once
+#ifndef MSO_OBJECT_UNKNOWNOBJECT_H
+#define MSO_OBJECT_UNKNOWNOBJECT_H
 
-#include <object/objectRefCount.h>
-#include <object/objectWithWeakRef.h>
-#include <object/queryCast.h>
-#include <object/weakPtr.h>
-#include <compilerAdapters/compilerWarnings.h>
-
-#pragma pack(push, _CRT_PACKING)
-#pragma push_macro("new")
-#undef new
+#include "comUtil/IUnknownShim.h"
+#include "compilerAdapters/compilerWarnings.h"
+#include "object/objectRefCount.h"
+#include "object/objectWithWeakRef.h"
+#include "object/queryCast.h"
+#include "object/weakPtr.h"
 
 BEGIN_DISABLE_WARNING_INCONSISTENT_MISSING_OVERRIDE()
-
-namespace Mso {
-namespace Details {
-
-template <typename T>
-struct QueryInterfaceHelper
-{
-  _Success_(return == S_OK) static HRESULT QueryInterface(T* obj, const GUID& riid, _Outptr_ void** ppvObject) noexcept
-  {
-    VerifyElseCrashSzTag(ppvObject != nullptr, "ppvObject must not be null.", 0x01003717 /* tag_bad2x */);
-
-#if defined(MSO_ENABLE_QICHECK) && defined(DEBUG) && !defined(__clang__)
-    // Windows gives un-initialized pointers when querying for IMarshal and IAgileObjectthese interfaces. Ignore them.
-    if (riid != __uuidof(IMarshal) && riid != __uuidof(IAgileObject))
-    {
-      VerifyElseCrashSzTag(
-          *ppvObject == nullptr, "*ppvObject must be null to avoid memory leaks.", 0x01003718 /* tag_bad2y */);
-    }
-#endif
-
-    // QueryCastBridge is used to QI for an interface without AddRef
-    const GUID& intfGuid =
-        (riid == __uuidof(QueryCastBridge)) ? reinterpret_cast<QueryCastBridge*>(ppvObject)->ObjectId : riid;
-
-    if (intfGuid == __uuidof(IUnknown))
-    {
-      *ppvObject = obj->template StaticCastElseNull<IUnknown*>();
-    }
-    else
-    {
-      *ppvObject = obj->QueryCast(intfGuid);
-    }
-
-    if (!*ppvObject)
-    {
-      return E_NOINTERFACE;
-    }
-
-    if (&riid == &intfGuid)
-    {
-      obj->AddRef();
-    }
-
-    return S_OK;
-  }
-};
-
-} // namespace Details
 
 /**
   UnknownObject is a class template that implements the IUnknown interface (AddRef, Release, and QueryInterface).
@@ -99,7 +46,7 @@ struct QueryInterfaceHelper
         void DoSomething() override { ... }
       };
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
 
 
   2)  A class that implements multiple COM interfaces.
@@ -133,8 +80,8 @@ struct QueryInterfaceHelper
         void DoQuxStuff() override { ... }
       };
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
-      Mso::TCntPtr<IBar> spBar = Mso::Make<Foo, IBar>();			// Create a TCntPtr<IBar> directly.
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<IBar> spBar = Mso::Make<Foo, IBar>();      // Create a CntPtr<IBar> directly.
 
 
   3)  A class that inherits from one or more base classes.
@@ -167,7 +114,7 @@ struct QueryInterfaceHelper
         // Foo::QueryInterface will succeed when queried for IBar, returning a BarMixin*
       };
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
 
 
   4)  A class that implements a COM interface and has support for weak references:
@@ -190,7 +137,7 @@ struct QueryInterfaceHelper
         });
       }
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
 
 
   5) A class that implements a COM interface with weak references and a custom deleter:
@@ -222,7 +169,7 @@ struct QueryInterfaceHelper
         });
       }
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
 
 
   6)  A class that implements a COM interface, with a private constructor.
@@ -235,13 +182,13 @@ struct QueryInterfaceHelper
         friend MakePolicy;
 
       private:
-        Foo(const Bar& bar) { }		// Private constructor
+        Foo(const Bar& bar) { }    // Private constructor
 
         ...
       };
 
       const Bar& bar = ...;
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>(bar);
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>(bar);
 
 
   7)  A class that uses the 'InitializeThis' pattern, which allows you to separate object construction
@@ -270,13 +217,13 @@ struct QueryInterfaceHelper
 
       const Baz& baz = ...;
       const Qux& qux = ...;
-      Mso::TCntPtr<Foo> spFoo = Mso::Make(baz, qux);
+      Mso::CntPtr<Foo> spFoo = Mso::Make(baz, qux);
 
 
   8)  A class that implements a COM interface without actual ref counting.
 
     This can be useful if the object's lifetime is managed via some other method, but the object
-    still needs to be used with ComPtr, TCntPtr or other code that expects AddRef/Release.
+    still needs to be used with ComPtr, CntPtr or other code that expects AddRef/Release.
     This can happen in several scenarios:
 
       - Singletons that want to avoid any AddRef/Release because there is one long-lived instance.
@@ -333,7 +280,7 @@ struct QueryInterfaceHelper
         ...
       };
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
 
 
   12) A class that implements a COM interface with a custom stateful allocator.
@@ -364,15 +311,55 @@ struct QueryInterfaceHelper
       };
 
       ICustomHeap& heap = ...;
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>(&heap);
-
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>(&heap);
 */
+
+namespace Mso::Details {
+
+template <typename T>
+struct QueryInterfaceHelper {
+  _Success_(return == S_OK) static HRESULT
+      QueryInterface(T *obj, const GUID &riid, _Outptr_ void **ppvObject) noexcept {
+    VerifyElseCrashSzTag(ppvObject != nullptr, "ppvObject must not be null.", 0x01003717 /* tag_bad2x */);
+
+#if defined(MSO_ENABLE_QICHECK) && defined(DEBUG) && !defined(__clang__)
+    // Windows gives un-initialized pointers when querying for IMarshal and IAgileObjectthese interfaces. Ignore them.
+    if (riid != __uuidof(IMarshal) && riid != __uuidof(IAgileObject)) {
+      VerifyElseCrashSzTag(
+          *ppvObject == nullptr, "*ppvObject must be null to avoid memory leaks.", 0x01003718 /* tag_bad2y */);
+    }
+#endif
+
+    // QueryCastBridge is used to QI for an interface without AddRef
+    const GUID &intfGuid =
+        (riid == __uuidof(QueryCastBridge)) ? reinterpret_cast<QueryCastBridge *>(ppvObject)->ObjectId : riid;
+
+    if (intfGuid == __uuidof(Mso::IUnknown)) {
+      *ppvObject = obj->template StaticCastElseNull<Mso::IUnknown *>();
+    } else {
+      *ppvObject = obj->QueryCast(intfGuid);
+    }
+
+    if (!*ppvObject) {
+      return E_NOINTERFACE;
+    }
+
+    if (&riid == &intfGuid) {
+      obj->AddRef();
+    }
+
+    return S_OK;
+  }
+};
+
+} // namespace Mso::Details
+
+namespace Mso {
 template <typename TBaseType0, typename... TBaseTypes>
-class DECLSPEC_NOVTABLE UnknownObject : public Mso::QueryCastList<TBaseType0, TBaseTypes...>
-{
+class DECLSPEC_NOVTABLE UnknownObject : public Mso::QueryCastList<TBaseType0, TBaseTypes...> {
   using Super = Mso::QueryCastList<TBaseType0, TBaseTypes...>;
 
-public:
+ public:
   using MakePolicy = Mso::MakePolicy::NoThrowCtor;
   using RefCountPolicy = Mso::SimpleRefCountPolicy<Mso::DefaultRefCountedDeleter, Mso::MakeAllocator>;
   friend RefCountPolicy;
@@ -380,55 +367,47 @@ public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
   using TypeToDelete = UnknownObject; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
+  MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
 
-  _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID& riid, _Outptr_ void** ppvObject) noexcept override
-  {
+  _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID &riid, _Outptr_ void **ppvObject) noexcept override {
     return ::Mso::Details::QueryInterfaceHelper<UnknownObject>::QueryInterface(this, riid, ppvObject);
   }
 
-  STDMETHOD_(ULONG, AddRef)() noexcept override
-  {
-    if (++m_refCount == 1)
-    {
+  STDMETHOD_(ULONG, AddRef)() noexcept override {
+    if (++m_refCount == 1) {
       Debug(VerifyElseCrashSzTag(false, "Ref count must not bounce from zero", 0x0110559f /* tag_befw5 */));
     }
 
     return 1;
   }
 
-  STDMETHOD_(ULONG, Release)() noexcept override
-  {
+  STDMETHOD_(ULONG, Release)() noexcept override {
     const uint32_t refCount = --m_refCount;
     Debug(VerifyElseCrashSzTag(
         static_cast<int32_t>(refCount) >= 0, "Ref count must not be negative.", 0x011055a0 /* tag_befw6 */));
-    if (refCount == 0)
-    {
+    if (refCount == 0) {
       RefCountPolicy::Delete(this);
     }
 
     return 1;
   }
 
-protected:
+ protected:
   template <typename... TArgs>
-  UnknownObject(TArgs&&... args) noexcept : Super(std::forward<TArgs>(args)...)
-  {
-  }
+  UnknownObject(TArgs &&... args) noexcept : Super(std::forward<TArgs>(args)...) {}
 
   virtual ~UnknownObject() noexcept = default;
 
-private:
+ private:
   mutable std::atomic<uint32_t> m_refCount{1};
 };
 
 template <typename TDeleter, typename TAllocator, typename TBaseType0, typename... TBaseTypes>
 class DECLSPEC_NOVTABLE UnknownObject<Mso::SimpleRefCountPolicy<TDeleter, TAllocator>, TBaseType0, TBaseTypes...>
-    : public Mso::QueryCastList<TBaseType0, TBaseTypes...>
-{
+    : public Mso::QueryCastList<TBaseType0, TBaseTypes...> {
   using Super = Mso::QueryCastList<TBaseType0, TBaseTypes...>;
 
-public:
+ public:
   using MakePolicy = Mso::MakePolicy::NoThrowCtor;
   using RefCountPolicy = Mso::SimpleRefCountPolicy<TDeleter, TAllocator>;
   friend RefCountPolicy;
@@ -436,54 +415,45 @@ public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
   using TypeToDelete = UnknownObject; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
+  MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
 
-  _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID& riid, _Outptr_ void** ppvObject) override
-  {
+  _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID &riid, _Outptr_ void **ppvObject) override {
     return ::Mso::Details::QueryInterfaceHelper<UnknownObject>::QueryInterface(this, riid, ppvObject);
   }
 
-  STDMETHOD_(ULONG, AddRef)() override
-  {
-    if (++m_refCount == 1)
-    {
+  STDMETHOD_(ULONG, AddRef)() override {
+    if (++m_refCount == 1) {
       Debug(VerifyElseCrashSzTag(false, "Ref count must not bounce from zero", 0x011055a1 /* tag_befw7 */));
     }
 
     return 1;
   }
 
-  STDMETHOD_(ULONG, Release)() override
-  {
+  STDMETHOD_(ULONG, Release)() override {
     const uint32_t refCount = --m_refCount;
     Debug(VerifyElseCrashSzTag(
         static_cast<int32_t>(refCount) >= 0, "Ref count must not be negative.", 0x011055a2 /* tag_befw8 */));
-    if (refCount == 0)
-    {
+    if (refCount == 0) {
       TDeleter::Delete(this);
     }
 
     return 1;
   }
 
-protected:
+ protected:
   template <typename... TArgs>
-  UnknownObject(TArgs&&... args) noexcept : Super(std::forward<TArgs>(args)...)
-  {
-  }
+  UnknownObject(TArgs &&... args) noexcept : Super(std::forward<TArgs>(args)...) {}
 
   virtual ~UnknownObject() noexcept = default;
 
-private:
+ private:
   mutable std::atomic<uint32_t> m_refCount{1};
 };
 
 template <typename TBaseType0, typename... TBaseTypes>
 class DECLSPEC_NOVTABLE UnknownObject<Mso::RefCountStrategy::SimpleNoQuery, TBaseType0, TBaseTypes...>
-    : public TBaseType0
-    , public TBaseTypes...
-{
-public:
+    : public TBaseType0, public TBaseTypes... {
+ public:
   using MakePolicy = Mso::MakePolicy::NoThrowCtor;
   using RefCountPolicy = Mso::SimpleRefCountPolicy<Mso::DefaultRefCountedDeleter, Mso::MakeAllocator>;
   friend RefCountPolicy;
@@ -491,56 +461,48 @@ public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
   using TypeToDelete = UnknownObject; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
+  MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
 
   _Success_(return == S_OK)
-      STDMETHOD(QueryInterface)(const GUID& /*riid*/, _Outptr_ void** /*ppvObject*/) noexcept override
-  {
+      STDMETHOD(QueryInterface)(const GUID & /*riid*/, _Outptr_ void ** /*ppvObject*/) noexcept override {
     return E_FAIL;
   }
 
-  STDMETHOD_(ULONG, AddRef)() noexcept override
-  {
-    if (++m_refCount == 1)
-    {
+  STDMETHOD_(ULONG, AddRef)() noexcept override {
+    if (++m_refCount == 1) {
       Debug(VerifyElseCrashSzTag(false, "Ref count must not bounce from zero", 0x011055a3 /* tag_befw9 */));
     }
 
     return 1;
   }
 
-  STDMETHOD_(ULONG, Release)() noexcept override
-  {
+  STDMETHOD_(ULONG, Release)() noexcept override {
     const uint32_t refCount = --m_refCount;
     Debug(VerifyElseCrashSzTag(
         static_cast<int32_t>(refCount) >= 0, "Ref count must not be negative.", 0x011055c0 /* tag_befxa */));
-    if (refCount == 0)
-    {
+    if (refCount == 0) {
       RefCountPolicy::Delete(this);
     }
 
     return 1;
   }
 
-protected:
+ protected:
   template <typename... TArgs>
-  UnknownObject(TArgs&&... args) noexcept : TBaseType0(std::forward<TArgs>(args)...)
-  {
-  }
+  UnknownObject(TArgs &&... args) noexcept : TBaseType0(std::forward<TArgs>(args)...) {}
 
   virtual ~UnknownObject() noexcept = default;
 
-private:
+ private:
   mutable std::atomic<uint32_t> m_refCount{1};
 };
 
 template <typename TDeleter, typename TAllocator, typename TBaseType0, typename... TBaseTypes>
 class UnknownObject<Mso::WeakRefCountPolicy<TDeleter, TAllocator>, TBaseType0, TBaseTypes...>
-    : public Mso::QueryCastList<TBaseType0, TBaseTypes...>
-{
+    : public Mso::QueryCastList<TBaseType0, TBaseTypes...> {
   using Super = Mso::QueryCastList<TBaseType0, TBaseTypes...>;
 
-public:
+ public:
   using MakePolicy = Mso::MakePolicy::NoThrowCtor;
   using RefCountPolicy = Mso::WeakRefCountPolicy<TDeleter, TAllocator>;
   friend RefCountPolicy;
@@ -548,74 +510,61 @@ public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
   using TypeToDelete = UnknownObject; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_WEAKREFCOUNT(UnknownObject);
+  MSO_OBJECT_WEAKREFCOUNT(UnknownObject);
 
-  void* QueryCast(const GUID& riid) noexcept
-  {
-    if (riid == __uuidof(ObjectWeakRef))
-    {
+  void *QueryCast(const GUID &riid) noexcept {
+    if (riid == __uuidof(ObjectWeakRef)) {
       return &GetWeakRef();
     }
 
     return Super::QueryCast(riid);
   }
 
-  _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID& riid, _Outptr_ void** ppvObject) noexcept override
-  {
+  _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID &riid, _Outptr_ void **ppvObject) noexcept override {
     return ::Mso::Details::QueryInterfaceHelper<UnknownObject>::QueryInterface(this, riid, ppvObject);
   }
 
-  STDMETHOD_(ULONG, AddRef)() noexcept override
-  {
+  STDMETHOD_(ULONG, AddRef)() noexcept override {
     GetWeakRef().AddRef();
     return 1;
   }
 
-  STDMETHOD_(ULONG, Release)() noexcept override
-  {
+  STDMETHOD_(ULONG, Release)() noexcept override {
     GetWeakRef().Release();
     return 1;
   }
 
-protected:
+ protected:
   template <typename... TArgs>
-  UnknownObject(TArgs&&... args) noexcept : Super(std::forward<TArgs>(args)...)
-  {
-  }
+  UnknownObject(TArgs &&... args) noexcept : Super(std::forward<TArgs>(args)...) {}
 
   virtual ~UnknownObject() noexcept = default;
 };
 
 template <typename... TBaseTypes>
 class DECLSPEC_NOVTABLE UnknownObject<Mso::RefCountStrategy::NoRefCount, TBaseTypes...>
-    : public Mso::QueryCastList<TBaseTypes...>
-{
+    : public Mso::QueryCastList<TBaseTypes...> {
   using Super = Mso::QueryCastList<TBaseTypes...>;
 
-public:
+ public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
 
-  _MSO_OBJECT_NOREFCOUNT(UnknownObject);
+  MSO_OBJECT_NOREFCOUNT(UnknownObject);
 
   template <typename... TArgs>
-  UnknownObject(TArgs&&... args) noexcept : Super(std::forward<TArgs>(args)...)
-  {
-  }
+  UnknownObject(TArgs &&... args) noexcept : Super(std::forward<TArgs>(args)...) {}
 
-  _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID& riid, _Outptr_ void** ppvObject) noexcept override
-  {
+  _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID &riid, _Outptr_ void **ppvObject) noexcept override {
     return ::Mso::Details::QueryInterfaceHelper<UnknownObject>::QueryInterface(this, riid, ppvObject);
   }
 
   // Do not use override to support ISimpleUnknown interfaces
-  STDMETHOD_(ULONG, AddRef)() noexcept
-  {
+  STDMETHOD_(ULONG, AddRef)() noexcept {
     return 1;
   }
 
   // Do not use override to support ISimpleUnknown interfaces
-  STDMETHOD_(ULONG, Release)() noexcept
-  {
+  STDMETHOD_(ULONG, Release)() noexcept {
     return 1;
   }
 
@@ -624,35 +573,29 @@ public:
 
 template <typename... TBaseTypes>
 class DECLSPEC_NOVTABLE UnknownObject<Mso::RefCountStrategy::NoRefCountNoQuery, TBaseTypes...>
-    : public Mso::QueryCastList<TBaseTypes...>
-{
+    : public Mso::QueryCastList<TBaseTypes...> {
   using Super = Mso::QueryCastList<TBaseTypes...>;
 
-public:
+ public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
 
-  _MSO_OBJECT_NOREFCOUNT(UnknownObject);
+  MSO_OBJECT_NOREFCOUNT(UnknownObject);
 
   template <typename... TArgs>
-  UnknownObject(TArgs&&... args) noexcept : Super(std::forward<TArgs>(args)...)
-  {
-  }
+  UnknownObject(TArgs &&... args) noexcept : Super(std::forward<TArgs>(args)...) {}
 
   _Success_(return == S_OK)
-      STDMETHOD(QueryInterface)(const GUID& /*riid*/, _Outptr_ void** /*ppvObject*/) noexcept override
-  {
+      STDMETHOD(QueryInterface)(const GUID & /*riid*/, _Outptr_ void ** /*ppvObject*/) noexcept override {
     return E_FAIL;
   }
 
   // Do not use override to support ISimpleUnknown interfaces
-  STDMETHOD_(ULONG, AddRef)() noexcept
-  {
+  STDMETHOD_(ULONG, AddRef)() noexcept {
     return 1;
   }
 
   // Do not use override to support ISimpleUnknown interfaces
-  STDMETHOD_(ULONG, Release)() noexcept
-  {
+  STDMETHOD_(ULONG, Release)() noexcept {
     return 1;
   }
 
@@ -660,43 +603,35 @@ public:
 };
 
 /**
-  A base class that supports a free threaded marshaler.
+        A base class that supports a free threaded marshaler.
 */
 template <typename... TBaseTypes>
-class AgileUnknownObject : public UnknownObject<TBaseTypes...>
-{
+class AgileUnknownObject : public UnknownObject<TBaseTypes...> {
   using Super = UnknownObject<TBaseTypes...>;
 
-public:
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(AgileUnknownObject);
+ public:
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(AgileUnknownObject);
 
   template <typename... TArgs>
-  AgileUnknownObject(TArgs&&... args) noexcept : Super(std::forward<TArgs>(args)...)
-  {
-  }
+  AgileUnknownObject(TArgs &&... args) noexcept : Super(std::forward<TArgs>(args)...) {}
 
-  _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID& riid, _Outptr_ void** ppvObject) noexcept override
-  {
+  _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID &riid, _Outptr_ void **ppvObject) noexcept override {
     HRESULT hr = Super::QueryInterface(riid, ppvObject);
-    if (hr == S_OK)
-    {
+    if (hr == S_OK) {
       return hr;
     }
 
 #if !defined(__clang__) && !defined(__GNUC__)
     // Free threaded marshaler currently supported only for Windows and VC++
-    if (riid == __uuidof(IMarshal) || riid == __uuidof(IAgileObject))
-    {
-      if (m_ftm.IsEmpty())
-      {
-        Mso::TCntPtr<IUnknown> ftm;
+    if (riid == __uuidof(IMarshal) || riid == __uuidof(IAgileObject)) {
+      if (m_ftm.IsEmpty()) {
+        Mso::CntPtr<Mso::IUnknown> ftm;
         VerifySucceededElseCrashTag(
-            CoCreateFreeThreadedMarshaler(this->template StaticCastElseNull<IUnknown*>(), &ftm),
+            CoCreateFreeThreadedMarshaler(this->template StaticCastElseNull<Mso::IUnknown *>(), &ftm),
             0x01003719 /* tag_bad2z */);
         // Only assign ftm to m_ftm if its value is nullptr. Otherwise we will delete the new ftm and use the existing
         // m_ftm.
-        if (InterlockedCompareExchangePointer((volatile PVOID*)m_ftm.GetRaw(), ftm.Get(), nullptr) == nullptr)
-        {
+        if (InterlockedCompareExchangePointer((volatile PVOID *)m_ftm.GetRaw(), ftm.Get(), nullptr) == nullptr) {
           // Success: the object is now owned by the m_ftm. Make sure that ftm does not delete it.
           ftm.Detach();
         }
@@ -709,16 +644,15 @@ public:
     return E_NOINTERFACE;
   }
 
-protected:
+ protected:
   using AgileUnknownObjectType = AgileUnknownObject;
 
-private:
-  Mso::TCntPtr<IUnknown> m_ftm;
+ private:
+  Mso::CntPtr<Mso::IUnknown> m_ftm;
 };
 
 } // namespace Mso
 
 END_DISABLE_WARNING_INCONSISTENT_MISSING_OVERRIDE()
 
-#pragma pop_macro("new")
-#pragma pack(pop)
+#endif // MSO_OBJECT_UNKNOWNOBJECT_H

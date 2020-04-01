@@ -2,17 +2,18 @@
 // Licensed under the MIT license.
 
 #pragma once
-#include <eventWaitHandle/eventWaitHandle.h>
-#include <object/refCountedObject.h>
+
 #include <limits>
 #include <mutex>
+#include <optional>
+#include "eventWaitHandle/eventWaitHandle.h"
+#include "object/refCountedObject.h"
 
-namespace Mso { namespace Async {
+namespace Mso {
 
 using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
-struct WaitTimePoint
-{
+struct WaitTimePoint {
   bool IsInfinite{false};
   bool ShouldUpdateWaitDuration{false};
   std::chrono::milliseconds WaitDuration{};
@@ -21,44 +22,36 @@ struct WaitTimePoint
 
 // Implementation of the IEventWaitHandle interface
 template <class TMutex, class TConditionVariable>
-class EventWaitHandle final : public Mso::RefCountedObject<IEventWaitHandle>
-{
-public:
+class EventWaitHandle final : public Mso::RefCountedObject<IEventWaitHandle> {
+ public:
   EventWaitHandle(bool isAutoReset, EventWaitHandleState state) noexcept : m_isAutoReset{isAutoReset}, m_state{state} {}
 
-public: // IEventWaitHandle
-  void Set() const noexcept override
-  {
+ public: // IEventWaitHandle
+  void Set() const noexcept override {
     std::lock_guard<TMutex> lock{m_mutex};
     m_state = EventWaitHandleState::IsSet;
 
     // Notify under the lock to avoid missed signals in case if Wait loop is between
     // checking variable and calling wait for signal API.
-    if (m_isAutoReset)
-    {
+    if (m_isAutoReset) {
       m_cond.NotifyOne();
-    }
-    else
-    {
+    } else {
       m_cond.NotifyAll();
     }
   }
 
-  void Reset() const noexcept override
-  {
+  void Reset() const noexcept override {
     std::lock_guard<TMutex> lock{m_mutex};
     m_state = EventWaitHandleState::NotSet;
   }
 
-  void Wait() const noexcept override
-  {
+  bool Wait() const noexcept override {
     WaitTimePoint waitTimePoint{};
     waitTimePoint.IsInfinite = true;
-    VerifyElseCrashSzTag(WaitUntil(waitTimePoint), "Must not timeout", 0x026e348b /* tag_c19sl */);
+    return WaitUntil(waitTimePoint);
   }
 
-  bool WaitFor(const std::chrono::milliseconds& waitDuration) const noexcept override
-  {
+  bool WaitFor(const std::chrono::milliseconds &waitDuration) const noexcept override {
     VerifyElseCrashSzTag(
         waitDuration.count() < std::numeric_limits<uint32_t>::max(),
         "waitDuration must not exceed uint32_t size for milliseconds.",
@@ -75,31 +68,27 @@ public: // IEventWaitHandle
     return WaitUntil(waitTimePoint);
   }
 
-private:
-  bool WaitUntil(WaitTimePoint& timePoint) const noexcept
-  {
+ private:
+  bool WaitUntil(WaitTimePoint &timePoint) const noexcept {
     std::lock_guard<TMutex> lock{m_mutex};
-    while (m_state != EventWaitHandleState::IsSet)
-    {
-      if (!m_cond.WaitUntil(m_mutex, timePoint))
-      {
+    while (m_state != EventWaitHandleState::IsSet) {
+      if (!m_cond.WaitUntil(m_mutex, timePoint)) {
         return false;
       }
     }
 
-    if (m_isAutoReset)
-    {
+    if (m_isAutoReset) {
       m_state = EventWaitHandleState::NotSet;
     }
 
     return true;
   }
 
-private:
+ private:
   mutable TMutex m_mutex;
   mutable TConditionVariable m_cond;
   const bool m_isAutoReset;
   mutable EventWaitHandleState m_state;
 };
 
-}} // namespace Mso::Async
+} // namespace Mso

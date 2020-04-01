@@ -3,6 +3,7 @@
 
 liblet_includes(
   INCLUDES
+    comUtil/IUnknownShim.h 
     comUtil/qiCast.h
     comUtil/qiCastCore.h
 )

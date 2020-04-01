@@ -1,14 +1,16 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+#pragma once
+#ifndef MSO_CPPEXTENSIONS_AUTORESTORE_H
+#define MSO_CPPEXTENSIONS_AUTORESTORE_H
+
 /**
   Helper classes to automatically restore/cleanup/undo an operation.
 */
-#ifndef _CPPEXTENSIONS_AUTORESTORE_H_
-#define _CPPEXTENSIONS_AUTORESTORE_H_
 
-#include <compilerAdapters/cppMacros.h>
-#include <cppType/typeTraits.h>
+#include "compilerAdapters/cppMacros.h"
+#include "typeTraits/typeTraits.h"
 
 #ifdef __cplusplus
 // 4091: extern __declspec(dllimport)' : ignored on left of 'double' when no variable is declared
@@ -53,7 +55,7 @@ public:
     *m_pValue = m_previousValue;
   }
 
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(TRestorer);
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(TRestorer);
   TRestorer& operator=(TRestorer&& other) noexcept = delete;
 
   bool IsEnabled() noexcept
@@ -135,7 +137,7 @@ public:
     }
   }
 
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(TPropertyRestorer); // No copying!
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(TPropertyRestorer); // No copying!
 
   template <
       typename TSelf = TPropertyRestorer,
@@ -205,7 +207,7 @@ namespace TCleanup {
    you can do so by:
 
     if (/some condition/)
-      cleanupCloseOLDoc.disable();	// The TCleanup will now not run on exit
+      cleanupCloseOLDoc.disable();  // The TCleanup will now not run on exit
 */
 template <typename Func>
 struct TCleanup
@@ -227,7 +229,7 @@ public:
       m_fnCleanup();
   }
 
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(TCleanup);
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(TCleanup);
 
   void enable() noexcept
   {
@@ -256,4 +258,4 @@ inline TCleanup<Func> Make(const Func& pfnCleanup) noexcept
 
 #endif // __cplusplus
 
-#endif // _CPPEXTENSIONS_AUTORESTORE_H_
+#endif // MSO_CPPEXTENSIONS_AUTORESTORE_H

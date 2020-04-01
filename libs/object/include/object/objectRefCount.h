@@ -1,17 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-  Support for reference counting.
-*/
-
 #pragma once
-#ifdef __cplusplus
+#ifndef MSO_OBJECT_OBJECTREFCOUNT_H
+#define MSO_OBJECT_OBJECTREFCOUNT_H
+
 #include <cstdint>
 #include <type_traits>
-#include <object/make.h>
-#include <object/refCounted.h>
-#include <compilerAdapters/cppMacrosDebug.h>
+#include "compilerAdapters/cppMacrosDebug.h"
+#include "object/make.h"
 
 //
 // Simple ref counting manages object lifetime using a ref counter.
@@ -19,53 +16,42 @@
 // The ObjectRefCount<TDerived> template does not have a v-table. It calls the TDerived type destructor.
 //
 
-#pragma pack(push, _CRT_PACKING)
-#pragma push_macro("new")
-#undef new
-
-#define _MSO_OBJECT_SIMPLEREFCOUNT(TObject)                                                        \
-public:                                                                                            \
-  bool IsUniqueRef() const noexcept                                                                \
-  {                                                                                                \
+#define MSO_OBJECT_SIMPLEREFCOUNT(TObject)                                                         \
+ public:                                                                                           \
+  bool IsUniqueRef() const noexcept {                                                              \
     return m_refCount.load(std::memory_order_acquire) == 1;                                        \
   }                                                                                                \
   Debug(uint32_t RefCount() const noexcept { return m_refCount.load(std::memory_order_acquire); }) \
                                                                                                    \
       template <typename UseMsoMakeInsteadOfOperatorNew>                                           \
-      void* operator new(size_t, UseMsoMakeInsteadOfOperatorNew* = nullptr);                       \
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(TObject)
+      void *operator new(size_t, UseMsoMakeInsteadOfOperatorNew * = nullptr);                      \
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(TObject)
 
-#define _MSO_OBJECT_NOREFCOUNT(TObject) \
-public:                                 \
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(TObject)
+#define MSO_OBJECT_NOREFCOUNT(TObject) \
+ public:                               \
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(TObject)
 
 namespace Mso {
 
 template <typename T, typename TAllocator = MakeAllocator>
-struct SimpleRefCountMemoryGuard
-{
-  ~SimpleRefCountMemoryGuard() noexcept
-  {
-    if (ObjMemory)
-    {
+struct SimpleRefCountMemoryGuard {
+  ~SimpleRefCountMemoryGuard() noexcept {
+    if (ObjMemory) {
       TAllocator::Deallocate(ObjMemory);
-    }
-    else if (Obj)
-    {
+    } else if (Obj) {
       Obj->Release();
     }
   }
 
-public: // We use public fields to reduce number of generated methods.
+ public: // We use public fields to reduce number of generated methods.
   // VC++ bug: Make sure that the order of the fields is the same for all memory guards. Otherwise, VC++ generates
   // incorrect code for ship builds.
-  void* ObjMemory;
-  T* Obj;
+  void *ObjMemory;
+  T *Obj;
 };
 
 template <typename TDeleter, typename TAllocator = MakeAllocator>
-struct SimpleRefCountPolicy
-{
+struct SimpleRefCountPolicy {
   using Deleter = TDeleter;
   using Allocator = TAllocator;
 
@@ -73,46 +59,40 @@ struct SimpleRefCountPolicy
   using MemoryGuard = SimpleRefCountMemoryGuard<T, TAllocator>;
 
   template <typename T>
-  static void AllocateMemory(_Out_ MemoryGuard<T>& memoryGuard) noexcept
-  {
+  static void AllocateMemory(_Out_ MemoryGuard<T> &memoryGuard) noexcept {
     memoryGuard.ObjMemory = TAllocator::Allocate(sizeof(T));
   }
 
   template <typename T, typename TAllocArg>
-  static void AllocateMemory(_Out_ MemoryGuard<T>& memoryGuard, TAllocArg&& allocArg) noexcept
-  {
+  static void AllocateMemory(_Out_ MemoryGuard<T> &memoryGuard, TAllocArg &&allocArg) noexcept {
     memoryGuard.ObjMemory = TAllocator::Allocate(sizeof(T), std::forward<TAllocArg>(allocArg));
   }
 
   template <typename T>
-  static void Delete(T* obj) noexcept
-  {
+  static void Delete(T *obj) noexcept {
     obj->~T();
     TAllocator::Deallocate(obj);
   }
 
 #if DEBUG
   template <typename T>
-  static void ValidateObject(MemoryGuard<T>& memoryGuard) noexcept
-  {
+  static void ValidateObject(MemoryGuard<T> &memoryGuard) noexcept {
     static_assert(
         offsetof(typename T::TypeToDelete, m_refCount) == offsetof(T, m_refCount),
         "Ref counted object must be the first type in T inheritance list.");
 
     VerifyElseCrashSzTag(memoryGuard.Obj, "Object was not created", 0x01105590 /* tag_befwq */);
     VerifyElseCrashSzTag(
-        reinterpret_cast<void*>(memoryGuard.Obj) == static_cast<typename T::TypeToDelete*>(memoryGuard.Obj),
+        reinterpret_cast<void *>(memoryGuard.Obj) == static_cast<typename T::TypeToDelete *>(memoryGuard.Obj),
         "Ref counted object must be the first type in T inheritance list.",
         0x01105591 /* tag_befwr */);
   }
 #endif
 };
 
-struct DefaultRefCountedDeleter
-{
+struct DefaultRefCountedDeleter {
   template <typename TObject>
-  static void Delete(TObject* obj) noexcept
-  {
+  static void Delete(TObject *obj) noexcept {
     TObject::RefCountPolicy::template Delete(obj);
   }
 };
@@ -148,57 +128,48 @@ struct NoRefCountNoQuery;
   That said, this comes at the cost of complexity - more types, harder to navigate and easier to make mistakes.
   Should be done through optional template args.
 */
-class RefCountedWrapperBase
-{
-public:
+class RefCountedWrapperBase {
+ public:
   using RefCountPolicy = SimpleRefCountPolicy<DefaultRefCountedDeleter, MakeAllocator>;
   friend RefCountPolicy;
 
   using TypeToDelete = RefCountedWrapperBase; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(RefCountedWrapperBase);
+  MSO_OBJECT_SIMPLEREFCOUNT(RefCountedWrapperBase);
 
-  void AddRef() const noexcept
-  {
+  void AddRef() const noexcept {
     uint32_t refCount = ++m_refCount;
     (void)(refCount);
     Debug(VerifyElseCrashSzTag(
         static_cast<int32_t>(refCount) > 1, "Ref count must not bounce from zero", 0x01105592 /* tag_befws */));
   }
 
-  void Release() const noexcept
-  {
+  void Release() const noexcept {
     uint32_t refCount = --m_refCount;
     Debug(VerifyElseCrashSzTag(
         static_cast<int32_t>(refCount) >= 0, "Ref count must not be negative.", 0x01105593 /* tag_befwt */));
-    if (refCount == 0)
-    {
-      RefCountPolicy::Delete(const_cast<RefCountedWrapperBase*>(this));
+    if (refCount == 0) {
+      RefCountPolicy::Delete(const_cast<RefCountedWrapperBase *>(this));
     }
   }
 
-protected:
+ protected:
   RefCountedWrapperBase() noexcept = default;
   virtual ~RefCountedWrapperBase() noexcept = default; // for type erasure
 
-private:
+ private:
   mutable std::atomic<uint32_t> m_refCount{1};
 };
 
 template <typename T>
-class RefCountedWrapper
-    : public RefCountedWrapperBase
-    , public T
-{
-public:
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(RefCountedWrapper);
+class RefCountedWrapper : public RefCountedWrapperBase, public T {
+ public:
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(RefCountedWrapper);
 
   using MakePolicy = Mso::MakePolicy::ThrowCtor;
 
   template <typename... U>
-  RefCountedWrapper(U&&... args) noexcept : T(std::forward<U>(args)...)
-  {
-  }
+  RefCountedWrapper(U &&... args) noexcept : T(std::forward<U>(args)...) {}
 };
 
 /**
@@ -209,10 +180,9 @@ public:
   RefCountedWrapper<std::pair<PropertyId, SomeObject>>)
 */
 template <>
-class RefCountedWrapper<void> : public RefCountedWrapperBase
-{
-public:
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(RefCountedWrapper);
+class RefCountedWrapper<void> : public RefCountedWrapperBase {
+ public:
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(RefCountedWrapper);
   RefCountedWrapper() noexcept = default;
 };
 
@@ -220,17 +190,13 @@ public:
   The actual type / Make() function everybody would use
 */
 template <typename T>
-using RefCountedPtr = Mso::TCntPtr<RefCountedWrapper<T>>;
+using RefCountedPtr = Mso::CntPtr<RefCountedWrapper<T>>;
 
 template <typename T, typename... U>
-RefCountedPtr<T> Make_RefCounted(U&&... args) noexcept
-{
+RefCountedPtr<T> Make_RefCounted(U &&... args) noexcept {
   return Mso::Make<RefCountedWrapper<T>>(std::forward<U>(args)...);
 }
 
 } // namespace Mso
 
-#pragma pop_macro("new")
-#pragma pack(pop)
-
-#endif // __cplusplus
+#endif // MSO_OBJECT_OBJECTREFCOUNT_H

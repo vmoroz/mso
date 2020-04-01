@@ -2,16 +2,16 @@
 // Licensed under the MIT license.
 
 #pragma once
+#ifndef MSO_MOTIFCPP_MOTIFCPPTESTBASE_H
+#define MSO_MOTIFCPP_MOTIFCPPTESTBASE_H
 
 typedef wchar_t WCHAR;
 
-class MotifCppTestBase
-{
-public:
+class MotifCppTestBase {
+ public:
   MotifCppTestBase() {}
 
-  ~MotifCppTestBase()
-  {
+  ~MotifCppTestBase() {
     TestClassTeardown();
   }
 
@@ -23,3 +23,5 @@ public:
 
   virtual void Teardown() {}
 };
+
+#endif // MSO_MOTIFCPP_MOTIFCPPTESTBASE_H

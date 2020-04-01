@@ -2,18 +2,21 @@
 // Licensed under the MIT license.
 
 #pragma once
-#include <platformAdapters/msoGuid.h>
-#include <platformAdapters/types.h>
-#include <platformAdapters/windowsFirst.h>
+#ifndef MSO_COMUTIL_IUNKNOWNSHIM_H
+#define MSO_COMUTIL_IUNKNOWNSHIM_H
+
+#include <guid/msoGuid.h>
+#include <cstdint>
 
 // This is needed for compiling with Clang on Windows as well
 MSO_STRUCT_GUID(IUnknown, "00000000-0000-0000-C000-000000000046")
 
 #if !defined(MS_TARGET_POSIX)
 
-#include <compilerAdapters/declspecDefinitions.h>
-#include <comBaseApi.h>
+#include <combaseapi.h>
 #include <unknwn.h>
+#include "compilerAdapters/declspecDefinitions.h"
+#include "platformAdapters/windowsFirst.h"
 
 #else
 
@@ -36,6 +39,9 @@ typedef long HRESULT;
 #else
 typedef int HRESULT;
 #endif
+using ULONG = unsigned long;
+using LONG = long;
+using BYTE = uint8_t;
 #ifndef __GNUC__
 #define STDMETHODCALLTYPE __stdcall
 #else
@@ -47,6 +53,9 @@ typedef int HRESULT;
 #define STDMETHODIMP_(type) type STDMETHODCALLTYPE
 #define STDMETHODIMPNOTHROW COM_DECLSPEC_NOTHROW HRESULT STDMETHODCALLTYPE
 #define STDMETHODIMPNOTHROW_(type) COM_DECLSPEC_NOTHROW type STDMETHODCALLTYPE
+
+#define TRUE 1
+#define FALSE 0
 
 #define S_OK ((HRESULT)0L)
 #define S_FALSE ((HRESULT)1L)
@@ -81,9 +90,8 @@ typedef int HRESULT;
 #ifndef __GNUC__ // Redefinition (see line ~5)
 MSO_STRUCT_GUID(IUnknown, "00000000-0000-0000-C000-000000000046")
 #endif
-struct IUnknown
-{
-  virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppvObject) = 0;
+struct IUnknown {
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void **ppvObject) = 0;
   virtual ULONG STDMETHODCALLTYPE AddRef(void) = 0;
   virtual ULONG STDMETHODCALLTYPE Release(void) = 0;
 };
@@ -94,3 +102,9 @@ struct IUnknown
 #define __RPC_FAR
 
 #endif
+
+namespace Mso {
+using IUnknown = ::IUnknown;
+}
+
+#endif // MSO_COMUTIL_IUNKNOWNSHIM_H

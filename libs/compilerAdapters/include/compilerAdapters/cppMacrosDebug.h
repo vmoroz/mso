@@ -1,17 +1,18 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+#pragma once
+#ifndef MSO_COMPILERADAPTERS_CPPMACROSDEBUG_H
+#define MSO_COMPILERADAPTERS_CPPMACROSDEBUG_H
+
 /**
   Some globally useful debug-only macros
 */
-#pragma once
-#ifndef COMPILERADAPTERS_CPPMACROSDEBUG_H
-#define COMPILERADAPTERS_CPPMACROSDEBUG_H
 
 #include <cstdint>
 
 /**
-   Helper macros for passing file, line in DEBUG builds
+  Helper macros for passing file, line in DEBUG builds
 */
 #if DEBUG
 #define FILELINEPARAMSCOREUNUSED const char*, uint32_t
@@ -46,7 +47,7 @@
 #endif // DEBUG
 
 /**
-   Helper macros for behaving differently in debug vs. ship
+  Helper macros for behaving differently in debug vs. ship
 */
 #if DEBUG
 #define Debug(e) e
@@ -65,7 +66,7 @@
 #endif
 
 /**
-   MsoDebugBreak can be used inside expressions.
+  MsoDebugBreak can be used inside expressions.
   Otherwise code should use __debugbreak() directly.
 */
 #ifdef DEBUG
@@ -81,4 +82,4 @@ __inline int32_t MsoDebugBreak(void)
 #define MsoDebugBreak() (0)
 #endif
 
-#endif
+#endif // MSO_COMPILERADAPTERS_CPPMACROSDEBUG_H

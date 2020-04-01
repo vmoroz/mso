@@ -1,6 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+#pragma once
+#ifndef MSO_COMPILERADAPTERS_COMPILERWARNINGS_H
+#define MSO_COMPILERADAPTERS_COMPILERWARNINGS_H
+
 /**
   This header contains cross-plat macros for suppressing compiler warnings
 
@@ -12,9 +16,8 @@
 
   FUTURE: auto-generate this from shared file
 */
-#ifndef LIBLET_COMPILERADAPTERS_COMPILERWARNINGS_H
-#define LIBLET_COMPILERADAPTERS_COMPILERWARNINGS_H
-#include <compilerAdapters/compilerWarnings_impl.h>
+
+#include "compilerAdapters/compilerWarnings_impl.h"
 
 #define BEGIN_DISABLE_WARNING_EXCEPTIONS_PARAMETER() BEGIN_DISABLE_COMPILER_WARNING_ALL(4297, "-Wexceptions")
 #define END_DISABLE_WARNING_EXCEPTIONS_PARAMETER() END_DISABLE_COMPILER_WARNING()
@@ -41,4 +44,4 @@
 #define BEGIN_DISABLE_WARNING_UNUSED_VARIABLE() BEGIN_DISABLE_COMPILER_WARNING_ALL(4189, "-Wunused-variable")
 #define END_DISABLE_WARNING_UNUSED_VARIABLE() END_DISABLE_COMPILER_WARNING()
 
-#endif // LIBLET_COMPILERADAPTERS_COMPILERWARNINGS_H
+#endif // MSO_COMPILERADAPTERS_COMPILERWARNINGS_H

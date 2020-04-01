@@ -1,14 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-  CRT based implementation for Mso::Memory
-*/
-#include <core/memoryApi.h>
-#include <malloc.h>
+#include "memoryApi/memoryApi.h"
+#include <cstdlib>
 #include <memory>
 
-#pragma detect_mismatch("Allocator", "EmptyImpl")
+#if !__clang__ && !__GNUC__
+#pragma detect_mismatch("Allocator", "Crt")
+#endif
 
 __declspec(noreturn) void ThrowOOM()
 {
@@ -17,69 +16,71 @@ __declspec(noreturn) void ThrowOOM()
 
 namespace Mso { namespace Memory {
 
-MSOCPPAPI_(size_t) AllocationSize(_In_opt_ const void*) noexcept
+_Use_decl_annotations_ void* AllocateEx(size_t cb, uint32_t /*allocFlags*/) noexcept
 {
-  VerifyElseCrashTag(false, 0x0115e605 /* tag_bf4yf */);
+  return ::malloc(cb);
 }
 
-MSOCPPAPI_(void*) AllocateEx(size_t /*cb*/, DWORD /*allocFlags*/) noexcept
+_Use_decl_annotations_ void* Reallocate(void** ppv, size_t cb) noexcept
 {
-  VerifyElseCrashTag(false, 0x006cc64b /* tag_a1mzl */);
+  if (ppv == nullptr)
+    return Mso::Memory::Allocate(cb);
+
+  if (*ppv == nullptr)
+  {
+    *ppv = Mso::Memory::Allocate(cb);
+    return *ppv;
+  }
+
+  void* pv = ::realloc(*ppv, cb);
+  if (pv != nullptr)
+  {
+    *ppv = pv;
+  }
+  else if (cb == 0)
+  {
+    // HeapReAlloc with 0 size returns valid pointer and we want all implementations do the same
+    // realloc(ptr, 0) on Windows or Mac/iOS with ASAN frees the original pointer and returns null
+    // std lib on Mac/iOS returns a valid 0-sized pointer
+    // We want to standardize to have only one behavior in shared code
+    // so let's allocate a new 0-sized block if resize(ptr, 0) returns nullptr
+    pv = ::malloc(0);
+    *ppv = pv;
+  }
+  // else pv = nullptr, cb != 0: if realloc truly failed, the original ptr is untouched
+
+  return pv;
 }
 
-MSOCPPAPI_(void*) Reallocate(_Inout_ void** /*ppv*/, size_t /*cb*/) noexcept
+_Use_decl_annotations_ void Free(void* pv) noexcept
 {
-  VerifyElseCrashTag(false, 0x006cc64c /* tag_a1mzm */);
+  ::free(pv);
 }
 
-MSOCPPAPI_(void) Free(_In_opt_ void* /*pv*/) noexcept
-{
-  VerifyElseCrashTag(false, 0x006cc64d /* tag_a1mzn */);
-}
-
-#ifdef DEBUG
-MSOCPPAPI_(void) RegisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept
-{
-  VerifyElseCrashTag(false, 0x006cc64e /* tag_a1mzo */);
-}
-MSOCPPAPI_(void) UnregisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept
-{
-  VerifyElseCrashTag(false, 0x006cc64f /* tag_a1mzp */);
-}
-#endif
+//#ifdef DEBUG
+// void RegisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept {}
+//
+// void UnregisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept {}
+//#endif
 
 }} // namespace Mso::Memory
 
 #ifdef DEBUG
+void MsoSetLazyLeakDetection(const void*) noexcept {}
 
-MSOAPI_(BOOL) MsoCheckHeap(void) noexcept
-{
-  VerifyElseCrashTag(false, 0x0125310d /* tag_bjten */);
-  return true;
-}
+void MsoSetShutdownLeakDetection(const void*) noexcept {}
 
-MSOAPI_(void) MsoSetLazyLeakDetection(const void*) noexcept
-{
-  VerifyElseCrashTag(false, 0x006cc650 /* tag_a1mzq */);
-}
-
-MSOAPI_(void) MsoSetShutdownLeakDetection(const void*) noexcept
-{
-  VerifyElseCrashTag(false, 0x006cc651 /* tag_a1mzr */);
-}
-
-MSOAPI_(BOOL)
-FMemHeapMsoSaveBeHost(
+BOOL FMemHeapMsoSaveBeHost(
     void* /*pinst*/,
     LPARAM /*lParam*/,
     const void* /*pvBlock*/,
     LONG_PTR /*cb*/,
     struct IMsoMemHeap* /*pmmh*/) noexcept
 {
-  VerifyElseCrashTag(false, 0x006cc652 /* tag_a1mzs */);
+  return true;
 }
 
-MSOAPI_(VOID) MsoDebugRegisterLazyObject(IMsoDebugLazyObject* /*pidlo*/) noexcept {}
-MSOAPI_(VOID) MsoDebugUnregisterLazyObjectThreaded(IMsoDebugLazyObject* /*pidlo*/, bool /*fMainThread*/) noexcept {}
+// MSOAPI_(VOID) MsoDebugRegisterLazyObject(IMsoDebugLazyObject* /*pidlo*/) noexcept {}
+// MSOAPI_(VOID) MsoDebugUnregisterLazyObjectThreaded(IMsoDebugLazyObject* /*pidlo*/, bool /*fMainThread*/) noexcept {}
 
 #endif // DEBUG

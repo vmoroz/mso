@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <oacr.h>
 #include <functional>
-#include <object/IUnknownShim.h>
+#include <comUtil/IUnknownShim.h>
 #include <cstdarg>
 #include <csetjmp>
 #include <csignal>

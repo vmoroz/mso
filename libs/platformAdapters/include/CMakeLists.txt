@@ -2,8 +2,6 @@
 # Licensed under the MIT license.
 
 liblet_includes(
-  INCLUDES
-    object/IUnknownShim.h
   INCLUDES_WIN
     platformAdapters/windowsFirst.h
 )

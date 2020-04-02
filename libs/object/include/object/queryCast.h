@@ -8,7 +8,7 @@
 #include <debugAssertApi/debugAssertApi.h>
 #include <guid/msoGuid.h>
 #include <crash/verifyElseCrash.h>
-#include <object/IUnknownShim.h>
+#include <comUtil/IUnknownShim.h>
 #include <type_traits>
 #include <utility>
 

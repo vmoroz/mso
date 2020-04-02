@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 #pragma once
-#include <platformAdapters/msoGuid.h>
+#include <guid/msoGuid.h>
 #include <cstdint>
 
 // This is needed for compiling with Clang on Windows as well

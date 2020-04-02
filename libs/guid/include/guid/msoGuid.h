@@ -12,7 +12,7 @@
 #include <guiddef.h>
 
 #ifdef __cplusplus
-#include <platformAdapters/msoGuidDetails.h>
+#include <guid/msoGuidDetails.h>
 
 /**
 MSO_STRUCT_GUID or MSO_CLASS_GUID are used to associate a GUID with a type in platform independent way:

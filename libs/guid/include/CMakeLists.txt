@@ -3,7 +3,6 @@
 
 liblet_includes(
   INCLUDES
-    object/IUnknownShim.h
-  INCLUDES_WIN
-    platformAdapters/windowsFirst.h
+    guid/msoGuid.h
+    guid/msoGuidDetails.h
 )

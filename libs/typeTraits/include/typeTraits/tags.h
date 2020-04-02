@@ -7,7 +7,8 @@
 
 namespace Mso {
 
-struct AttachTagType {
+struct AttachTagType
+{
   constexpr AttachTagType() noexcept {}
 };
 

@@ -8,7 +8,7 @@
 #define _CPPEXTENSIONS_AUTORESTORE_H_
 
 #include <compilerAdapters/cppMacros.h>
-#include <cppType/typeTraits.h>
+#include <typeTraits/typeTraits.h>
 
 #ifdef __cplusplus
 // 4091: extern __declspec(dllimport)' : ignored on left of 'double' when no variable is declared

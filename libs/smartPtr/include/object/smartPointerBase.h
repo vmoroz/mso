@@ -7,7 +7,7 @@
 #pragma once
 #include <compilerAdapters/cppMacros.h>
 #include <crash/verifyElseCrash.h>
-#include <cppType/typeTraits.h>
+#include <typeTraits/typeTraits.h>
 #include <debugAssertApi/debugAssertApi.h>
 
 #ifdef __cplusplus

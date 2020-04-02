@@ -5,12 +5,11 @@
   Various C++ templates to help with compile-time type information.
 */
 #pragma once
-#ifndef LIBLET_CPPTYPE_TYPETRAITS_H
-#define LIBLET_CPPTYPE_TYPETRAITS_H
-#ifdef __cplusplus
+#ifndef MSO_TYPETRAITS_TYPETRAITS_H
+#define MSO_TYPETRAITS_TYPETRAITS_H
 
 #include <type_traits>
-#include <compilerAdapters/declspecDefinitions.h>
+#include "compilerAdapters/declspecDefinitions.h"
 
 namespace Mso {
 
@@ -19,9 +18,7 @@ namespace Mso {
   a concept of 'no type' is needed.
   Note that 'no type' is different than 'void'.
 */
-class NilType
-{
-};
+class NilType {};
 
 /**
   Type2Type< T >
@@ -36,8 +33,7 @@ class NilType
   Scrollbar* Create( const Type2Type< Scrollbar >& );
 */
 template <typename T>
-struct Type2Type
-{
+struct Type2Type {
   typedef T OriginalType;
 };
 
@@ -58,57 +54,39 @@ struct Type2Type
   T = const wchar_t*, RawTraits< T >::AddrType = const wchar_t**
 */
 template <typename T>
-class RawTraits
-{
-public:
+class RawTraits {
+ public:
   using ArrowType = T;
-  using AddrType = T*;
+  using AddrType = T *;
 
-  static T& GetArrowType(T& t) noexcept
-  {
+  static T &GetArrowType(T &t) noexcept {
     return t;
   }
-  enum R
-  {
-    isPointer = false,
-    isReference = false
-  };
+  enum R { isPointer = false, isReference = false };
 };
 
 template <typename T>
-class RawTraits<T&>
-{
-public:
-  using ArrowType = T*;
-  using AddrType = T*;
+class RawTraits<T &> {
+ public:
+  using ArrowType = T *;
+  using AddrType = T *;
 
-  static T* GetArrowType(T& t) noexcept
-  {
+  static T *GetArrowType(T &t) noexcept {
     return &t;
   }
-  enum R
-  {
-    isPointer = false,
-    isReference = true
-  };
+  enum R { isPointer = false, isReference = true };
 };
 
 template <typename T>
-class RawTraits<T*>
-{
-public:
-  using ArrowType = T*;
-  using AddrType = T**;
+class RawTraits<T *> {
+ public:
+  using ArrowType = T *;
+  using AddrType = T **;
 
-  static ArrowType GetArrowType(T* t) noexcept
-  {
+  static ArrowType GetArrowType(T *t) noexcept {
     return t;
   }
-  enum R
-  {
-    isPointer = true,
-    isReference = false
-  };
+  enum R { isPointer = true, isReference = false };
 };
 
 /**
@@ -119,22 +97,17 @@ public:
   EmptyTraits to use with simple value types
 */
 template <typename T>
-struct EmptyTraits
-{
-  static T EmptyVal() noexcept
-  {
+struct EmptyTraits {
+  static T EmptyVal() noexcept {
     return T();
   }
-  static bool IsEmpty(const T& t) noexcept
-  {
+  static bool IsEmpty(const T &t) noexcept {
     return (t == EmptyVal());
   }
-  static void Empty(T& t) noexcept
-  {
+  static void Empty(T &t) noexcept {
     t = EmptyVal();
   }
-  DECLSPEC_DEPRECATED static void UnsafeEmpty(T& t) noexcept
-  {
+  DECLSPEC_DEPRECATED static void UnsafeEmpty(T &t) noexcept {
     Empty(t);
   }
 };
@@ -143,22 +116,17 @@ struct EmptyTraits
   EmptyTraits to use with pointer types
 */
 template <typename T>
-struct EmptyTraits<T*>
-{
-  static T* EmptyVal() noexcept
-  {
+struct EmptyTraits<T *> {
+  static T *EmptyVal() noexcept {
     return nullptr;
   }
-  static bool IsEmpty(std::add_const_t<T>* t) noexcept
-  {
+  static bool IsEmpty(std::add_const_t<T> *t) noexcept {
     return (t == EmptyVal());
   }
-  static void Empty(T*& t) noexcept
-  {
+  static void Empty(T *&t) noexcept {
     t = EmptyVal();
   }
-  DECLSPEC_DEPRECATED static void UnsafeEmpty(T*& t) noexcept
-  {
+  DECLSPEC_DEPRECATED static void UnsafeEmpty(T *&t) noexcept {
     Empty(t);
   }
 };
@@ -167,37 +135,30 @@ struct EmptyTraits<T*>
   EmptyTraits to use with reference types
 */
 template <typename T>
-struct EmptyTraits<T&>
-{
+struct EmptyTraits<T &> {
   // EmptyVal is explicitly not present
-  static bool IsEmpty(const T& /*t*/) noexcept
-  {
+  static bool IsEmpty(const T & /*t*/) noexcept {
     return false;
   }
   // Empty is explicitly not present
-  DECLSPEC_DEPRECATED static void UnsafeEmpty(T& /*t*/) noexcept {} // Can't empty a reference
+  DECLSPEC_DEPRECATED static void UnsafeEmpty(T & /*t*/) noexcept {} // Can't empty a reference
 };
 
 /**
   Custom EmptyTraits to use with non-zero defaults, TEmptyVal must be a constant
 */
 template <typename T, T TEmptyVal>
-struct CustomEmptyTraits
-{
-  static T EmptyVal() noexcept
-  {
+struct CustomEmptyTraits {
+  static T EmptyVal() noexcept {
     return TEmptyVal;
   }
-  static bool IsEmpty(const T& t) noexcept
-  {
+  static bool IsEmpty(const T &t) noexcept {
     return (t == EmptyVal());
   }
-  static void Empty(T& t) noexcept
-  {
+  static void Empty(T &t) noexcept {
     t = EmptyVal();
   }
-  DECLSPEC_DEPRECATED static void UnsafeEmpty(T& t) noexcept
-  {
+  DECLSPEC_DEPRECATED static void UnsafeEmpty(T &t) noexcept {
     Empty(t);
   }
 };
@@ -206,24 +167,19 @@ struct CustomEmptyTraits
   Custom EmptyTraits to use with zero-init structures like STATSTG
 */
 template <typename T>
-struct PODEmptyTraits
-{
-  static T EmptyVal() noexcept
-  {
+struct PODEmptyTraits {
+  static T EmptyVal() noexcept {
     T t = {0};
     return t;
   }
-  static bool IsEmpty(const T& t) noexcept
-  {
+  static bool IsEmpty(const T &t) noexcept {
     T tEmpty = EmptyVal();
     return memcmp(&t, &tEmpty, sizeof(t)) == 0;
   }
-  static void Empty(T& t) noexcept
-  {
+  static void Empty(T &t) noexcept {
     t = EmptyVal();
   }
-  DECLSPEC_DEPRECATED static void UnsafeEmpty(T& t) noexcept
-  {
+  DECLSPEC_DEPRECATED static void UnsafeEmpty(T &t) noexcept {
     Empty(t);
   }
 };
@@ -237,8 +193,7 @@ struct PODEmptyTraits
   Bar<int>(someInt); // compiles successfully
 */
 template <typename T>
-struct DisableTypeDeduction
-{
+struct DisableTypeDeduction {
   using type = T;
 };
 
@@ -255,8 +210,7 @@ struct DisableTypeDeduction
   Foo(Mso::OverloadTag(), &x);
 */
 using OverloadTagP1 = int;
-struct OverloadTagP2
-{
+struct OverloadTagP2 {
   OverloadTagP2(OverloadTagP1) noexcept {}
 };
 using OverloadTag = OverloadTagP1;
@@ -268,19 +222,15 @@ template <typename... Ts>
 struct LargestType;
 
 template <typename T>
-struct LargestType<T>
-{
+struct LargestType<T> {
   using type = T;
 };
 
 template <typename T1, typename T2, typename... Ts>
-struct LargestType<T1, T2, Ts...>
-{
+struct LargestType<T1, T2, Ts...> {
   using type = typename LargestType<typename std::conditional<sizeof(T1) >= sizeof(T2), T1, T2>::type, Ts...>::type;
 };
 
 } // namespace Mso
 
-#endif // __cplusplus
-
-#endif // LIBLET_CPPTYPE_TYPETRAITS_H
+#endif // MSO_TYPETRAITS_TYPETRAITS_H

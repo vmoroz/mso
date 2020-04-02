@@ -3,7 +3,7 @@
 
 liblet_includes(
   INCLUDES
-    cppType/restrictHelper.h
-    cppType/functionTypeTraits.h
-    cppType/typeTraits.h
+    typeTraits/sfinae.h
+    typeTraits/tags.h
+    typeTraits/typeTraits.h
 )

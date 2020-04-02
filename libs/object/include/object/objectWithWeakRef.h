@@ -84,7 +84,7 @@ public:                                                                         
                                                                                 \
       template <typename UseMsoMakeInsteadOfOperatorNew>                        \
       void* operator new(size_t, UseMsoMakeInsteadOfOperatorNew* = nullptr);    \
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(TObject)
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(TObject)
 
 namespace Mso {
 
@@ -210,7 +210,7 @@ template <typename TObject, typename TWeakRef>
 class ObjectWeakRefContainer : public TWeakRef
 {
 public:
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(ObjectWeakRefContainer);
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(ObjectWeakRefContainer);
 
   ObjectWeakRefContainer() = default;
 

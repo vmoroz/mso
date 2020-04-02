@@ -1,15 +1,16 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-    Various low level macros that are globally useful
-*/
 #pragma once
-#ifndef COMPILERADAPTERS_CPPMACROS_H
-#define COMPILERADAPTERS_CPPMACROS_H
+#ifndef MSO_COMPILERADAPTERS_CPPMACROS_H
+#define MSO_COMPILERADAPTERS_CPPMACROS_H
 
 /**
-    Broadly used macros
+  Various low level macros that are globally useful
+*/
+
+/**
+  Broadly used macros
 */
 #ifndef FImplies
 #define FImplies(a, b) (!(a) || (b))
@@ -24,8 +25,8 @@
 #endif
 
 /**
-    Statement - used for control flow macros like Check, IfFailGo
-    Make the macro act like a statement.
+  Statement - used for control flow macros like Check, IfFailGo
+  Make the macro act like a statement.
 */
 #ifndef __GNUC__
 #define Statement(x)                                                                                                   \
@@ -45,37 +46,26 @@
 // available [-fpermissive]
 #define __noop()
 #endif
-/**
-    Prevent the compiler from automatically providing implementations of various
-    class features. Use the macro in your class public: section.
-    TODO: probably need to update with new Move functions
-*/
-#ifndef __GNUC__
-#define MSO_NO_COPYCONSTR(C) __pragma(warning(suppress : 4822)) C(const C &) = delete
-#define MSO_NO_ASSIGNMENT(C) __pragma(warning(suppress : 4822)) const C &operator=(const C &) = delete
-#define MSO_NO_DEFAULTCONSTR(C) __pragma(warning(suppress : 4822)) explicit C() = delete
-#else
-#define MSO_NO_COPYCONSTR(C) C(const C &) = delete
-#define MSO_NO_ASSIGNMENT(C) const C &operator=(const C &) = delete
-#define MSO_NO_DEFAULTCONSTR(C) explicit C() = delete
-#endif
 
-#ifndef DECLARE_COPYCONSTR_AND_ASSIGNMENT
-#define DECLARE_COPYCONSTR_AND_ASSIGNMENT(C)                                                                           \
-    MSO_NO_COPYCONSTR(C);                                                                                              \
-    MSO_NO_ASSIGNMENT(C)
-#endif
+// Prevent the compiler from automatically providing implementations of various
+// class features. Use the macro in your class public: section.
+#define MSO_NO_COPY_CTOR(type) type(const type &) = delete
+#define MSO_NO_COPY_ASSIGNMENT(type) type &operator=(const type &) = delete
+#define MSO_NO_DEFAULT_CTOR(type) type() = delete
+#define MSO_NO_COPY_CTOR_AND_ASSIGNMENT(type)                                                                          \
+    MSO_NO_COPY_CTOR(type);                                                                                            \
+    MSO_NO_COPY_ASSIGNMENT(type)
 
 #if defined(__cplusplus)
 #include <type_traits>
 
 /**
-    When using an enum class to define a set of bitflags, normal bitflag
-    enum operations, such as |, ^, and &, don't work without lots of casts.
-    Use this macro to define |, ^, and & for your enum class, where |, ^ and ~
-    will return an enum class type, and & will evaluate to true or false.
-    The implementation causes error C3281 (global operator cannot have
-    managed type in signature) for managed code.
+  When using an enum class to define a set of bitflags, normal bitflag
+  enum operations, such as |, ^, and &, don't work without lots of casts.
+  Use this macro to define |, ^, and & for your enum class, where |, ^ and ~
+  will return an enum class type, and & will evaluate to true or false.
+  The implementation causes error C3281 (global operator cannot have
+  managed type in signature) for managed code.
 */
 #define ENUM_CLASS_FLAGS_OPERATORS(TEnum)                                                                              \
     constexpr TEnum operator~(TEnum a) noexcept                                                                        \
@@ -120,9 +110,9 @@
 #endif // !__cplusplus
 
 /**
-    Macros to help share enums between C++ and CX.
-    Enums must derive from int (the default)
-    Flag enums must derive from unsigned int
+  Macros to help share enums between C++ and CX.
+  Enums must derive from int (the default)
+  Flag enums must derive from unsigned int
 */
 #if defined(_WINRT_COMP) && !defined(__clang__)
 #define EXPOSE_WINRT_ENUM public
@@ -133,9 +123,9 @@
 #endif
 
 /**
-    Macros to force placement of symbols into a particular segment.
-    For example on iOS ensure large globals aren't placed in the text
-    segment because there is a size limit enforced by Apple.
+  Macros to force placement of symbols into a particular segment.
+  For example on iOS ensure large globals aren't placed in the text
+  segment because there is a size limit enforced by Apple.
  */
 #if MS_TARGET_APPLE
 #define DATA_SEGMENT_CONST __attribute__((section("__DATA,__const")))
@@ -149,4 +139,4 @@
 #define __declspec(s)
 #endif
 
-#endif // COMPILERADAPTERS_CPPMACROS_H
+#endif // MSO_COMPILERADAPTERS_CPPMACROS_H

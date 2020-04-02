@@ -668,7 +668,7 @@ class AgileUnknownObject : public UnknownObject<TBaseTypes...>
   using Super = UnknownObject<TBaseTypes...>;
 
 public:
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(AgileUnknownObject);
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(AgileUnknownObject);
 
   template <typename... TArgs>
   AgileUnknownObject(TArgs&&... args) noexcept : Super(std::forward<TArgs>(args)...)

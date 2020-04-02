@@ -45,7 +45,7 @@ struct ILibletMemoryMarking
 struct IMsoMemHeap;
 LIBLET_PUBLICAPI_EX("android", "win")
 MSOAPI_(BOOL)
-    FMemHeapMsoSaveBeHost(void* pinst, LPARAM lParam, const void* pvBlock, LONG_PTR cb, IMsoMemHeap* pmmh) MSONOEXCEPT;
+FMemHeapMsoSaveBeHost(void* pinst, LPARAM lParam, const void* pvBlock, LONG_PTR cb, IMsoMemHeap* pmmh) MSONOEXCEPT;
 LIBLET_PUBLICAPI_EX("android", "win") MSOAPI_(void) MsoCheckShutdownLeaks() noexcept;
 LIBLET_PUBLICAPI_EX("win") MSOAPI_(void) HeapEnableLeakTracking(bool isEnabled);
 LIBLET_PUBLICAPI_EX("win") MSOAPI_(void) MsoBeforeThreadTerminatesThreaded(DWORD mainThreadId) noexcept;
@@ -66,7 +66,7 @@ struct RegisterMarkMemoryCallback : public Mso::LibletAPI::ILibletMemoryMarking
 {
   using MarkMemHandler = std::add_pointer_t<void(intptr_t) noexcept>;
 
-  DECLARE_COPYCONSTR_AND_ASSIGNMENT(RegisterMarkMemoryCallback);
+  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(RegisterMarkMemoryCallback);
   RegisterMarkMemoryCallback(MarkMemHandler handler) noexcept : m_handler(handler)
   {
     RegisterCallback(*this);

@@ -2,8 +2,8 @@
 // Licensed under the MIT license.
 
 #pragma once
-#ifndef LIBLET_TAGUTILS_TAGTYPES_H
-#define LIBLET_TAGUTILS_TAGTYPES_H
+#ifndef MSO_TAGUTILS_TAGTYPES_H
+#define MSO_TAGUTILS_TAGTYPES_H
 
 #if __cplusplus && !defined(MS_TARGET_POSIX)
 /**
@@ -59,4 +59,4 @@ AssertTag(FALSE, ASSERTTAG('abcd'));
 */
 #define ASSERTTAG(x) x
 
-#endif // LIBLET_TAGUTILS_TAGTYPES_H
+#endif // MSO_TAGUTILS_TAGTYPES_H

@@ -93,4 +93,4 @@ LIBLET_PUBLICAPI AutoResetEvent::AutoResetEvent(EventWaitHandleState state) noex
 {
 }
 
-} // namespace Mso::Async
+} // namespace Mso

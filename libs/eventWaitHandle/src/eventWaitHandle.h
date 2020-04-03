@@ -103,4 +103,4 @@ private:
   mutable EventWaitHandleState m_state;
 };
 
-} // namespace Mso::Async
+} // namespace Mso

@@ -105,8 +105,7 @@ inline Mso::CntPtr<TResult> MakeElseNull(TArgs&&... args) noexcept(T::MakePolicy
   Method MakeAllocElseNull is noexcept depending on the Make policy IsNoExcept value.
 */
 template <typename T, typename TResult = T, typename TAllocArg, typename... TArgs>
-inline Mso::CntPtr<TResult> MakeAllocElseNull(TAllocArg&& allocArg, TArgs&&... args) noexcept(
-    T::MakePolicy::IsNoExcept)
+inline Mso::CntPtr<TResult> MakeAllocElseNull(TAllocArg&& allocArg, TArgs&&... args) noexcept(T::MakePolicy::IsNoExcept)
 {
   Mso::CntPtr<TResult> result; // Hopefully we can benefit from NRVO
 

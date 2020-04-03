@@ -384,8 +384,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(Functor_ctor_StdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
-        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
+    auto func =
+        std::function<void(Mso::CntPtr<StructParam>)>([&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({func, Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }
@@ -393,8 +393,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(Functor_ctor_ConstStdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    const auto func = std::function<void(Mso::CntPtr<StructParam>)>(
-        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
+    const auto func =
+        std::function<void(Mso::CntPtr<StructParam>)>([&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({func, Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }
@@ -402,8 +402,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(Functor_ctor_StdFunctionMove_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
-        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
+    auto func =
+        std::function<void(Mso::CntPtr<StructParam>)>([&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({std::move(func), Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }
@@ -861,8 +861,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(FunctorThrow_ctor_StdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
-        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
+    auto func =
+        std::function<void(Mso::CntPtr<StructParam>)>([&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorThrowExecutor::Execute(func);
     TestCheckEqual(1, callCount);
   }
@@ -870,8 +870,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(FunctorThrow_ctor_ConstStdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    const auto func = std::function<void(Mso::CntPtr<StructParam>)>(
-        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
+    const auto func =
+        std::function<void(Mso::CntPtr<StructParam>)>([&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorThrowExecutor::Execute(func);
     TestCheckEqual(1, callCount);
   }
@@ -879,8 +879,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(FunctorThrow_ctor_StdFunctionMove_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
-        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
+    auto func =
+        std::function<void(Mso::CntPtr<StructParam>)>([&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorThrowExecutor::Execute(std::move(func));
     TestCheckEqual(1, callCount);
   }
@@ -1471,8 +1471,8 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
   TEST_METHOD(Functor_noexcept_ctor_StdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
-        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
+    auto func =
+        std::function<void(Mso::CntPtr<StructParam>)>([&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({func, Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }
@@ -1480,8 +1480,8 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
   TEST_METHOD(Functor_noexcept_ctor_ConstStdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    const auto func = std::function<void(Mso::CntPtr<StructParam>)>(
-        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
+    const auto func =
+        std::function<void(Mso::CntPtr<StructParam>)>([&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({func, Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }
@@ -1489,8 +1489,8 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
   TEST_METHOD(Functor_noexcept_ctor_StdFunctionMove_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
-        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
+    auto func =
+        std::function<void(Mso::CntPtr<StructParam>)>([&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({std::move(func), Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }

@@ -1,13 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-Reference counting building blocks with support for a weak pointer.
-To implement your classes please use classes defined in the msoUnknownObject.h or msoRefCountedObject.h files.
-*/
-
 #pragma once
-#include <object/objectRefCount.h>
+#ifndef MSO_OBJECT_OBJECTWITHWEAKREF_H
+#define MSO_OBJECT_OBJECTWITHWEAKREF_H
+
+#include "guid/msoGuid.h"
+#include "object/objectRefCount.h"
 
 //
 // Classes in this file implement ref counting that supports weak pointers, and also provides a foundation for
@@ -66,11 +65,7 @@ To implement your classes please use classes defined in the msoUnknownObject.h o
 // CntPtr and get a pointer to the ObjectWeakRef using the base ObjectWithWeakRef class.
 //
 
-#pragma pack(push, _CRT_PACKING)
-#pragma push_macro("new")
-#undef new
-
-#define _MSO_OBJECT_WEAKREFCOUNT(TObject)                                       \
+#define MSO_OBJECT_WEAKREFCOUNT(TObject)                                        \
 public:                                                                         \
   Mso::ObjectWeakRef& GetWeakRef() const noexcept                               \
   {                                                                             \
@@ -100,7 +95,7 @@ public:
 
   using TypeToDelete = ObjectWeakRef; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(ObjectWeakRef);
+  MSO_OBJECT_SIMPLEREFCOUNT(ObjectWeakRef);
 
   ObjectWeakRef() = default;
 
@@ -345,9 +340,9 @@ using WeakRef = WeakRefCountPolicy<DefaultRefCountedDeleter, MakeAllocator>;
 namespace Details {
 
 /**
-  Mso::MakeWeakRefObject creates a new instance of class T in container TContainer and returns a CntPtr to the instance
-  of type TResult. TResult is either the original type T (default), or one of its interfaces. Returning an interface
-  type can help to avoid creation of unnecessary CntPtr template instances.
+  Mso::MakeWeakRefObject creates a new instance of class T in container TContainer and returns a CntPtr to the
+  instance of type TResult. TResult is either the original type T (default), or one of its interfaces. Returning an
+  interface type can help to avoid creation of unnecessary CntPtr template instances.
 
   Method MakeWeakRefObject is noexcept depending on the Make policy noexcept value.
 */
@@ -371,12 +366,12 @@ inline Mso::CntPtr<TResult> MakeWeakRefObject(TArgs&&... args) noexcept(T::MakeP
 }
 
 /**
-  Mso::MakeAllocWeakRefObject is an Mso::MakeWeakRefObject method for types T that use allocators accepting an argument.
-  The allocator argument allows to implement stateful allocators.
+  Mso::MakeAllocWeakRefObject is an Mso::MakeWeakRefObject method for types T that use allocators accepting an
+  argument. The allocator argument allows to implement stateful allocators.
 
-  MakeAllocWeakRefObject creates a new instance of class T in container TContainer and returns a CntPtr to the instance
-  of type TResult. TResult is either the original type T (default), or one of its interfaces. Returning an interface
-  type can help to avoid creation of unnecessary CntPtr template instantiations.
+  MakeAllocWeakRefObject creates a new instance of class T in container TContainer and returns a CntPtr to the
+  instance of type TResult. TResult is either the original type T (default), or one of its interfaces. Returning an
+  interface type can help to avoid creation of unnecessary CntPtr template instantiations.
 
   Method MakeAllocWeakRefObject is noexcept depending on the Make policy noexcept value.
 */
@@ -404,5 +399,4 @@ inline Mso::CntPtr<TResult> MakeAllocWeakRefObject(TAllocArg&& allocArg, TArgs&&
 } // namespace Details
 } // namespace Mso
 
-#pragma pop_macro("new")
-#pragma pack(pop)
+#endif // MSO_OBJECT_OBJECTWITHWEAKREF_H

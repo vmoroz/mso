@@ -1,71 +1,18 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-  IUnknown implementation.
-*/
-
 #pragma once
+#ifndef MSO_OBJECT_UNKNOWNOBJECT_H
+#define MSO_OBJECT_UNKNOWNOBJECT_H
 
-#include <object/objectRefCount.h>
-#include <object/objectWithWeakRef.h>
-#include <object/queryCast.h>
-#include <object/weakPtr.h>
-#include <compilerAdapters/compilerWarnings.h>
-
-#pragma pack(push, _CRT_PACKING)
-#pragma push_macro("new")
-#undef new
+#include "comUtil/IUnknownShim.h"
+#include "compilerAdapters/compilerWarnings.h"
+#include "object/objectRefCount.h"
+#include "object/objectWithWeakRef.h"
+#include "object/queryCast.h"
+#include "object/weakPtr.h"
 
 BEGIN_DISABLE_WARNING_INCONSISTENT_MISSING_OVERRIDE()
-
-namespace Mso {
-namespace Details {
-
-template <typename T>
-struct QueryInterfaceHelper
-{
-  _Success_(return == S_OK) static HRESULT QueryInterface(T* obj, const GUID& riid, _Outptr_ void** ppvObject) noexcept
-  {
-    VerifyElseCrashSzTag(ppvObject != nullptr, "ppvObject must not be null.", 0x01003717 /* tag_bad2x */);
-
-#if defined(MSO_ENABLE_QICHECK) && defined(DEBUG) && !defined(__clang__)
-    // Windows gives un-initialized pointers when querying for IMarshal and IAgileObjectthese interfaces. Ignore them.
-    if (riid != __uuidof(IMarshal) && riid != __uuidof(IAgileObject))
-    {
-      VerifyElseCrashSzTag(
-          *ppvObject == nullptr, "*ppvObject must be null to avoid memory leaks.", 0x01003718 /* tag_bad2y */);
-    }
-#endif
-
-    // QueryCastBridge is used to QI for an interface without AddRef
-    const GUID& intfGuid =
-        (riid == __uuidof(QueryCastBridge)) ? reinterpret_cast<QueryCastBridge*>(ppvObject)->ObjectId : riid;
-
-    if (intfGuid == __uuidof(IUnknown))
-    {
-      *ppvObject = obj->template StaticCastElseNull<IUnknown*>();
-    }
-    else
-    {
-      *ppvObject = obj->QueryCast(intfGuid);
-    }
-
-    if (!*ppvObject)
-    {
-      return E_NOINTERFACE;
-    }
-
-    if (&riid == &intfGuid)
-    {
-      obj->AddRef();
-    }
-
-    return S_OK;
-  }
-};
-
-} // namespace Details
 
 /**
   UnknownObject is a class template that implements the IUnknown interface (AddRef, Release, and QueryInterface).
@@ -134,7 +81,7 @@ struct QueryInterfaceHelper
       };
 
       Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
-      Mso::CntPtr<IBar> spBar = Mso::Make<Foo, IBar>();			// Create a CntPtr<IBar> directly.
+      Mso::CntPtr<IBar> spBar = Mso::Make<Foo, IBar>();      // Create a CntPtr<IBar> directly.
 
 
   3)  A class that inherits from one or more base classes.
@@ -235,7 +182,7 @@ struct QueryInterfaceHelper
         friend MakePolicy;
 
       private:
-        Foo(const Bar& bar) { }		// Private constructor
+        Foo(const Bar& bar) { }    // Private constructor
 
         ...
       };
@@ -365,8 +312,56 @@ struct QueryInterfaceHelper
 
       ICustomHeap& heap = ...;
       Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>(&heap);
-
 */
+
+namespace Mso::Details {
+
+template <typename T>
+struct QueryInterfaceHelper
+{
+  _Success_(return == S_OK) static HRESULT QueryInterface(T* obj, const GUID& riid, _Outptr_ void** ppvObject) noexcept
+  {
+    VerifyElseCrashSzTag(ppvObject != nullptr, "ppvObject must not be null.", 0x01003717 /* tag_bad2x */);
+
+#if defined(MSO_ENABLE_QICHECK) && defined(DEBUG) && !defined(__clang__)
+    // Windows gives un-initialized pointers when querying for IMarshal and IAgileObjectthese interfaces. Ignore them.
+    if (riid != __uuidof(IMarshal) && riid != __uuidof(IAgileObject))
+    {
+      VerifyElseCrashSzTag(
+          *ppvObject == nullptr, "*ppvObject must be null to avoid memory leaks.", 0x01003718 /* tag_bad2y */);
+    }
+#endif
+
+    // QueryCastBridge is used to QI for an interface without AddRef
+    const GUID& intfGuid =
+        (riid == __uuidof(QueryCastBridge)) ? reinterpret_cast<QueryCastBridge*>(ppvObject)->ObjectId : riid;
+
+    if (intfGuid == __uuidof(Mso::IUnknown))
+    {
+      *ppvObject = obj->template StaticCastElseNull<Mso::IUnknown*>();
+    }
+    else
+    {
+      *ppvObject = obj->QueryCast(intfGuid);
+    }
+
+    if (!*ppvObject)
+    {
+      return E_NOINTERFACE;
+    }
+
+    if (&riid == &intfGuid)
+    {
+      obj->AddRef();
+    }
+
+    return S_OK;
+  }
+};
+
+} // namespace Mso::Details
+
+namespace Mso {
 template <typename TBaseType0, typename... TBaseTypes>
 class DECLSPEC_NOVTABLE UnknownObject : public Mso::QueryCastList<TBaseType0, TBaseTypes...>
 {
@@ -380,7 +375,7 @@ public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
   using TypeToDelete = UnknownObject; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
+  MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
 
   _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID& riid, _Outptr_ void** ppvObject) noexcept override
   {
@@ -436,7 +431,7 @@ public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
   using TypeToDelete = UnknownObject; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
+  MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
 
   _Success_(return == S_OK) STDMETHOD(QueryInterface)(const GUID& riid, _Outptr_ void** ppvObject) override
   {
@@ -491,7 +486,7 @@ public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
   using TypeToDelete = UnknownObject; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
+  MSO_OBJECT_SIMPLEREFCOUNT(UnknownObject);
 
   _Success_(return == S_OK)
       STDMETHOD(QueryInterface)(const GUID& /*riid*/, _Outptr_ void** /*ppvObject*/) noexcept override
@@ -548,7 +543,7 @@ public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
   using TypeToDelete = UnknownObject; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_WEAKREFCOUNT(UnknownObject);
+  MSO_OBJECT_WEAKREFCOUNT(UnknownObject);
 
   void* QueryCast(const GUID& riid) noexcept
   {
@@ -595,7 +590,7 @@ class DECLSPEC_NOVTABLE UnknownObject<Mso::RefCountStrategy::NoRefCount, TBaseTy
 public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
 
-  _MSO_OBJECT_NOREFCOUNT(UnknownObject);
+  MSO_OBJECT_NOREFCOUNT(UnknownObject);
 
   template <typename... TArgs>
   UnknownObject(TArgs&&... args) noexcept : Super(std::forward<TArgs>(args)...)
@@ -631,7 +626,7 @@ class DECLSPEC_NOVTABLE UnknownObject<Mso::RefCountStrategy::NoRefCountNoQuery, 
 public:
   using UnknownObjectType = UnknownObject; // To use in derived class as "using Super = UnknownObjectType"
 
-  _MSO_OBJECT_NOREFCOUNT(UnknownObject);
+  MSO_OBJECT_NOREFCOUNT(UnknownObject);
 
   template <typename... TArgs>
   UnknownObject(TArgs&&... args) noexcept : Super(std::forward<TArgs>(args)...)
@@ -660,7 +655,7 @@ public:
 };
 
 /**
-  A base class that supports a free threaded marshaler.
+        A base class that supports a free threaded marshaler.
 */
 template <typename... TBaseTypes>
 class AgileUnknownObject : public UnknownObject<TBaseTypes...>
@@ -689,9 +684,9 @@ public:
     {
       if (m_ftm.IsEmpty())
       {
-        Mso::CntPtr<IUnknown> ftm;
+        Mso::CntPtr<Mso::IUnknown> ftm;
         VerifySucceededElseCrashTag(
-            CoCreateFreeThreadedMarshaler(this->template StaticCastElseNull<IUnknown*>(), &ftm),
+            CoCreateFreeThreadedMarshaler(this->template StaticCastElseNull<Mso::IUnknown*>(), &ftm),
             0x01003719 /* tag_bad2z */);
         // Only assign ftm to m_ftm if its value is nullptr. Otherwise we will delete the new ftm and use the existing
         // m_ftm.
@@ -713,12 +708,11 @@ protected:
   using AgileUnknownObjectType = AgileUnknownObject;
 
 private:
-  Mso::CntPtr<IUnknown> m_ftm;
+  Mso::CntPtr<Mso::IUnknown> m_ftm;
 };
 
 } // namespace Mso
 
 END_DISABLE_WARNING_INCONSISTENT_MISSING_OVERRIDE()
 
-#pragma pop_macro("new")
-#pragma pack(pop)
+#endif // MSO_OBJECT_UNKNOWNOBJECT_H

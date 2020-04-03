@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 
 #pragma once
 
-#include <object/objectRefCount.h>
-#include <object/objectWithWeakRef.h>
+#include "object/objectRefCount.h"
+#include "object/objectWithWeakRef.h"
 
 //=============================================================================
 // BadMakeAllocator helps testing allocators that may return

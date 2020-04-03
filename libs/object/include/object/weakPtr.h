@@ -1,13 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-  Support for object lifetime management using ref counting.
-*/
-
 #pragma once
-#include <object/objectWithWeakRef.h>
-#include <object/queryCast.h>
+#ifndef MSO_OBJECT_WEAKPTR_H
+#define MSO_OBJECT_WEAKPTR_H
+
+#include "object/objectWithWeakRef.h"
+#include "object/queryCast.h"
 
 namespace Mso {
 
@@ -367,3 +366,5 @@ bool operator!=(std::nullptr_t, const WeakPtr<T>& right) noexcept
 }
 
 } // namespace Mso
+
+#endif // MSO_OBJECT_WEAKPTR_H

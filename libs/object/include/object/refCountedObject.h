@@ -1,20 +1,15 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-  IRefCounted implementation.
-*/
 #pragma once
+#ifndef MSO_OBJECT_REFCOUNTEDOBJECT_H
+#define MSO_OBJECT_REFCOUNTEDOBJECT_H
 
-#include <object/make.h>
-#include <object/objectRefCount.h>
-#include <object/objectWithWeakRef.h>
-#include <object/weakPtr.h>
-#include <compilerAdapters/compilerWarnings.h>
-
-#pragma pack(push, _CRT_PACKING)
-#pragma push_macro("new")
-#undef new
+#include "compilerAdapters/compilerWarnings.h"
+#include "object/make.h"
+#include "object/objectRefCount.h"
+#include "object/objectWithWeakRef.h"
+#include "object/weakPtr.h"
 
 BEGIN_DISABLE_WARNING_INCONSISTENT_MISSING_OVERRIDE()
 
@@ -63,7 +58,7 @@ namespace Mso {
       };
 
       Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
-      Mso::CntPtr<IBar> spBar = Mso::Make<Foo, IBar>();			// Create a CntPtr<IBar> directly.
+      Mso::CntPtr<IBar> spBar = Mso::Make<Foo, IBar>();      // Create a CntPtr<IBar> directly.
 
 
   3)  A class that inherits from multiple base types and implements IRefCounted:
@@ -302,7 +297,7 @@ public:
   using RefCountedObjectType = RefCountedObject; // To use in derived class as "using Super = RefCountedObjectType"
   using TypeToDelete = RefCountedObject; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(RefCountedObject);
+  MSO_OBJECT_SIMPLEREFCOUNT(RefCountedObject);
 
   void AddRef() const noexcept override
   {
@@ -348,7 +343,7 @@ public:
   using RefCountedObjectType = RefCountedObject; // To use in derived class as "using Super = RefCountedObjectType"
   using TypeToDelete = RefCountedObject; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(RefCountedObject);
+  MSO_OBJECT_SIMPLEREFCOUNT(RefCountedObject);
 
   void AddRef() const noexcept override
   {
@@ -394,7 +389,7 @@ public:
   using RefCountedObjectType = RefCountedObject; // To use in derived class as "using Super = RefCountedObjectType"
   using TypeToDelete = RefCountedObject; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_WEAKREFCOUNT(RefCountedObject);
+  MSO_OBJECT_WEAKREFCOUNT(RefCountedObject);
 
   void AddRef() const noexcept override
   {
@@ -423,7 +418,7 @@ class RefCountedObject<Mso::RefCountStrategy::NoRefCount, TBaseType0, TBaseTypes
 public:
   using RefCountedObjectType = RefCountedObject; // To use in derived class as "using Super = RefCountedObjectType"
 
-  _MSO_OBJECT_NOREFCOUNT(RefCountedObject);
+  MSO_OBJECT_NOREFCOUNT(RefCountedObject);
 
   template <typename... TArgs>
   RefCountedObject(TArgs&&... args) noexcept : TBaseType0(std::forward<TArgs>(args)...)
@@ -439,7 +434,7 @@ template <typename... Ts>
 class RefCountedObjectNoVTable;
 
 /**
-  A base class for ref counted objects that do not have v-table and need a simple ref count.
+        A base class for ref counted objects that do not have v-table and need a simple ref count.
 */
 template <typename TDerived>
 class RefCountedObjectNoVTable<TDerived>
@@ -453,7 +448,7 @@ public:
       RefCountedObjectNoVTable; // To use in derived class as "using Super = RefCountedObjectNoVTableType"
   using TypeToDelete = TDerived; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(RefCountedObjectNoVTable);
+  MSO_OBJECT_SIMPLEREFCOUNT(RefCountedObjectNoVTable);
 
   void AddRef() const noexcept
   {
@@ -482,7 +477,7 @@ private:
 };
 
 /**
-  A base class for RefCounted objects that do not have v-table and need a simple ref count.
+        A base class for RefCounted objects that do not have v-table and need a simple ref count.
 */
 template <typename TDeleter, typename TAllocator, typename TDerived>
 class RefCountedObjectNoVTable<Mso::SimpleRefCountPolicy<TDeleter, TAllocator>, TDerived>
@@ -496,7 +491,7 @@ public:
       RefCountedObjectNoVTable; // To use in derived class as "using Super = RefCountedObjectNoVTableType"
   using TypeToDelete = TDerived; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(RefCountedObjectNoVTable);
+  MSO_OBJECT_SIMPLEREFCOUNT(RefCountedObjectNoVTable);
 
   void AddRef() const noexcept
   {
@@ -525,7 +520,7 @@ private:
 };
 
 /**
-  A base class for RefCounted objects that do not have v-table and need support for weak ref count.
+        A base class for RefCounted objects that do not have v-table and need support for weak ref count.
 */
 template <typename TDeleter, typename TAllocator, typename TDerived>
 class RefCountedObjectNoVTable<Mso::WeakRefCountPolicy<TDeleter, TAllocator>, TDerived>
@@ -539,7 +534,7 @@ public:
       RefCountedObjectNoVTable; // To use in derived class as "using Super = RefCountedObjectNoVTableType"
   using TypeToDelete = TDerived; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_WEAKREFCOUNT(RefCountedObjectNoVTable);
+  MSO_OBJECT_WEAKREFCOUNT(RefCountedObjectNoVTable);
 
   void AddRef() const noexcept
   {
@@ -559,5 +554,4 @@ protected:
 
 END_DISABLE_WARNING_INCONSISTENT_MISSING_OVERRIDE()
 
-#pragma pop_macro("new")
-#pragma pack(pop)
+#endif // MSO_OBJECT_REFCOUNTEDOBJECT_H

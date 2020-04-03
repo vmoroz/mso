@@ -1,17 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-  Support for reference counting.
-*/
-
 #pragma once
-#ifdef __cplusplus
+#ifndef MSO_OBJECT_OBJECTREFCOUNT_H
+#define MSO_OBJECT_OBJECTREFCOUNT_H
+
 #include <cstdint>
 #include <type_traits>
-#include <object/make.h>
-#include <object/refCounted.h>
-#include <compilerAdapters/cppMacrosDebug.h>
+#include "compilerAdapters/cppMacrosDebug.h"
+#include "object/make.h"
 
 //
 // Simple ref counting manages object lifetime using a ref counter.
@@ -19,11 +16,7 @@
 // The ObjectRefCount<TDerived> template does not have a v-table. It calls the TDerived type destructor.
 //
 
-#pragma pack(push, _CRT_PACKING)
-#pragma push_macro("new")
-#undef new
-
-#define _MSO_OBJECT_SIMPLEREFCOUNT(TObject)                                                        \
+#define MSO_OBJECT_SIMPLEREFCOUNT(TObject)                                                         \
 public:                                                                                            \
   bool IsUniqueRef() const noexcept                                                                \
   {                                                                                                \
@@ -35,8 +28,8 @@ public:                                                                         
       void* operator new(size_t, UseMsoMakeInsteadOfOperatorNew* = nullptr);                       \
   MSO_NO_COPY_CTOR_AND_ASSIGNMENT(TObject)
 
-#define _MSO_OBJECT_NOREFCOUNT(TObject) \
-public:                                 \
+#define MSO_OBJECT_NOREFCOUNT(TObject) \
+public:                                \
   MSO_NO_COPY_CTOR_AND_ASSIGNMENT(TObject)
 
 namespace Mso {
@@ -156,7 +149,7 @@ public:
 
   using TypeToDelete = RefCountedWrapperBase; // To verify that TypeToDelete is the first in the inheritance chain.
 
-  _MSO_OBJECT_SIMPLEREFCOUNT(RefCountedWrapperBase);
+  MSO_OBJECT_SIMPLEREFCOUNT(RefCountedWrapperBase);
 
   void AddRef() const noexcept
   {
@@ -230,7 +223,4 @@ RefCountedPtr<T> Make_RefCounted(U&&... args) noexcept
 
 } // namespace Mso
 
-#pragma pop_macro("new")
-#pragma pack(pop)
-
-#endif // __cplusplus
+#endif // MSO_OBJECT_OBJECTREFCOUNT_H

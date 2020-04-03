@@ -1,19 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/****************************************************************************
-Unit tests for classes in the msoUnknownObject.h
-****************************************************************************/
-
-#include "precomp.h"
-#include <object/unknownObject.h>
+#include "object/unknownObject.h"
 #include <future>
-#include <vector>
 #include <thread>
-#include <test/skipSEHUT.h>
+#include <vector>
+#include "comUtil/qiCast.h"
+#include "eventWaitHandle/eventWaitHandle.h"
+#include "motifCpp/testCheck.h"
 #include "testAllocators.h"
-#include <eventWaitHandle/eventWaitHandle.h>
-#include <motifCpp/testCheck.h>
 
 //#define TEST_BAD_INHERITANCE1 // Uncomment to see compilation error
 //#define TEST_BAD_INHERITANCE2 // Uncomment to confirm VEC, but observe a memory leak. We cannot safely destroy this
@@ -533,6 +528,7 @@ struct AsyncDeleter2
     {
       // Ideally we want to show here how to use dispatch queues, but we cannot add DispatchQueue liblet dependency
       // here.
+#pragma warning(suppress : 4834) // discarding return value of function with 'nodiscard' attribute
       std::async(std::launch::async, [obj]() noexcept { TObject::RefCountPolicy::template Delete(obj); });
     }
     catch (...)
@@ -572,13 +568,13 @@ protected:
   }
 
 private:
-  UnknownSample101(Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
-      : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
+  UnknownSample101(Mso::ManualResetEvent const& deleted, bool& isAsyncDestroy) noexcept
+      : m_deleted{deleted}, m_isAsyncDestroy{isAsyncDestroy}
   {
   }
 
 private:
-  Mso::ManualResetEvent& m_deleted;
+  Mso::ManualResetEvent m_deleted;
   bool& m_isAsyncDestroy;
 };
 
@@ -606,13 +602,13 @@ protected:
   }
 
 private:
-  UnknownSample102(Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
+  UnknownSample102(Mso::ManualResetEvent const& deleted, bool& isAsyncDestroy) noexcept
       : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
   {
   }
 
 private:
-  Mso::ManualResetEvent& m_deleted;
+  Mso::ManualResetEvent m_deleted;
   bool& m_isAsyncDestroy;
 };
 
@@ -932,7 +928,7 @@ class BadUnknownObject1 final
   friend MakePolicy; // To allow constructor to be private or protected.
 
 public:
-  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(BadUnknownObject1);
+  DECLARE_COPYCONSTR_AND_ASSIGNMENT(BadUnknownObject1);
 
   virtual int GetValue1() const override
   {
@@ -1015,11 +1011,11 @@ TEST_CLASS (UnknownObjectTest)
     {
       Mso::CntPtr<UnknownSample1> unknown1 = Mso::Make<UnknownSample1>(/*ref*/ deleted);
       TestAssert::AreEqual(1, unknown1->GetValue1());
-      Debug(TestAssert::AreEqual(1, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(1u, unknown1->RefCount()));
 
       Mso::CntPtr<IBaseSample1> base1 = unknown1;
       TestAssert::AreEqual(1, base1->GetValue1());
-      Debug(TestAssert::AreEqual(2, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(2u, unknown1->RefCount()));
     }
     TestAssert::IsTrue(deleted);
   }
@@ -1030,11 +1026,11 @@ TEST_CLASS (UnknownObjectTest)
     {
       Mso::CntPtr<UnknownSample11> unknown1 = Mso::Make<UnknownSample11>(/*ref*/ deleted);
       TestAssert::AreEqual(1, unknown1->GetValue1());
-      Debug(TestAssert::AreEqual(1, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(1u, unknown1->RefCount()));
 
       Mso::CntPtr<IBaseSample1> base1 = unknown1;
       TestAssert::AreEqual(1, base1->GetValue1());
-      Debug(TestAssert::AreEqual(2, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(2u, unknown1->RefCount()));
     }
     TestAssert::IsTrue(deleted);
   }
@@ -1045,15 +1041,15 @@ TEST_CLASS (UnknownObjectTest)
     {
       Mso::CntPtr<UnknownSample2> unknown1 = Mso::Make<UnknownSample2>(/*ref*/ deleted);
       TestAssert::AreEqual(1, unknown1->GetValue1());
-      Debug(TestAssert::AreEqual(1, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(1u, unknown1->RefCount()));
 
       Mso::CntPtr<IBaseSample1> base1 = unknown1;
       TestAssert::AreEqual(1, base1->GetValue1());
-      Debug(TestAssert::AreEqual(2, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(2u, unknown1->RefCount()));
 
       Mso::CntPtr<IBaseSample2> base2 = unknown1;
       TestAssert::AreEqual(2, base2->GetValue2());
-      Debug(TestAssert::AreEqual(3, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(3u, unknown1->RefCount()));
     }
     TestAssert::IsTrue(deleted);
   }
@@ -1064,19 +1060,19 @@ TEST_CLASS (UnknownObjectTest)
     {
       Mso::CntPtr<UnknownSample3> unknown1 = Mso::Make<UnknownSample3>(/*ref*/ deleted);
       TestAssert::AreEqual(1, unknown1->GetValue1());
-      Debug(TestAssert::AreEqual(1, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(1u, unknown1->RefCount()));
 
       Mso::CntPtr<IBaseSample1> base1 = unknown1;
       TestAssert::AreEqual(1, base1->GetValue1());
-      Debug(TestAssert::AreEqual(2, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(2u, unknown1->RefCount()));
 
       Mso::CntPtr<IBaseSample2> base2 = unknown1;
       TestAssert::AreEqual(2, base2->GetValue2());
-      Debug(TestAssert::AreEqual(3, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(3u, unknown1->RefCount()));
 
       Mso::CntPtr<UnknownSample3> unknown2 = qi_cast<UnknownSample3>(base2.Get());
       TestAssert::AreEqual(2, unknown2->GetValue2());
-      Debug(TestAssert::AreEqual(4, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(4u, unknown1->RefCount()));
     }
     TestAssert::IsTrue(deleted);
   }
@@ -1087,14 +1083,14 @@ TEST_CLASS (UnknownObjectTest)
     {
       Mso::CntPtr<UnknownSample4> unknown1 = Mso::Make<UnknownSample4>(/*ref*/ deleted);
       TestAssert::AreEqual(1, unknown1->GetValue1());
-      Debug(TestAssert::AreEqual(1, unknown1->GetWeakRef().RefCount()));
+      Debug(TestAssert::AreEqual(1u, unknown1->GetWeakRef().RefCount()));
 
       Mso::CntPtr<IBaseSample1> base1 = unknown1;
-      Debug(TestAssert::AreEqual(2, unknown1->GetWeakRef().RefCount()));
+      Debug(TestAssert::AreEqual(2u, unknown1->GetWeakRef().RefCount()));
 
       Mso::ObjectWeakRef* obj1weakRef = query_cast<Mso::ObjectWeakRef*>(base1.Get());
       TestAssert::IsNotNull(obj1weakRef);
-      Debug(TestAssert::AreEqual(2, obj1weakRef->RefCount()));
+      Debug(TestAssert::AreEqual(2u, obj1weakRef->RefCount()));
     }
     TestAssert::IsTrue(deleted);
   }
@@ -1362,7 +1358,7 @@ TEST_CLASS (UnknownObjectTest)
     }
 
     // Wait for deletion to complete
-    deleted.Wait();
+    TestAssert::IsTrue(deleted.Wait());
     TestAssert::IsTrue(isAsyncDestroy);
   }
 
@@ -1378,18 +1374,20 @@ TEST_CLASS (UnknownObjectTest)
     }
 
     // Wait for deletion to complete
-    deleted.Wait();
+    TestAssert::IsTrue(deleted.Wait());
     TestAssert::IsTrue(isAsyncDestroy);
   }
 
-  TEST_METHOD(UnknownObject_QI_NullPtr)
+  TESTMETHOD_REQUIRES_SEH(UnknownObject_QI_NullPtr)
   {
     Mso::CntPtr<IBaseSample1> base1 = Mso::Make<UnknownSample21, IBaseSample1>();
 
-    TestCheckCrash(OACR_WARNING_SUPPRESS(
-                       INVALID_PARAM_VALUE_1,
-                       "Invalid parameter value. Our goal here is to see runtime check for the invalid value");
-                   (void)base1->QueryInterface(__uuidof(IBaseSample2), nullptr););
+    TestAssert::ExpectVEC([&]() noexcept {
+      OACR_WARNING_SUPPRESS(
+          INVALID_PARAM_VALUE_1,
+          "Invalid parameter value. Our goal here is to see runtime check for the invalid value");
+      (void)base1->QueryInterface(__uuidof(IBaseSample2), nullptr);
+    });
   }
 
   TEST_METHOD(UnknownObject_NoRefCountNoQuery_Stack)
@@ -1435,20 +1433,20 @@ TEST_CLASS (UnknownObjectTest)
     {
       Mso::CntPtr<AgileSample1> unknown1 = Mso::Make<AgileSample1>(/*ref*/ deleted);
       TestAssert::AreEqual(1, unknown1->GetValue1());
-      Debug(TestAssert::AreEqual(1, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(1u, unknown1->RefCount()));
 
       Mso::CntPtr<IBaseSample1> base1 = unknown1;
       TestAssert::AreEqual(1, base1->GetValue1());
-      Debug(TestAssert::AreEqual(2, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(2u, unknown1->RefCount()));
 
-#if defined(MS_TARGET_WINDOWS)
+#ifndef __clang__
       Mso::CntPtr<IMarshal> marshal1 = qi_cast<IMarshal>(base1.Get());
       TestAssert::IsNotNull(marshal1.Get(), L"IMarshal must not be null.");
-      Debug(TestAssert::AreEqual(3, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(3u, unknown1->RefCount()));
 
       Mso::CntPtr<IAgileObject> agile1 = qi_cast<IAgileObject>(base1.Get());
       TestAssert::IsNotNull(agile1.Get(), L"IAgileObject must not be null.");
-      Debug(TestAssert::AreEqual(4, unknown1->RefCount()));
+      Debug(TestAssert::AreEqual(4u, unknown1->RefCount()));
 #endif
     }
     TestAssert::IsTrue(deleted);
@@ -1460,27 +1458,27 @@ TEST_CLASS (UnknownObjectTest)
     {
       Mso::WeakPtr<AgileSample2> weakAgile;
       Mso::WeakPtr<IBaseSample1> weakBase1;
-#if !defined(__clang__) && !defined(__GNUC__)
+#ifndef __clang__
       Mso::WeakPtr<IMarshal> weakMarshal;
       Mso::WeakPtr<IAgileObject> weakAgileObj;
 #endif
       {
         Mso::CntPtr<AgileSample2> agile1 = Mso::Make<AgileSample2>(/*ref*/ deleted);
         TestAssert::AreEqual(1, agile1->GetValue1());
-        Debug(TestAssert::AreEqual(1, agile1->GetWeakRef().RefCount()));
+        Debug(TestAssert::AreEqual(1u, agile1->GetWeakRef().RefCount()));
 
         Mso::CntPtr<IBaseSample1> base1 = qi_cast<IBaseSample1>(agile1.Get());
         TestAssert::AreEqual(1, base1->GetValue1());
-        Debug(TestAssert::AreEqual(2, agile1->GetWeakRef().RefCount()));
+        Debug(TestAssert::AreEqual(2u, agile1->GetWeakRef().RefCount()));
 
-#if !defined(__clang__) && !defined(__GNUC__)
+#ifndef __clang__
         Mso::CntPtr<IMarshal> marshal1 = qi_cast<IMarshal>(base1.Get());
         TestAssert::IsNotNull(marshal1.Get(), L"IMarshal must not be null.");
-        Debug(TestAssert::AreEqual(3, agile1->GetWeakRef().RefCount()));
+        Debug(TestAssert::AreEqual(3u, agile1->GetWeakRef().RefCount()));
 
         Mso::CntPtr<IAgileObject> agileObj1 = qi_cast<IAgileObject>(marshal1.Get());
         TestAssert::IsNotNull(agileObj1.Get(), L"IAgileObject must not be null.");
-        Debug(TestAssert::AreEqual(4, agile1->GetWeakRef().RefCount()));
+        Debug(TestAssert::AreEqual(4u, agile1->GetWeakRef().RefCount()));
 #endif
 
         weakAgile = agile1;
@@ -1493,7 +1491,7 @@ TEST_CLASS (UnknownObjectTest)
         TestAssert::IsNotNull(base11.Get());
         TestAssert::IsFalse(weakBase1.IsExpired());
 
-#if !defined(__clang__) && !defined(__GNUC__)
+#ifndef __clang__
         weakMarshal = marshal1;
         Mso::CntPtr<IMarshal> marshal11 = weakMarshal.GetStrongPtr();
         TestAssert::IsNotNull(marshal11.Get());
@@ -1518,7 +1516,7 @@ TEST_CLASS (UnknownObjectTest)
     {
       AgileSample3 agile1(/*ref*/ deleted);
 
-#if !defined(__clang__) && !defined(__GNUC__)
+#ifndef __clang__
       Mso::CntPtr<IMarshal> marshal1 = qi_cast<IMarshal>(&agile1);
       TestAssert::IsNotNull(marshal1.Get());
 
@@ -1541,7 +1539,7 @@ TEST_CLASS (UnknownObjectTest)
     {
       std::unique_ptr<AgileSample3> agile1 = std::make_unique<AgileSample3>(/*ref*/ deleted);
 
-#if !defined(__clang__) && !defined(__GNUC__)
+#ifndef __clang__
       Mso::CntPtr<IMarshal> marshal1 = qi_cast<IMarshal>(agile1.get());
       TestAssert::IsNotNull(marshal1.Get());
 
@@ -1559,7 +1557,7 @@ TEST_CLASS (UnknownObjectTest)
   }
 
 // OM:2065596: Investigate why this test fails sth.exe for winrt nx64.
-#if !defined(TESTWINRT) && !defined(__clang__) && !defined(__GNUC__)
+#if !defined(TESTWINRT) && !defined(__clang__)
   // Make sure that we initialize marshaller atomically
   TEST_METHOD(AgileUnknownObject_SimpleRefCount_ThreadSafety)
   {
@@ -1765,7 +1763,7 @@ TEST_CLASS (UnknownObjectTest)
     TestAssert::IsNull(base3);
   }
 
-  TEST_METHOD(UnknownObject_query_cast_ref)
+  TESTMETHOD_REQUIRES_SEH(UnknownObject_query_cast_ref)
   {
     bool deleted = false;
     {
@@ -1774,8 +1772,14 @@ TEST_CLASS (UnknownObjectTest)
       IBaseSample1& base1 = query_cast<IBaseSample1&>(*unknown1);
       TestAssert::AreEqual(1, base1.GetValue1());
       IBaseSample2& base2 = query_cast<IBaseSample2&>(base1);
+
+#if !__clang__ // OfficeMain:768379. TestAssert::ExpectCrash is not implemented in clang.
       TestAssert::AreEqual(2, base2.GetValue2());
-      TestCheckCrash(query_cast<IBaseSample3&>(base1));
+      {
+        TestAssert::ExpectVEC([&]() noexcept { query_cast<IBaseSample3&>(base1); });
+      }
+#endif //!__clang__
+
       UnknownSample3& unknown2 = query_cast<UnknownSample3&>(base2);
       OACR_USE_PTR(&unknown2); // We do not want to make unknown2 const in this test.
       TestAssert::AreEqual(2, unknown2.GetValue2());
@@ -1783,7 +1787,7 @@ TEST_CLASS (UnknownObjectTest)
     TestAssert::IsTrue(deleted);
   }
 
-  TEST_METHOD(UnknownObject_query_cast_const_ref)
+  TESTMETHOD_REQUIRES_SEH(UnknownObject_query_cast_const_ref)
   {
     bool deleted = false;
     {
@@ -1793,12 +1797,12 @@ TEST_CLASS (UnknownObjectTest)
       TestAssert::AreEqual(1, base1.GetValue1());
       const IBaseSample2& base2 = query_cast<const IBaseSample2&>(base1);
 
-#if !__clang__ && !__GNUC__ // TODO: TestAssert::ExpectCrash is not implemented in clang.
+#if !__clang__ // OfficeMain:768379. TestAssert::ExpectCrash is not implemented in clang.
       TestAssert::AreEqual(2, base2.GetValue2());
       {
         TestAssert::ExpectVEC([&]() noexcept { query_cast<const IBaseSample3&>(base1); });
       }
-#endif //!__clang__ && !__GNUC__
+#endif //!__clang__
 
       const UnknownSample3& unknown2 = query_cast<const UnknownSample3&>(base2);
       TestAssert::AreEqual(2, unknown2.GetValue2());
@@ -1806,7 +1810,7 @@ TEST_CLASS (UnknownObjectTest)
     TestAssert::IsTrue(deleted);
   }
 
-  TEST_METHOD(UnknownObject_query_cast_const_ref_from_ref)
+  TESTMETHOD_REQUIRES_SEH(UnknownObject_query_cast_const_ref_from_ref)
   {
     bool deleted = false;
     {
@@ -1816,12 +1820,12 @@ TEST_CLASS (UnknownObjectTest)
       TestAssert::AreEqual(1, base1.GetValue1());
       const IBaseSample2& base2 = query_cast<const IBaseSample2&>(const_cast<IBaseSample1&>(base1));
 
-#if !__clang__ && !__GNUC__ // TODO: TestAssert::ExpectCrash is not implemented in clang.
+#if !__clang__ // OfficeMain:768379. TestAssert::ExpectCrash is not implemented in clang.
       TestAssert::AreEqual(2, base2.GetValue2());
       {
         TestAssert::ExpectVEC([&]() noexcept { query_cast<const IBaseSample3&>(const_cast<IBaseSample1&>(base1)); });
       }
-#endif //!__clang__ && !__GNUC__
+#endif //!__clang__
 
       const UnknownSample3& unknown2 = query_cast<const UnknownSample3&>(const_cast<IBaseSample2&>(base2));
       TestAssert::AreEqual(2, unknown2.GetValue2());
@@ -1829,7 +1833,7 @@ TEST_CLASS (UnknownObjectTest)
     TestAssert::IsTrue(deleted);
   }
 
-  TEST_METHOD(UnknownObject_WeakRefCount_query_cast_ptr)
+  TESTMETHOD_REQUIRES_SEH(UnknownObject_WeakRefCount_query_cast_ptr)
   {
     bool deleted = false;
     {
@@ -1848,7 +1852,7 @@ TEST_CLASS (UnknownObjectTest)
     TestAssert::IsTrue(deleted);
   }
 
-  TEST_METHOD(UnknownObject_WeakRefCount_query_cast_ref)
+  TESTMETHOD_REQUIRES_SEH(UnknownObject_WeakRefCount_query_cast_ref)
   {
     bool deleted = false;
     {
@@ -1857,8 +1861,14 @@ TEST_CLASS (UnknownObjectTest)
       IBaseSample1& base1 = query_cast<IBaseSample1&>(*unknown1);
       TestAssert::AreEqual(1, base1.GetValue1());
       IBaseSample2& base2 = query_cast<IBaseSample2&>(base1);
+
+#if !__clang__ // OfficeMain:768379. TestAssert::ExpectCrash is not implemented in clang.
       TestAssert::AreEqual(2, base2.GetValue2());
-      TestAssert::ExpectVEC([&]() { query_cast<IBaseSample3&>(base1); });
+      {
+        TestAssert::ExpectVEC([&]() noexcept { query_cast<IBaseSample3&>(base1); });
+      }
+#endif //!__clang__
+
       UnknownSample6& unknown2 = query_cast<UnknownSample6&>(base2);
       OACR_USE_PTR(&unknown2); // We do not want to make unknown2 const in this test.
       TestAssert::AreEqual(2, unknown2.GetValue2());
@@ -1949,7 +1959,7 @@ TEST_CLASS (UnknownObjectTest)
   }
 
 #if defined(DEBUG) && defined(TEST_BAD_INHERITANCE1)
-  TEST_METHOD(UnknownObject_BadInheritance1)
+  TESTMETHOD_REQUIRES_SEH(UnknownObject_BadInheritance1)
   {
     TestAssert::ExpectVEC([&]() noexcept {
       // This code must not compile, but if we remove the static assert from ObjectRefCount.h then we must have VEC
@@ -1960,7 +1970,7 @@ TEST_CLASS (UnknownObjectTest)
 #endif
 
 #if defined(DEBUG) && defined(TEST_BAD_INHERITANCE2)
-  TEST_METHOD(UnknownObject_BadInheritance2)
+  TESTMETHOD_REQUIRES_SEH(UnknownObject_BadInheritance2)
   {
     TestAssert::ExpectVEC([&]() noexcept {
       // You will see a memory leak here because we cannot destroy object correctly.

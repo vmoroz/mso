@@ -8,13 +8,14 @@
 #include "motifCpp/assert_motifApi.h"
 
 // TODO: Implement this as needed
-struct LibletAwareMemLeakDetection : MotifCppTestBase {
- protected:
+struct LibletAwareMemLeakDetection : MotifCppTestBase
+{
+protected:
   void InitLiblets() noexcept {}
 
   void UninitLiblets() noexcept {}
 
- public:
+public:
   virtual void StartTrackingMemoryAllocations() {}
   virtual void StopTrackingMemoryAllocations() {}
 };

@@ -1,16 +1,16 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-  Support for IUnknown::QueryInterface implementation.
-*/
 #pragma once
-#include <debugAssertApi/debugAssertApi.h>
-#include <guid/msoGuid.h>
-#include <crash/verifyElseCrash.h>
-#include <comUtil/IUnknownShim.h>
+#ifndef MSO_OBJECT_QUERYCAST_H
+#define MSO_OBJECT_QUERYCAST_H
+
+#include <unknwn.h>
 #include <type_traits>
 #include <utility>
+#include "crash/verifyElseCrash.h"
+#include "debugAssertApi/debugAssertApi.h"
+#include "guid/msoGuid.h"
 
 /**
 To implement IUnknown::QueryInterface use the QueryCastTraits to implement sequence of probing for a requested
@@ -302,7 +302,7 @@ public:
 MSO_STRUCT_GUID(QueryCastBridge, "A39D5FC8-0641-4EEE-8C97-DDEF114D487D")
 struct QueryCastBridge
 {
-  // MSO_NO_COPY_CTOR_AND_ASSIGNMENT(QueryCastBridge);
+  // DECLARE_COPYCONSTR_AND_ASSIGNMENT(QueryCastBridge);
   void* Object; // It must be a first field. In that case **ppvObject in QueryInterface will have the same semantic as
                 // with the normal QueryInterface calls.
   const GUID& ObjectId;
@@ -387,3 +387,5 @@ TTarget query_cast(TSource&& source) noexcept
 }
 
 #pragma warning(pop)
+
+#endif // MSO_OBJECT_QUERYCAST_H

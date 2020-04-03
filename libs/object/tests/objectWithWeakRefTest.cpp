@@ -1,15 +1,11 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/****************************************************************************
-Unit tests for classes in the ObjectRefCount.h
-****************************************************************************/
-
-#include "precomp.h"
-#include <object/refCountedObject.h>
-#include <test/skipSEHUT.h>
+#include "motifCpp/testCheck.h"
+#include "object/refCountedObject.h"
 #include "testAllocators.h"
-#include <motifCpp/testCheck.h>
+
+namespace Mso::UnitTests {
 
 class ObjectWithWeakRefSample1 final
     : public Mso::RefCountedObjectNoVTable<Mso::RefCountStrategy::WeakRef, ObjectWithWeakRefSample1>
@@ -272,7 +268,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
     bool deleted = false;
     {
       Mso::CntPtr<ObjectWithWeakRefSample1> obj1 = Mso::Make<ObjectWithWeakRefSample1>(5, /*ref*/ deleted);
-      Mso::CntPtr<Mso::ObjectWeakRef> weakRef = &obj1->GetWeakRef();
+      Mso::CntPtr<Mso::ObjectWeakRef> weakRef{&obj1->GetWeakRef()};
       {
         Debug(TestAssert::AreEqual(2u, weakRef->RefCount()));
         Debug(TestAssert::AreEqual(1u, weakRef->WeakRefCount()));
@@ -295,7 +291,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
     Mso::WeakPtr<ObjectWithWeakRefSample1> weakPtr;
     {
       Mso::CntPtr<ObjectWithWeakRefSample1> obj1 = Mso::Make<ObjectWithWeakRefSample1>(5, /*ref*/ deleted);
-      Mso::CntPtr<Mso::ObjectWeakRef> weakRef = &obj1->GetWeakRef();
+      Mso::CntPtr<Mso::ObjectWeakRef> weakRef{&obj1->GetWeakRef()};
       weakPtr = obj1;
       {
         Debug(TestAssert::AreEqual(2u, weakRef->RefCount()));
@@ -326,10 +322,10 @@ TEST_CLASS (ObjectWithWeakRefTest)
     TestAssert::IsTrue(deleted);
   }
 
-  TEST_METHOD(ObjectWithWeakRef_Make_CannotAllocate)
+  TESTMETHOD_REQUIRES_SEH(ObjectWithWeakRef_Make_CannotAllocate)
   {
     Mso::CntPtr<ObjectWithWeakRefSample3CannotAllocate> obj;
-    TestAssert::ExpectVEC([&]() { obj = Mso::Make<ObjectWithWeakRefSample3CannotAllocate>(); });
+    TestAssert::ExpectVEC([&]() noexcept { obj = Mso::Make<ObjectWithWeakRefSample3CannotAllocate>(); });
 
     TestAssert::IsTrue(obj.IsEmpty());
   }
@@ -360,6 +356,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
   {
     bool deleted = false;
     {
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       auto obj = Mso::MakeElseNull<ObjectWithWeakRefSample1>(5, /*ref*/ deleted);
       Debug(TestAssert::AreEqual(1u, obj->RefCount()));
       TestAssert::AreEqual(5, obj->Value());
@@ -372,6 +369,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
   {
     bool deleted = false;
     {
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       auto obj = Mso::MakeElseNull<ObjectWithWeakRefSample2Init>(5, /*ref*/ deleted);
       Debug(TestAssert::AreEqual(1u, obj->RefCount()));
       TestAssert::AreEqual(5, obj->Value());
@@ -382,6 +380,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
 
   TEST_METHOD(ObjectWithWeakRef_MakeElseNull_CannotAllocate)
   {
+    OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
     auto obj = Mso::MakeElseNull<ObjectWithWeakRefSample3CannotAllocate>();
     TestAssert::IsNull(obj.Get());
   }
@@ -390,16 +389,20 @@ TEST_CLASS (ObjectWithWeakRefTest)
   {
     Mso::CntPtr<ObjectWithWeakRefSample4Throw> obj;
     bool deleted = false;
-    TestAssert::ExpectException<std::runtime_error>(
-        [&]() { obj = Mso::MakeElseNull<ObjectWithWeakRefSample4Throw>(/*ref*/ deleted); });
+    TestAssert::ExpectException<std::runtime_error>([&]() {
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
+      obj = Mso::MakeElseNull<ObjectWithWeakRefSample4Throw>(/*ref*/ deleted);
+    });
   }
 
   TEST_METHOD(ObjectWithWeakRef_MakeElseNull_InitializeThisThrows)
   {
     Mso::CntPtr<ObjectWithWeakRefSample5InitThrow> obj;
     bool deleted = false;
-    TestAssert::ExpectException<std::runtime_error>(
-        [&]() { obj = Mso::MakeElseNull<ObjectWithWeakRefSample5InitThrow>(/*ref*/ deleted); });
+    TestAssert::ExpectException<std::runtime_error>([&]() {
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
+      obj = Mso::MakeElseNull<ObjectWithWeakRefSample5InitThrow>(/*ref*/ deleted);
+    });
 
     TestAssert::IsTrue(deleted); // If InitializeThis throws then we must call destructor.
     TestAssert::IsTrue(obj.IsEmpty());
@@ -445,10 +448,10 @@ TEST_CLASS (ObjectWithWeakRefTest)
     AssertAllocState(state);
   }
 
-  TEST_METHOD(ObjectWithWeakRef_MakeAlloc_CannotAllocate)
+  TESTMETHOD_REQUIRES_SEH(ObjectWithWeakRef_MakeAlloc_CannotAllocate)
   {
     Mso::CntPtr<ObjectWithWeakRefSample31CannotAllocate> obj;
-    TestAssert::ExpectVEC([&]() {
+    TestAssert::ExpectVEC([&]() noexcept {
       AllocTestState state = {};
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
       obj = Mso::MakeAlloc<ObjectWithWeakRefSample31CannotAllocate>(&memHeap);
@@ -488,6 +491,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
     AllocTestState state = {};
     {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       auto obj = Mso::MakeAllocElseNull<ObjectWithWeakRefSample11>(&memHeap, 5, /*ref*/ state.Deleted);
       Debug(TestAssert::AreEqual(1u, obj->RefCount()));
       TestAssert::AreEqual(5, obj->Value());
@@ -501,6 +505,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
     AllocTestState state = {};
     {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       auto obj = Mso::MakeAllocElseNull<ObjectWithWeakRefSample21Init>(&memHeap, 5, /*ref*/ state.Deleted);
       Debug(TestAssert::AreEqual(1u, obj->RefCount()));
       TestAssert::AreEqual(5, obj->Value());
@@ -513,6 +518,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
   {
     AllocTestState state = {};
     MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
+    OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
     auto obj = Mso::MakeAllocElseNull<ObjectWithWeakRefSample31CannotAllocate>(&memHeap);
     TestAssert::IsNull(obj.Get());
   }
@@ -523,6 +529,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
     AllocTestState state = {};
     TestAssert::ExpectException<std::runtime_error>([&]() {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       obj = Mso::MakeAllocElseNull<ObjectWithWeakRefSample41Throw>(&memHeap, /*ref*/ state.Deleted);
     });
 
@@ -536,6 +543,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
     AllocTestState state = {};
     TestAssert::ExpectException<std::runtime_error>([&]() {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       obj = Mso::MakeAllocElseNull<ObjectWithWeakRefSample51InitThrow>(&memHeap, /*ref*/ state.Deleted);
     });
 
@@ -543,3 +551,5 @@ TEST_CLASS (ObjectWithWeakRefTest)
     TestAssert::IsTrue(obj.IsEmpty());
   }
 };
+
+} // namespace Mso::UnitTests

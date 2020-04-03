@@ -1,21 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-  Support for reference counting.
-*/
-
 #pragma once
+#ifndef MSO_OBJECT_MAKE_H
+#define MSO_OBJECT_MAKE_H
 
-#ifdef __cplusplus
-
-#include <smartPtr/cntPtr.h>
-#include <compilerAdapters/cppMacrosDebug.h>
-#include <memoryApi/memoryApi.h>
-
-#pragma pack(push, _CRT_PACKING)
-#pragma push_macro("new")
-#undef new
+#include "compilerAdapters/cppMacrosDebug.h"
+#include "memoryApi/memoryApi.h"
+#include "smartPtr/cntPtr.h"
 
 namespace Mso {
 
@@ -38,7 +30,7 @@ inline Mso::CntPtr<TResult> Make(TArgs&&... args) noexcept(T::MakePolicy::IsNoEx
 
   TResult* result = memoryGuard.Obj;
   memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
-  return Mso::CntPtr<TResult>(result, Mso::AttachTag);
+  return Mso::CntPtr<TResult>{result, AttachTag};
 }
 
 /**
@@ -63,7 +55,7 @@ inline Mso::CntPtr<TResult> MakeAlloc(TAllocArg&& allocArg, TArgs&&... args) noe
 
   TResult* result = memoryGuard.Obj;
   memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
-  return Mso::CntPtr<TResult>(result, Mso::AttachTag);
+  return Mso::CntPtr<TResult>{result, AttachTag};
 }
 
 /**
@@ -87,12 +79,13 @@ inline Mso::CntPtr<TResult> MakeElseNull(TArgs&&... args) noexcept(T::MakePolicy
     T::MakePolicy::template Make<T>(memoryGuard, std::forward<TArgs>(args)...);
     Debug(T::RefCountPolicy::ValidateObject(memoryGuard));
 
-    result = Mso::CntPtr<TResult>(memoryGuard.Obj, Mso::AttachTag);
+    result = Mso::CntPtr<TResult>{memoryGuard.Obj, AttachTag};
     memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
   }
 
   return result;
 }
+
 /**
   Mso::MakeAllocElseNull is an Mso::MakeElseNull method for types T that use allocators accepting an argument.
   The allocator argument allows to implement stateful allocators.
@@ -116,7 +109,7 @@ inline Mso::CntPtr<TResult> MakeAllocElseNull(TAllocArg&& allocArg, TArgs&&... a
     T::MakePolicy::template Make<T>(memoryGuard, std::forward<TArgs>(args)...);
     Debug(T::RefCountPolicy::ValidateObject(memoryGuard));
 
-    result = Mso::CntPtr<TResult>(memoryGuard.Obj, Mso::AttachTag);
+    result = Mso::CntPtr<TResult>{memoryGuard.Obj, Mso::AttachTag};
     memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
   }
 
@@ -211,7 +204,4 @@ struct MakeAllocator
 
 } // namespace Mso
 
-#pragma pop_macro("new")
-#pragma pack(pop)
-
-#endif // __cplusplus
+#endif // MSO_OBJECT_MAKE_H

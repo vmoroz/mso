@@ -95,8 +95,7 @@ inline void AreEqualAt(
   GTEST_ASSERT_AT_(
       file,
       line,
-      ::testing::internal::EqHelper::Compare(
-          expectedExpr, actualExpr, expected, actual),
+      ::testing::internal::EqHelper::Compare(expectedExpr, actualExpr, expected, actual),
       GTEST_FATAL_FAILURE_AT_)
       << FormatCustomMsg(line, message);
 }

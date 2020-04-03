@@ -11,6 +11,7 @@ Unit tests for classes in the ObjectSwarm.h
 #include <test/skipSEHUT.h>
 #include "testAllocators.h"
 #include <motifCpp/testCheck.h>
+#include <comUtil/qiCast.h>
 
 //#define TEST_BAD_INHERITANCE1 // Uncomment to confirm VEC, but observe a memory leak. We cannot safely destroy this
 // class.

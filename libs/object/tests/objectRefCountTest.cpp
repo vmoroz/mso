@@ -1,14 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/****************************************************************************
-Unit tests for classes in the ObjectRefCount.h
-****************************************************************************/
-
-#include "precomp.h"
-//#include <core/memoryNew_Throw.h> // It must be here to define operator new which helps memory leak detection.
-#include <object/refCountedObject.h>
-#include <test/skipSEHUT.h>
+#include "object/refCountedObject.h"
 #include "testAllocators.h"
 #include <motifCpp/testCheck.h>
 
@@ -276,7 +269,7 @@ TEST_CLASS (ObjectRefCountTest)
     TestAssert::IsTrue(deleted);
   }
 
-  TEST_METHOD(ObjectRefCount_Make_CannotAllocate)
+  TESTMETHOD_REQUIRES_SEH(ObjectRefCount_Make_CannotAllocate)
   {
     Mso::CntPtr<ObjectRefCountSample3CannotAllocate> obj;
     TestAssert::ExpectVEC([&]() noexcept { obj = Mso::Make<ObjectRefCountSample3CannotAllocate>(); });
@@ -310,6 +303,7 @@ TEST_CLASS (ObjectRefCountTest)
   {
     bool deleted = false;
     {
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       auto obj = Mso::MakeElseNull<ObjectRefCountSample1>(5, /*ref*/ deleted);
       Debug(TestAssert::AreEqual(1u, obj->RefCount()));
       TestAssert::AreEqual(5, obj->Value());
@@ -322,6 +316,7 @@ TEST_CLASS (ObjectRefCountTest)
   {
     bool deleted = false;
     {
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       auto obj = Mso::MakeElseNull<ObjectRefCountSample2Init>(5, /*ref*/ deleted);
       Debug(TestAssert::AreEqual(1u, obj->RefCount()));
       TestAssert::AreEqual(5, obj->Value());
@@ -332,6 +327,7 @@ TEST_CLASS (ObjectRefCountTest)
 
   TEST_METHOD(ObjectRefCount_MakeElseNull_CannotAllocate)
   {
+    OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
     auto obj = Mso::MakeElseNull<ObjectRefCountSample3CannotAllocate>();
     TestAssert::IsNull(obj.Get());
   }
@@ -340,8 +336,10 @@ TEST_CLASS (ObjectRefCountTest)
   {
     Mso::CntPtr<ObjectRefCountSample4Throw> obj;
     bool deleted = false;
-    TestAssert::ExpectException<std::runtime_error>(
-        [&]() { obj = Mso::MakeElseNull<ObjectRefCountSample4Throw>(/*ref*/ deleted); });
+    TestAssert::ExpectException<std::runtime_error>([&]() {
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
+      obj = Mso::MakeElseNull<ObjectRefCountSample4Throw>(/*ref*/ deleted);
+    });
 
     TestAssert::IsFalse(deleted); // Destructor is not called if constructor throws.
     TestAssert::IsTrue(obj.IsEmpty());
@@ -351,8 +349,10 @@ TEST_CLASS (ObjectRefCountTest)
   {
     Mso::CntPtr<ObjectRefCountSample5InitThrow> obj;
     bool deleted = false;
-    TestAssert::ExpectException<std::runtime_error>(
-        [&]() { obj = Mso::MakeElseNull<ObjectRefCountSample5InitThrow>(/*ref*/ deleted); });
+    TestAssert::ExpectException<std::runtime_error>([&]() {
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
+      obj = Mso::MakeElseNull<ObjectRefCountSample5InitThrow>(/*ref*/ deleted);
+    });
 
     TestAssert::IsTrue(deleted); // If InitializeThis throws then we must call destructor.
     TestAssert::IsTrue(obj.IsEmpty());
@@ -398,7 +398,7 @@ TEST_CLASS (ObjectRefCountTest)
     AssertAllocState(state);
   }
 
-  TEST_METHOD(ObjectRefCount_MakeAlloc_CannotAllocate)
+  TESTMETHOD_REQUIRES_SEH(ObjectRefCount_MakeAlloc_CannotAllocate)
   {
     Mso::CntPtr<ObjectRefCountSample31CannotAllocate> obj;
     TestAssert::ExpectVEC([&]() noexcept {
@@ -441,6 +441,7 @@ TEST_CLASS (ObjectRefCountTest)
     AllocTestState state = {};
     {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       auto obj = Mso::MakeAllocElseNull<ObjectRefCountSample11>(&memHeap, 5, /*ref*/ state.Deleted);
       Debug(TestAssert::AreEqual(1u, obj->RefCount()));
       TestAssert::AreEqual(5, obj->Value());
@@ -454,6 +455,7 @@ TEST_CLASS (ObjectRefCountTest)
     AllocTestState state = {};
     {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       auto obj = Mso::MakeAllocElseNull<ObjectRefCountSample21Init>(&memHeap, 5, /*ref*/ state.Deleted);
       Debug(TestAssert::AreEqual(1u, obj->RefCount()));
       TestAssert::AreEqual(5, obj->Value());
@@ -466,6 +468,7 @@ TEST_CLASS (ObjectRefCountTest)
   {
     AllocTestState state = {};
     MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
+    OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
     auto obj = Mso::MakeAllocElseNull<ObjectRefCountSample31CannotAllocate>(&memHeap);
     TestAssert::IsNull(obj.Get());
   }
@@ -476,6 +479,7 @@ TEST_CLASS (ObjectRefCountTest)
     AllocTestState state = {};
     TestAssert::ExpectException<std::runtime_error>([&]() {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       obj = Mso::MakeAllocElseNull<ObjectRefCountSample41Throw>(&memHeap, /*ref*/ state.Deleted);
     });
 
@@ -489,6 +493,7 @@ TEST_CLASS (ObjectRefCountTest)
     AllocTestState state = {};
     TestAssert::ExpectException<std::runtime_error>([&]() {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
+      OACR_WARNING_SUPPRESS(DEPRECATED_FUNCTION, "Exemption for deprecated function when CG is off.");
       obj = Mso::MakeAllocElseNull<ObjectRefCountSample51InitThrow>(&memHeap, /*ref*/ state.Deleted);
     });
 

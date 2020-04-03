@@ -1,17 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/****************************************************************************
-Unit tests for classes in the msoRefCountedObject.h
-****************************************************************************/
-
-#include "precomp.h"
+#include "object/refCountedObject.h"
 #include <future>
-#include <object/refCountedObject.h>
-//#include <core/memoryNew_Throw.h>
-#include <eventWaitHandle/eventWaitHandle.h>
-#include <test/skipSEHUT.h>
-#include <motifCpp/testCheck.h>
+#include "eventWaitHandle/eventWaitHandle.h"
+#include "motifCpp/testCheck.h"
 
 //#define TEST_BAD_INHERITANCE1 // Uncomment to see compilation error
 //#define TEST_BAD_INHERITANCE2 // Uncomment to confirm VEC, but observe a memory leak. We cannot safely destroy this
@@ -368,6 +361,7 @@ struct AsyncDeleter
     {
       // Ideally we want to show here how to use dispatch queues, but we cannot add DispatchQueue liblet dependency
       // here.
+#pragma warning(suppress : 4834) // discarding return value of function with 'nodiscard' attribute
       std::async(std::launch::async, [obj]() noexcept { TObject::RefCountPolicy::template Delete(obj); });
     }
     catch (...)
@@ -407,8 +401,8 @@ protected:
   }
 
 private:
-  RefCountSample101(const Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
-      : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
+  RefCountSample101(Mso::ManualResetEvent const& deleted, bool& isAsyncDestroy) noexcept
+      : m_deleted{deleted}, m_isAsyncDestroy{isAsyncDestroy}
   {
   }
 
@@ -441,7 +435,7 @@ protected:
   }
 
 private:
-  RefCountSample102(const Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
+  RefCountSample102(Mso::ManualResetEvent const& deleted, bool& isAsyncDestroy) noexcept
       : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
   {
   }
@@ -477,7 +471,7 @@ protected:
   }
 
 private:
-  RefCountSample103(const Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
+  RefCountSample103(Mso::ManualResetEvent const& deleted, bool& isAsyncDestroy) noexcept
       : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
   {
   }
@@ -513,7 +507,7 @@ protected:
   }
 
 private:
-  RefCountSample104(const Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
+  RefCountSample104(Mso::ManualResetEvent const& deleted, bool& isAsyncDestroy) noexcept
       : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
   {
   }
@@ -541,7 +535,7 @@ class BadRefCountedObject1 final
   friend MakePolicy; // To allow constructor to be private or protected.
 
 public:
-  MSO_NO_COPY_CTOR_AND_ASSIGNMENT(BadRefCountedObject1);
+  DECLARE_COPYCONSTR_AND_ASSIGNMENT(BadRefCountedObject1);
 
   virtual int GetValue1() override
   {
@@ -580,11 +574,11 @@ TEST_CLASS (RefCountedObjectTest)
     {
       Mso::CntPtr<RefCountSample1> refCounted = Mso::Make<RefCountSample1>(/*ref*/ deleted);
       TestAssert::AreEqual(1, refCounted->GetValue1());
-      Debug(TestAssert::AreEqual(1, refCounted->RefCount()));
+      Debug(TestAssert::AreEqual(1u, refCounted->RefCount()));
 
       Mso::CntPtr<IRefBaseSample1> base1 = refCounted;
       TestAssert::AreEqual(1, base1->GetValue1());
-      Debug(TestAssert::AreEqual(2, refCounted->RefCount()));
+      Debug(TestAssert::AreEqual(2u, refCounted->RefCount()));
     }
     TestAssert::IsTrue(deleted);
   }
@@ -595,15 +589,15 @@ TEST_CLASS (RefCountedObjectTest)
     {
       Mso::CntPtr<RefCountSample2> refCounted = Mso::Make<RefCountSample2>(/*ref*/ deleted);
       TestAssert::AreEqual(1, refCounted->GetValue1());
-      Debug(TestAssert::AreEqual(1, refCounted->RefCount()));
+      Debug(TestAssert::AreEqual(1u, refCounted->RefCount()));
 
       Mso::CntPtr<IRefBaseSample1> base1 = refCounted;
       TestAssert::AreEqual(1, base1->GetValue1());
-      Debug(TestAssert::AreEqual(2, refCounted->RefCount()));
+      Debug(TestAssert::AreEqual(2u, refCounted->RefCount()));
 
       Mso::CntPtr<IRefBaseSample2> base2 = refCounted;
       TestAssert::AreEqual(2, base2->GetValue2());
-      Debug(TestAssert::AreEqual(3, refCounted->RefCount()));
+      Debug(TestAssert::AreEqual(3u, refCounted->RefCount()));
     }
     TestAssert::IsTrue(deleted);
   }
@@ -726,12 +720,12 @@ TEST_CLASS (RefCountedObjectTest)
 
     {
       Mso::CntPtr<RefCountSample101> obj1 = Mso::Make<RefCountSample101>(/*ref*/ deleted, /*ref*/ isAsyncDestroy);
-      Mso::CntPtr<IRefBaseSample1> base1 = obj1.Get();
+      Mso::CntPtr<IRefBaseSample1> base1{obj1};
       TestAssert::AreEqual(1, base1->GetValue1());
     }
 
     // Wait for deletion to complete
-    deleted.Wait();
+    TestAssert::IsTrue(deleted.Wait());
     TestAssert::IsTrue(isAsyncDestroy);
   }
 
@@ -741,13 +735,13 @@ TEST_CLASS (RefCountedObjectTest)
     bool isAsyncDestroy = false;
 
     {
-      Mso::CntPtr<RefCountSample102> obj1 = Mso::Make<RefCountSample102>(/*ref*/ deleted, /*ref*/ isAsyncDestroy);
-      Mso::CntPtr<IRefBaseSample1> base1 = obj1.Get();
+      Mso::CntPtr<RefCountSample102> obj1{Mso::Make<RefCountSample102>(/*ref*/ deleted, /*ref*/ isAsyncDestroy)};
+      Mso::CntPtr<IRefBaseSample1> base1{obj1};
       TestAssert::AreEqual(1, base1->GetValue1());
     }
 
     // Wait for deletion to complete
-    deleted.Wait();
+    TestAssert::IsTrue(deleted.Wait());
     TestAssert::IsTrue(isAsyncDestroy);
   }
 
@@ -762,7 +756,7 @@ TEST_CLASS (RefCountedObjectTest)
     }
 
     // Wait for deletion to complete
-    deleted.Wait();
+    TestAssert::IsTrue(deleted.Wait());
     TestAssert::IsTrue(isAsyncDestroy);
   }
 
@@ -777,7 +771,7 @@ TEST_CLASS (RefCountedObjectTest)
     }
 
     // Wait for deletion to complete
-    deleted.Wait();
+    TestAssert::IsTrue(deleted.Wait());
     TestAssert::IsTrue(isAsyncDestroy);
   }
 
@@ -787,10 +781,10 @@ TEST_CLASS (RefCountedObjectTest)
     {
       Mso::CntPtr<RefCountSample7> refCounted1 = Mso::Make<RefCountSample7>(/*ref*/ deleted);
       TestAssert::AreEqual(1, refCounted1->GetValue1());
-      Debug(TestAssert::AreEqual(1, refCounted1->RefCount()));
+      Debug(TestAssert::AreEqual(1u, refCounted1->RefCount()));
       Mso::CntPtr<RefCountSample7> refCounted2(refCounted1);
       UNREFERENCED_OACR(refCounted2);
-      Debug(TestAssert::AreEqual(2, refCounted1->RefCount()));
+      Debug(TestAssert::AreEqual(2u, refCounted1->RefCount()));
     }
     TestAssert::IsTrue(deleted);
   }
@@ -822,20 +816,20 @@ TEST_CLASS (RefCountedObjectTest)
   {
     bool deleted = false;
     {
-      Mso::CntPtr<RefCountSample91> refCounted1 = Mso::Make<RefCountSample91>(/*ref*/ deleted);
-      Mso::CntPtr<IRefBaseSample1> base1 = refCounted1.Get();
+      Mso::CntPtr<RefCountSample91> refCounted1{Mso::Make<RefCountSample91>(/*ref*/ deleted)};
+      Mso::CntPtr<IRefBaseSample1> base1{refCounted1};
       TestAssert::AreEqual(0, base1->GetValue1());
 
-      Mso::CntPtr<RefCountSample91> refCounted2 = Mso::Make<RefCountSample91>(/*ref*/ deleted, 3);
-      Mso::CntPtr<IRefBaseSample1> base2 = refCounted2.Get();
+      Mso::CntPtr<RefCountSample91> refCounted2{Mso::Make<RefCountSample91>(/*ref*/ deleted, 3)};
+      Mso::CntPtr<IRefBaseSample1> base2{refCounted2};
       TestAssert::AreEqual(3, base2->GetValue1());
 
-      Mso::CntPtr<RefCountSample91> refCounted3 = Mso::Make<RefCountSample91>(/*ref*/ deleted, 3, 5);
-      Mso::CntPtr<IRefBaseSample1> base3 = refCounted3.Get();
+      Mso::CntPtr<RefCountSample91> refCounted3{Mso::Make<RefCountSample91>(/*ref*/ deleted, 3, 5)};
+      Mso::CntPtr<IRefBaseSample1> base3{refCounted3};
       TestAssert::AreEqual(8, base3->GetValue1());
 
-      Mso::CntPtr<RefCountSample91> refCounted4 = Mso::Make<RefCountSample91>(/*ref*/ deleted, 3, 5, 11);
-      Mso::CntPtr<IRefBaseSample1> base4 = refCounted4.Get();
+      Mso::CntPtr<RefCountSample91> refCounted4{Mso::Make<RefCountSample91>(/*ref*/ deleted, 3, 5, 11)};
+      Mso::CntPtr<IRefBaseSample1> base4{refCounted4};
       TestAssert::AreEqual(19, base4->GetValue1());
     }
     TestAssert::IsTrue(deleted);
@@ -845,20 +839,20 @@ TEST_CLASS (RefCountedObjectTest)
   {
     bool deleted = false;
     {
-      Mso::CntPtr<RefCountSample92> refCounted1 = Mso::Make<RefCountSample92>(/*ref*/ deleted);
-      Mso::CntPtr<IRefBaseSample1> base1 = refCounted1.Get();
+      Mso::CntPtr<RefCountSample92> refCounted1{Mso::Make<RefCountSample92>(/*ref*/ deleted)};
+      Mso::CntPtr<IRefBaseSample1> base1{refCounted1};
       TestAssert::AreEqual(0, base1->GetValue1());
 
-      Mso::CntPtr<RefCountSample92> refCounted2 = Mso::Make<RefCountSample92>(/*ref*/ deleted, 3);
-      Mso::CntPtr<IRefBaseSample1> base2 = refCounted2.Get();
+      Mso::CntPtr<RefCountSample92> refCounted2{Mso::Make<RefCountSample92>(/*ref*/ deleted, 3)};
+      Mso::CntPtr<IRefBaseSample1> base2{refCounted2};
       TestAssert::AreEqual(3, base2->GetValue1());
 
-      Mso::CntPtr<RefCountSample92> refCounted3 = Mso::Make<RefCountSample92>(/*ref*/ deleted, 3, 5);
-      Mso::CntPtr<IRefBaseSample1> base3 = refCounted3.Get();
+      Mso::CntPtr<RefCountSample92> refCounted3{Mso::Make<RefCountSample92>(/*ref*/ deleted, 3, 5)};
+      Mso::CntPtr<IRefBaseSample1> base3{refCounted3};
       TestAssert::AreEqual(8, base3->GetValue1());
 
-      Mso::CntPtr<RefCountSample92> refCounted4 = Mso::Make<RefCountSample92>(/*ref*/ deleted, 3, 5, 11);
-      Mso::CntPtr<IRefBaseSample1> base4 = refCounted4.Get();
+      Mso::CntPtr<RefCountSample92> refCounted4{Mso::Make<RefCountSample92>(/*ref*/ deleted, 3, 5, 11)};
+      Mso::CntPtr<IRefBaseSample1> base4{refCounted4};
       TestAssert::AreEqual(19, base4->GetValue1());
     }
     TestAssert::IsTrue(deleted);
@@ -868,20 +862,20 @@ TEST_CLASS (RefCountedObjectTest)
   {
     bool deleted = false;
     {
-      RefCountSample93 refCounted1(/*ref*/ deleted);
-      Mso::CntPtr<IRefBaseSample1> base1 = &refCounted1;
+      RefCountSample93 refCounted1{/*ref*/ deleted};
+      Mso::CntPtr<IRefBaseSample1> base1{&refCounted1};
       TestAssert::AreEqual(0, base1->GetValue1());
 
-      RefCountSample93 refCounted2(/*ref*/ deleted, 3);
-      Mso::CntPtr<IRefBaseSample1> base2 = &refCounted2;
+      RefCountSample93 refCounted2{/*ref*/ deleted, 3};
+      Mso::CntPtr<IRefBaseSample1> base2{&refCounted2};
       TestAssert::AreEqual(3, base2->GetValue1());
 
       RefCountSample93 refCounted3(/*ref*/ deleted, 3, 5);
-      Mso::CntPtr<IRefBaseSample1> base3 = &refCounted3;
+      Mso::CntPtr<IRefBaseSample1> base3{&refCounted3};
       TestAssert::AreEqual(8, base3->GetValue1());
 
       RefCountSample93 refCounted4(/*ref*/ deleted, 3, 5, 11);
-      Mso::CntPtr<IRefBaseSample1> base4 = &refCounted4;
+      Mso::CntPtr<IRefBaseSample1> base4{&refCounted4};
       TestAssert::AreEqual(19, base4->GetValue1());
     }
     TestAssert::IsTrue(deleted);

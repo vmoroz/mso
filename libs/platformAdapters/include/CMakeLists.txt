@@ -3,5 +3,6 @@
 
 liblet_includes(
   INCLUDES_WIN
+    platformAdapters/IUnknownShim.h 
     platformAdapters/windowsFirst.h
 )

@@ -6,6 +6,5 @@ liblet(guid
     Mso::compilerAdapters
     Mso::debugAssertApi
     Mso::oacr
-    Mso::platform_posix
     Mso::tagUtils
 )

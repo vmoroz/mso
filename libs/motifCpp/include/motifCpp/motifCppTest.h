@@ -11,7 +11,7 @@
 #include <functional>
 #include <string>
 #include <type_traits>
-#include "comUtil/IUnknownShim.h"
+#include "platformAdapters/IUnknownShim.h"
 #include "motifCpp/gTestAdapter.h"
 #include "oacr/oacr.h"
 

@@ -6,7 +6,7 @@
 #define MSO_COMUTIL_QICASTCORE_H
 
 #include <guiddef.h>
-#include "comUtil/IUnknownShim.h"
+#include "platformAdapters/IUnknownShim.h"
 #include "smartPtr/cntPtr.h"
 
 //============================================================================

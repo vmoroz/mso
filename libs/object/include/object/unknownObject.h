@@ -5,7 +5,7 @@
 #ifndef MSO_OBJECT_UNKNOWNOBJECT_H
 #define MSO_OBJECT_UNKNOWNOBJECT_H
 
-#include "comUtil/IUnknownShim.h"
+#include "platformAdapters/IUnknownShim.h"
 #include "compilerAdapters/compilerWarnings.h"
 #include "object/objectRefCount.h"
 #include "object/objectWithWeakRef.h"

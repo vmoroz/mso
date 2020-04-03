@@ -56,8 +56,7 @@ public: // IEventWaitHandle
   {
     WaitTimePoint waitTimePoint{};
     waitTimePoint.IsInfinite = true;
-    VerifyElseCrashSzTag(WaitUntil(waitTimePoint), "Must not timeout", 0x026e348b /* tag_c19sl */);
-    return true;
+    return WaitUntil(waitTimePoint);
   }
 
   bool WaitFor(const std::chrono::milliseconds& waitDuration) const noexcept override

@@ -3,6 +3,6 @@
 
 liblet_includes(
   INCLUDES
-    oacr.h
-    oacrsal.h
+    oacr/oacr.h
+    oacr/oacrsal.h
 )

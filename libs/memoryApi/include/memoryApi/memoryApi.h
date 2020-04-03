@@ -14,7 +14,7 @@ See MsoMemory.h for information about operator new.
 
 #include <compilerAdapters/cppMacrosDebug.h>
 #include <debugAssertApi/debugAssertApi.h>
-#include <oacr.h>
+#include <oacr/oacr.h>
 #include <compilerAdapters/functionDecorations.h>
 #include <core/smartPointerBase.h>
 #include <platformAdapters/windowsFirst.h>

@@ -81,7 +81,7 @@ Suppressed warnings in Assert macros:
   __pragma(warning(suppress : 25011)) __pragma(warning(pop))
 
 // NOTE: OACR_ASSUME uses the Assert macro, so oacr.h must be included after Assert is defined
-#include <oacr.h>
+#include <oacr/oacr.h>
 
 /**
 Return Address

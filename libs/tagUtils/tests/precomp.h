@@ -6,6 +6,6 @@
 #include <stdint.h>
 
 #include <CppUnitTest.h>
-#include <oacr.h>
+#include <oacr/oacr.h>
 
 using TestAssert = Microsoft::VisualStudio::CppUnitTestFramework::Assert;

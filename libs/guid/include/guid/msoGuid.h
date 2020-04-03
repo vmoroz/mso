@@ -8,7 +8,7 @@
 #ifndef LIBLET_PLATFORMADAPTERS_MSOGUID_H
 #define LIBLET_PLATFORMADAPTERS_MSOGUID_H
 
-#include <oacr.h>
+#include <oacr/oacr.h>
 #include <guiddef.h>
 
 #ifdef __cplusplus

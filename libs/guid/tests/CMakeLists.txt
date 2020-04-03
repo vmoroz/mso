@@ -3,7 +3,5 @@
 
 liblet_tests(
   SOURCES
-    functorRefTest.cpp
-    functorTest.cpp
-    functorTest.h
+    guidTest.cpp
 )

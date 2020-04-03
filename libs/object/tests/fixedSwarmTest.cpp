@@ -5,7 +5,6 @@
 Unit tests for classes in the ObjectSwarm.h
 ****************************************************************************/
 
-#include "precomp.h"
 #include <object/fixedSwarm.h>
 #include <object/unknownObject.h>
 #include <object/refCountedObject.h>

@@ -1,16 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/****************************************************************************
-Unit tests for classes in the Functor.h
-****************************************************************************/
-
-#include "precomp.h"
+#include "functional/functorRef.h"
 #include <functional>
-#include <functional/functor.h>
-#include <functional/functorRef.h>
-#include "test/skipSEHUT.h"
-#include <test/testCheck.h>
+#include "functional/functor.h"
+#include "motifCpp/testCheck.h"
 
 // use the anonymous namespace to avoid potential conflict with MyParam def in FunctorRef.cpp
 namespace {

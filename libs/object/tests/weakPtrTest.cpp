@@ -9,7 +9,7 @@ Unit tests for classes in the ObjectWeakPtr.h
 #include <object/weakPtr.h>
 #include <object/refCountedObject.h>
 #include <test/skipSEHUT.h>
-#include <test/testCheck.h>
+#include <motifCpp/testCheck.h>
 
 struct DECLSPEC_NOVTABLE IWeakPtrSample1 : public Mso::IRefCounted
 {

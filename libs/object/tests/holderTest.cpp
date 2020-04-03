@@ -8,7 +8,7 @@
 
 ****************************************************************************/
 #include "precomp.h"
-#include <test/testCheck.h>
+#include <motifCpp/testCheck.h>
 #include <compilerAdapters/functionDecorations.h>
 #include <smartPtr/smartPointerBase.h>
 #include <smartPtr/smartPointers.h>

@@ -10,7 +10,7 @@ Unit tests for the CntPtr smart pointer
 #include <functional>
 #include <object/refCounted.h>
 #include <object/unknownObject.h>
-#include <test/testCheck.h>
+#include <motifCpp/testCheck.h>
 
 MSO_STRUCT_GUID(IUnkSimple, "9FEAB33F-E5D0-4A52-9216-6BA8BA9990A4")
 struct IUnkSimple : public IUnknown

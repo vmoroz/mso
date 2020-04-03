@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-liblet(cppType
+liblet(typeTraits
   DEPENDS
     Mso::compilerAdapters
 )

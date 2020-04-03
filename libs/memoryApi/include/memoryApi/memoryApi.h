@@ -22,7 +22,7 @@ See MsoMemory.h for information about operator new.
 #include "debugAssertApi/debugAssertApi.h"
 #include "memoryApi/memoryLeakScope.h"
 #include "oacr/oacr.h"
-#include "object/smartPointerBase.h"
+#include "smartPtr/smartPointerBase.h"
 
 namespace Mso { namespace Memory {
 namespace Details {

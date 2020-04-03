@@ -4,7 +4,8 @@
 /**
   CRT based implementation for Mso::Memory
 */
-#include <core/memoryApi.h>
+#include <platformAdapters/windowsFirst.h>
+#include <memoryApi/memoryApi.h>
 #include <cstdlib>
 #include <memory>
 
@@ -19,7 +20,7 @@ __declspec(noreturn) void ThrowOOM()
 
 namespace Mso { namespace Memory {
 
-_Use_decl_annotations_ void* AllocateEx(size_t cb, DWORD /*allocFlags*/) noexcept
+_Use_decl_annotations_ void* AllocateEx(size_t cb, uint32_t /*allocFlags*/) noexcept
 {
   return ::malloc(cb);
 }
@@ -61,9 +62,9 @@ _Use_decl_annotations_ void Free(void* pv) noexcept
 }
 
 #ifdef DEBUG
-void RegisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept {}
+//void RegisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept {}
 
-void UnregisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept {}
+//void UnregisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept {}
 #endif
 
 }} // namespace Mso::Memory

@@ -7,6 +7,8 @@
 #include <limits>
 #include <mutex>
 
+#undef max
+
 namespace Mso {
 
 using TimePoint = std::chrono::time_point<std::chrono::system_clock>;

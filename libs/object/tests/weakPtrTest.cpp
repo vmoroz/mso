@@ -274,7 +274,7 @@ TEST_METHOD(WeakPtr_TCntPtrAndWeakRef3)
   bool deleted = false;
   {
     Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
-    Mso::WeakPtr<IWeakPtrSample1> weakPtr(static_cast<IWeakPtrSample1*>(ptr), &ptr->GetWeakRef());
+    Mso::WeakPtr<IWeakPtrSample1> weakPtr(static_cast<IWeakPtrSample1*>(ptr.Get()), &ptr->GetWeakRef());
 
     TestAssert::IsFalse(weakPtr.IsExpired());
     TestAssert::IsNotNull(weakPtr.GetStrongPtr().Get());

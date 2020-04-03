@@ -1,16 +1,15 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/**
-  Base class for all Mso Smart Pointers
-*/
 #pragma once
-#include <compilerAdapters/cppMacros.h>
-#include <crash/verifyElseCrash.h>
-#include <typeTraits/typeTraits.h>
-#include <debugAssertApi/debugAssertApi.h>
+#ifndef MSO_SMARTPTR_SMARTPOINTERBASE_H
+#define MSO_SMARTPTR_SMARTPOINTERBASE_H
 
-#ifdef __cplusplus
+#include "compilerAdapters/cppMacros.h"
+#include "crash/verifyElseCrash.h"
+#include "debugAssertApi/debugAssertApi.h"
+#include "typeTraits/typeTraits.h"
+
 #pragma warning(push)
 #pragma warning(disable : 4996) // wmemcpy
 #include <utility>
@@ -26,7 +25,7 @@ namespace Mso {
   THelper class must define 1 method:
 
   1) static void Free(T pT) noexcept - this is called by the THolder class
-    to free the type. This will never be called with an empty value.
+          to free the type. This will never be called with an empty value.
 
   TEmptyTraits class can be overridden for special 'empty' behaviors.
 */
@@ -47,7 +46,7 @@ public:
   MSO_NO_COPY_CTOR_AND_ASSIGNMENT(THolder);
 
   /**
-    Construction / Destruction
+          Construction / Destruction
   */
   THolder() noexcept : m_pT(TEmptyTraits::EmptyVal()) {}
   /*explicit*/ THolder(T pT) noexcept : m_pT(pT) {}
@@ -64,7 +63,7 @@ public:
   }
 
   /**
-    explicit delete owned object
+          explicit delete owned object
   */
   void Clear() noexcept
   {
@@ -89,19 +88,17 @@ public:
     // here).
 
   /**
-    Empty check
+          Empty check
   */
   bool IsEmpty() const noexcept
   {
     return TEmptyTraits::IsEmpty(m_pT);
   }
 
-#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
   explicit operator bool() const noexcept
   {
     return !IsEmpty();
   }
-#endif
 
   /**
     Access the contained data
@@ -116,16 +113,6 @@ public:
   {
     return this->Get();
   }
-
-#ifndef MSO_THOLDER_EXPLICIT_GET_ONLY
-  /**
-    cast operator
-  */
-  /*_SA_deprecated_(Get)*/ operator T() const noexcept
-  {
-    return m_pT;
-  }
-#endif
 
   TRefType& operator[](ptrdiff_t iSubscript) noexcept
   {
@@ -283,47 +270,6 @@ public:
     return this;
   }
 
-  /**
-    Deprecated APIs to remove over time.
-  */
-  /*_SA_deprecated_(Clear)*/ void Empty() noexcept
-  {
-    Clear();
-  }
-  /*_SA_deprecated_(Clear)*/ void Free() noexcept
-  {
-    Clear();
-  }
-  /*_SA_deprecated_(Clear)*/ void Close() noexcept
-  {
-    Clear();
-  }
-  /*_SA_deprecated_(Clear)*/ void Release() noexcept
-  {
-    Clear();
-  }
-  /*_SA_deprecated_(IsEmpty)*/ bool FIsEmpty() const noexcept
-  {
-    return IsEmpty();
-  }
-  /*_SA_deprecated_(Detach)*/ T Extract() noexcept
-  {
-    return Detach();
-  }
-  template <typename T1>
-  /*_SA_deprecated_(TransferFrom)*/ void Transfer(THolder<T1, THelper, TEmptyTraits>& from) noexcept
-  {
-    return TransferFrom(from);
-  }
-  /*_SA_deprecated_(GetAddressOf)*/ TAddrType Ptr() noexcept
-  {
-    return this->GetAddressOf();
-  }
-  /*_SA_deprecated_(ClearAndGetAddressOf)*/ TAddrType Address() noexcept
-  {
-    return this->ClearAndGetAddressOf();
-  }
-
 protected:
   T m_pT;
 
@@ -370,7 +316,6 @@ private:
   void Attach(const THolder<T1, THelper, TEmptyTraits>&); // use Transfer
 }; // class THolder
 
-#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
 /**
   Operators for THolder
 */
@@ -421,14 +366,13 @@ bool operator!=(decltype(__nullptr), const THolder<T1, THelper1, TEmptyTraits1>&
 {
   return a.Get() != nullptr;
 }
-#endif // MSO_THOLDER_EXPLICIT_GET_ONLY
 
 /**
-  Macros to implement a few basic THolder methods in derived classes.
+        Macros to implement a few basic THolder methods in derived classes.
 */
 
 /**
-  Helper to define operator= in derived classes
+        Helper to define operator= in derived classes
 */
 #define IMPLEMENT_THOLDER_OPERATOR_EQUALS(T)  \
   template <typename T1>                      \
@@ -439,7 +383,7 @@ bool operator!=(decltype(__nullptr), const THolder<T1, THelper1, TEmptyTraits1>&
   }
 
 /**
-  Helper to add RVALUE methods to derived THolder classes
+        Helper to add RVALUE methods to derived THolder classes
 */
 #define IMPLEMENT_THOLDER_RVALUE_REFS_(T, TBase)                       \
   T(_Inout_ T&& rFrom) noexcept : TBase(std::forward<TBase>(rFrom)) {} \
@@ -451,7 +395,7 @@ bool operator!=(decltype(__nullptr), const THolder<T1, THelper1, TEmptyTraits1>&
 #define IMPLEMENT_THOLDER_RVALUE_REFS(T) IMPLEMENT_THOLDER_RVALUE_REFS_(T, Super)
 
 /**
-  Try to prevent mixing up constructors
+        Try to prevent mixing up constructors
 */
 #define PREVENT_MISMATCH_THOLDER_CONSTRUCTORS(T) \
   template <typename T1, typename THelper>       \
@@ -459,13 +403,13 @@ bool operator!=(decltype(__nullptr), const THolder<T1, THelper1, TEmptyTraits1>&
   noexcept;
 
 /**
-  In some cases, additional data must be stored with the held object.
-  THolderPair supports this. Note that no requirements are placed on the
-  associated data although using a pointer type is strongly encouraged.
+        In some cases, additional data must be stored with the held object.
+        THolderPair supports this. Note that no requirements are placed on the
+        associated data although using a pointer type is strongly encouraged.
 */
 
 /**
-  THolderPairData stores a type and associated data
+        THolderPairData stores a type and associated data
 */
 template <typename T, typename TData>
 struct THolderPairData
@@ -494,7 +438,7 @@ public:
 };
 
 /**
-  EmptyTraits for the THolderPairData
+        EmptyTraits for the THolderPairData
 */
 template <typename S, typename SData>
 struct EmptyTraits<THolderPairData<S, SData>>
@@ -520,9 +464,9 @@ struct EmptyTraits<THolderPairData<S, SData>>
 };
 
 /**
-  Smart pointer for holding a pair of data objects.
-  typename T must be a pointer types
-  Private THolder derivation avoids confusion to consumers.
+        Smart pointer for holding a pair of data objects.
+        typename T must be a pointer types
+        Private THolder derivation avoids confusion to consumers.
 */
 template <typename T, typename TData, typename THelper>
 class THolderPair : protected THolder<THolderPairData<T, TData>, THelper>
@@ -549,7 +493,7 @@ public:
   }
 
   /**
-    Promote basic methods from the base class
+          Promote basic methods from the base class
   */
   void Clear() noexcept
   {
@@ -573,22 +517,16 @@ public:
     return Super::get();
   }
 
-#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
   explicit operator bool() const noexcept
   {
     return Super::operator bool();
   }
-#else
-  /*_SA_deprecated_(Get)*/ operator T() const noexcept
-  {
-    return Get();
-  }
-#endif
 
   TRefType& operator[](ptrdiff_t iSubscript) noexcept
   {
     return Super::Get()[iSubscript];
   }
+
   T operator->() const noexcept
   {
     return Super::operator->();
@@ -598,6 +536,7 @@ public:
   {
     return Super::Swap(from);
   }
+
   T Place(T pT, _In_opt_ TData pData) noexcept
   {
     THolderPairData<T, TData> pair = {pT, pData};
@@ -640,14 +579,8 @@ public:
   {
     return this->m_pT.pData;
   }
-
-  /*_SA_deprecated_(Clear)*/ void Empty() noexcept
-  {
-    return Super::Clear();
-  }
 };
 
-#ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
 /**
   Operators for THolderPair
 */
@@ -686,8 +619,7 @@ bool operator!=(decltype(__nullptr), const THolderPair<T1, TData1, THelper1>& a)
 {
   return a.Get() != nullptr;
 }
-#endif // MSO_THOLDER_EXPLICIT_GET_ONLY
 
 } // namespace Mso
 
-#endif // __cplusplus
+#endif // MSO_SMARTPTR_SMARTPOINTERBASE_H

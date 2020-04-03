@@ -402,7 +402,12 @@ public:
   _Allow_implicit_ctor_ Functor(DoNothingFunctor) noexcept : Functor(DoNothing()) {}
 
   template <typename T, EnableIfIFunctor<T> = 0>
-  _Allow_implicit_ctor_ Functor(_In_ T* impl, bool shouldAddRef = true) noexcept : m_impl(impl, shouldAddRef)
+  _Allow_implicit_ctor_ Functor(_In_ T* impl) noexcept : m_impl(impl)
+  {
+  }
+
+  template <typename T, EnableIfIFunctor<T> = 0>
+  _Allow_implicit_ctor_ Functor(_In_ T* impl, Mso::AttachTagType tag) noexcept : m_impl(impl, tag)
   {
   }
 
@@ -423,7 +428,7 @@ public:
 
   template <typename T, EnableIfFunctionObject<T> = 0, EnableIfNoThrow<T> = 0, EnableIfNotStateless<T> = 0>
   _Allow_implicit_ctor_ Functor(T&& func) noexcept
-      : m_impl(MakeFunctionObjectWrapper(std::forward<T>(func)), /*fDoAddRef:*/ false)
+      : m_impl(MakeFunctionObjectWrapper(std::forward<T>(func)), Mso::AttachTag)
   {
   }
 
@@ -433,15 +438,14 @@ public:
     using TFunc = Mso::Details::Decay_t<T>;
     static TFunc s_func{std::forward<T>(func)};
     static constexpr Mso::Details::StatelessFunctorWrapper<TFunc, TResult, TArgs...> s_impl{s_func};
-    m_impl =
-        Mso::CntPtr<IFunctor>(const_cast<IFunctor*>(static_cast<const IFunctor*>(&s_impl)), /*shouldAddRef:*/ false);
+    m_impl = Mso::CntPtr<IFunctor>(const_cast<IFunctor*>(static_cast<const IFunctor*>(&s_impl)), Mso::AttachTag);
   }
 
   template <typename T, EnableIfFunctionObject<T> = 0, EnableIfThrow<T> = 0>
   _SA_deprecated_(
       lambda must be noexcept or use Functor constructor with TerminateOnException argument or use Mso::FunctorThrow)
       Functor(T&& func) noexcept
-      : m_impl(MakeFunctionObjectWrapper(std::forward<T>(func)), /*fDoAddRef:*/ false)
+      : m_impl(MakeFunctionObjectWrapper(std::forward<T>(func)), Mso::AttachTag)
   {
   }
 
@@ -449,7 +453,7 @@ public:
   //! It should be used only in places where we cannot make function object noexcept.
   template <typename T, EnableIfFunctionObject<T> = 0>
   Functor(T&& func, const Mso::TerminateOnExceptionTag&) noexcept
-      : m_impl(MakeFunctionObjectWrapper(std::forward<T>(func)), /*fDoAddRef:*/ false)
+      : m_impl(MakeFunctionObjectWrapper(std::forward<T>(func)), Mso::AttachTag)
   {
   }
 
@@ -488,7 +492,7 @@ public:
 
   void Swap(Functor& other) noexcept
   {
-    m_impl.Swap(other.m_impl);
+    std::swap(m_impl, other.m_impl);
   }
 
   IFunctor* Get() const noexcept
@@ -507,7 +511,7 @@ public:
   static Functor FromFunctionPtr() noexcept
   {
     static constexpr Mso::Details::FunctionPointerWrapper<TResult (*)(TArgs...), TResult, TArgs...> s_func{func};
-    return {const_cast<IFunctor*>(static_cast<const IFunctor*>(&s_func)), /*shouldAddRef:*/ false};
+    return {const_cast<IFunctor*>(static_cast<const IFunctor*>(&s_func)), Mso::AttachTag};
   }
 
   //! Returns a no-op Functor, without allocating memory.
@@ -587,7 +591,12 @@ public:
   _Allow_implicit_ctor_ FunctorThrow(DoNothingFunctor) noexcept : FunctorThrow(DoNothing()) {}
 
   template <typename T, EnableIfIFunctorThrow<T> = 0>
-  _Allow_implicit_ctor_ FunctorThrow(_In_ T* impl, bool shouldAddRef = true) noexcept : m_impl(impl, shouldAddRef)
+  _Allow_implicit_ctor_ FunctorThrow(_In_ T* impl) noexcept : m_impl(impl)
+  {
+  }
+
+  template <typename T, EnableIfIFunctorThrow<T> = 0>
+  _Allow_implicit_ctor_ FunctorThrow(_In_ T* impl, Mso::AttachTagType tag) noexcept : m_impl(impl, tag)
   {
   }
 
@@ -608,7 +617,7 @@ public:
 
   template <typename T, EnableIfFunctionObject<T> = 0, EnableIfNotStateless<T> = 0>
   _Allow_implicit_ctor_ FunctorThrow(T&& func) noexcept
-      : m_impl(MakeFunctionObjectWrapper(std::forward<T>(func)), /*fDoAddRef:*/ false)
+      : m_impl(MakeFunctionObjectWrapper(std::forward<T>(func)), Mso::AttachTag)
   {
   }
 
@@ -619,7 +628,7 @@ public:
     static TFunc s_func{std::forward<T>(func)};
     static constexpr Mso::Details::StatelessFunctorWrapperThrow<TFunc, TResult, TArgs...> s_impl{s_func};
     m_impl = Mso::CntPtr<IFunctorThrow>(
-        const_cast<IFunctorThrow*>(static_cast<const IFunctorThrow*>(&s_impl)), /*shouldAddRef:*/ false);
+        const_cast<IFunctorThrow*>(static_cast<const IFunctorThrow*>(&s_impl)), Mso::AttachTag);
   }
 
   FunctorThrow& operator=(const FunctorThrow& other) noexcept
@@ -657,7 +666,7 @@ public:
 
   void Swap(FunctorThrow& other) noexcept
   {
-    m_impl.Swap(other.m_impl);
+    std::swap(m_impl, other.m_impl);
   }
 
   IFunctorThrow* Get() const noexcept
@@ -676,7 +685,7 @@ public:
   static FunctorThrow FromFunctionPtr() noexcept
   {
     static constexpr Mso::Details::FunctionPointerWrapperThrow<TResult (*)(TArgs...), TResult, TArgs...> s_func{func};
-    return {const_cast<IFunctorThrow*>(static_cast<const IFunctorThrow*>(&s_func)), /*shouldAddRef:*/ false};
+    return {const_cast<IFunctorThrow*>(static_cast<const IFunctorThrow*>(&s_func)), Mso::AttachTag};
   }
 
   //! Returns a no-op FunctorThrow, without allocating memory.

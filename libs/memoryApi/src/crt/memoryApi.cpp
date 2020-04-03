@@ -62,9 +62,9 @@ _Use_decl_annotations_ void Free(void* pv) noexcept
 }
 
 #ifdef DEBUG
-//void RegisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept {}
+// void RegisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept {}
 
-//void UnregisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept {}
+// void UnregisterCallback(Mso::LibletAPI::ILibletMemoryMarking&) noexcept {}
 #endif
 
 }} // namespace Mso::Memory

@@ -136,7 +136,7 @@ public:
 
     TResult* result = memoryGuard.Obj;
     memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
-    return Mso::CntPtr<TResult>(result, /*fDoAddRef*/ false);
+    return Mso::CntPtr<TResult>(result, Mso::AttachTag);
   }
 
   template <typename T, typename TResult = T, typename TAllocArg, typename... TArgs>
@@ -151,7 +151,7 @@ public:
 
     TResult* result = memoryGuard.Obj;
     memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
-    return Mso::CntPtr<TResult>(result, /*fDoAddRef*/ false);
+    return Mso::CntPtr<TResult>(result, Mso::AttachTag);
   }
 
   // We return swarm member as a raw pointer because the new object shares ref count with the swarm and in many cases

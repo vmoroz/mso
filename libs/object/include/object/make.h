@@ -38,7 +38,7 @@ inline Mso::CntPtr<TResult> Make(TArgs&&... args) noexcept(T::MakePolicy::IsNoEx
 
   TResult* result = memoryGuard.Obj;
   memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
-  return Mso::CntPtr<TResult>(result, /*fDoAddRef:*/ false);
+  return Mso::CntPtr<TResult>(result, Mso::AttachTag);
 }
 
 /**
@@ -63,7 +63,7 @@ inline Mso::CntPtr<TResult> MakeAlloc(TAllocArg&& allocArg, TArgs&&... args) noe
 
   TResult* result = memoryGuard.Obj;
   memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
-  return Mso::CntPtr<TResult>(result, /*fDoAddRef:*/ false);
+  return Mso::CntPtr<TResult>(result, Mso::AttachTag);
 }
 
 /**
@@ -87,7 +87,7 @@ inline Mso::CntPtr<TResult> MakeElseNull(TArgs&&... args) noexcept(T::MakePolicy
     T::MakePolicy::template Make<T>(memoryGuard, std::forward<TArgs>(args)...);
     Debug(T::RefCountPolicy::ValidateObject(memoryGuard));
 
-    result = Mso::CntPtr<TResult>(memoryGuard.Obj, /*fDoAddRef:*/ false);
+    result = Mso::CntPtr<TResult>(memoryGuard.Obj, Mso::AttachTag);
     memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
   }
 
@@ -116,7 +116,7 @@ inline Mso::CntPtr<TResult> MakeAllocElseNull(TAllocArg&& allocArg, TArgs&&... a
     T::MakePolicy::template Make<T>(memoryGuard, std::forward<TArgs>(args)...);
     Debug(T::RefCountPolicy::ValidateObject(memoryGuard));
 
-    result = Mso::CntPtr<TResult>(memoryGuard.Obj, /*fDoAddRef:*/ false);
+    result = Mso::CntPtr<TResult>(memoryGuard.Obj, Mso::AttachTag);
     memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
   }
 

@@ -542,7 +542,7 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   {
     Mso::Functor<int(int, int)> f1 = [](int x, int y) noexcept { return x + y; };
 
-    Mso::CntPtr<Mso::IFunctor<int, int, int>> impl(f1.Detach(), /*shouldAddRef*/ false);
+    Mso::CntPtr<Mso::IFunctor<int, int, int>> impl(f1.Detach(), Mso::AttachTag);
     TestCheck(f1.IsEmpty());
     TestCheck(!impl.IsEmpty());
   }
@@ -1017,7 +1017,7 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   {
     Mso::FunctorThrow<int(int, int)> f1 = [](int x, int y) noexcept { return x + y; };
 
-    Mso::CntPtr<Mso::IFunctorThrow<int, int, int>> impl(f1.Detach(), /*shouldAddRef*/ false);
+    Mso::CntPtr<Mso::IFunctorThrow<int, int, int>> impl(f1.Detach(), Mso::AttachTag);
     TestCheck(f1.IsEmpty());
     TestCheck(!impl.IsEmpty());
   }
@@ -1629,7 +1629,7 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
   {
     Mso::Functor<int(int, int) noexcept> f1 = [](int x, int y) noexcept { return x + y; };
 
-    Mso::CntPtr<Mso::IFunctor<int, int, int>> impl(f1.Detach(), /*shouldAddRef*/ false);
+    Mso::CntPtr<Mso::IFunctor<int, int, int>> impl(f1.Detach(), Mso::AttachTag);
     TestCheck(f1.IsEmpty());
     TestCheck(!impl.IsEmpty());
   }

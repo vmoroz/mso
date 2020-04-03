@@ -103,7 +103,7 @@ public:
   }
 
 private:
-  Mso::TCntPtr<IEventWaitHandle> m_handle;
+  Mso::CntPtr<IEventWaitHandle> m_handle;
 };
 
 //! Notifies a waiting thread that an event has occurred. This class cannot be inherited.
@@ -173,7 +173,7 @@ public:
   }
 
 private:
-  Mso::TCntPtr<IEventWaitHandle> m_handle;
+  Mso::CntPtr<IEventWaitHandle> m_handle;
 };
 
 }} // namespace Mso::Async

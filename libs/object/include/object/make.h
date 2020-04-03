@@ -20,14 +20,14 @@
 namespace Mso {
 
 /**
-  Mso::Make creates a new instance of class T and returns a TCntPtr to the instance of type TResult.
+  Mso::Make creates a new instance of class T and returns a CntPtr to the instance of type TResult.
   TResult is either the original type T (default), or one of its interfaces.
-  Returning an interface type can help to avoid creation of unnecessary TCntPtr template instances.
+  Returning an interface type can help to avoid creation of unnecessary CntPtr template instances.
 
   Method Make is noexcept depending on the Make policy IsNoExcept value.
 */
 template <typename T, typename TResult = T, typename... TArgs>
-inline Mso::TCntPtr<TResult> Make(TArgs&&... args) noexcept(T::MakePolicy::IsNoExcept)
+inline Mso::CntPtr<TResult> Make(TArgs&&... args) noexcept(T::MakePolicy::IsNoExcept)
 {
   typename T::RefCountPolicy::template MemoryGuard<T> memoryGuard = {};
   T::RefCountPolicy::AllocateMemory(memoryGuard);
@@ -38,21 +38,21 @@ inline Mso::TCntPtr<TResult> Make(TArgs&&... args) noexcept(T::MakePolicy::IsNoE
 
   TResult* result = memoryGuard.Obj;
   memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
-  return Mso::TCntPtr<TResult>(result, /*fDoAddRef:*/ false);
+  return Mso::CntPtr<TResult>(result, /*fDoAddRef:*/ false);
 }
 
 /**
   Mso::MakeAlloc is an Mso::Make method for types T that use allocators accepting an argument.
   The allocator argument allows to implement stateful allocators.
 
-  MakeAlloc creates a new instance of class T and returns a TCntPtr to the instance of type TResult.
+  MakeAlloc creates a new instance of class T and returns a CntPtr to the instance of type TResult.
   TResult is either the original type T (default), or one of its interfaces.
-  Returning an interface type can help to avoid creation of unnecessary TCntPtr template instantiations.
+  Returning an interface type can help to avoid creation of unnecessary CntPtr template instantiations.
 
   Method MakeAlloc is noexcept depending on the Make policy IsNoExcept value.
 */
 template <typename T, typename TResult = T, typename TAllocArg, typename... TArgs>
-inline Mso::TCntPtr<TResult> MakeAlloc(TAllocArg&& allocArg, TArgs&&... args) noexcept(T::MakePolicy::IsNoExcept)
+inline Mso::CntPtr<TResult> MakeAlloc(TAllocArg&& allocArg, TArgs&&... args) noexcept(T::MakePolicy::IsNoExcept)
 {
   typename T::RefCountPolicy::template MemoryGuard<T> memoryGuard = {};
   T::RefCountPolicy::AllocateMemory(memoryGuard, std::forward<TAllocArg>(allocArg));
@@ -63,22 +63,22 @@ inline Mso::TCntPtr<TResult> MakeAlloc(TAllocArg&& allocArg, TArgs&&... args) no
 
   TResult* result = memoryGuard.Obj;
   memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
-  return Mso::TCntPtr<TResult>(result, /*fDoAddRef:*/ false);
+  return Mso::CntPtr<TResult>(result, /*fDoAddRef:*/ false);
 }
 
 /**
-  Mso::MakeElseNull creates a new instance of class T and returns a TCntPtr to the instance of type TResult.
+  Mso::MakeElseNull creates a new instance of class T and returns a CntPtr to the instance of type TResult.
   If memory cannot be allocated then it returns nullptr.
 
   TResult is either the original type T (default), or one of its interfaces.
-  Returning an interface type can help to avoid creation of unnecessary TCntPtr template instances.
+  Returning an interface type can help to avoid creation of unnecessary CntPtr template instances.
 
   Method MakeElseNull is noexcept depending on the Make policy IsNoExcept value.
 */
 template <typename T, typename TResult = T, typename... TArgs>
-inline Mso::TCntPtr<TResult> MakeElseNull(TArgs&&... args) noexcept(T::MakePolicy::IsNoExcept)
+inline Mso::CntPtr<TResult> MakeElseNull(TArgs&&... args) noexcept(T::MakePolicy::IsNoExcept)
 {
-  Mso::TCntPtr<TResult> result; // Hopefully we can benefit from NRVO
+  Mso::CntPtr<TResult> result; // Hopefully we can benefit from NRVO
 
   typename T::RefCountPolicy::template MemoryGuard<T> memoryGuard = {};
   T::RefCountPolicy::AllocateMemory(memoryGuard);
@@ -87,7 +87,7 @@ inline Mso::TCntPtr<TResult> MakeElseNull(TArgs&&... args) noexcept(T::MakePolic
     T::MakePolicy::template Make<T>(memoryGuard, std::forward<TArgs>(args)...);
     Debug(T::RefCountPolicy::ValidateObject(memoryGuard));
 
-    result = Mso::TCntPtr<TResult>(memoryGuard.Obj, /*fDoAddRef:*/ false);
+    result = Mso::CntPtr<TResult>(memoryGuard.Obj, /*fDoAddRef:*/ false);
     memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
   }
 
@@ -98,17 +98,17 @@ inline Mso::TCntPtr<TResult> MakeElseNull(TArgs&&... args) noexcept(T::MakePolic
   The allocator argument allows to implement stateful allocators.
   If memory cannot be allocated then it returns nullptr.
 
-  MakeAllocElseNull creates a new instance of class T and returns a TCntPtr to the instance of type TResult.
+  MakeAllocElseNull creates a new instance of class T and returns a CntPtr to the instance of type TResult.
   TResult is either the original type T (default), or one of its interfaces.
-  Returning an interface type can help to avoid creation of unnecessary TCntPtr template instantiations.
+  Returning an interface type can help to avoid creation of unnecessary CntPtr template instantiations.
 
   Method MakeAllocElseNull is noexcept depending on the Make policy IsNoExcept value.
 */
 template <typename T, typename TResult = T, typename TAllocArg, typename... TArgs>
-inline Mso::TCntPtr<TResult> MakeAllocElseNull(TAllocArg&& allocArg, TArgs&&... args) noexcept(
+inline Mso::CntPtr<TResult> MakeAllocElseNull(TAllocArg&& allocArg, TArgs&&... args) noexcept(
     T::MakePolicy::IsNoExcept)
 {
-  Mso::TCntPtr<TResult> result; // Hopefully we can benefit from NRVO
+  Mso::CntPtr<TResult> result; // Hopefully we can benefit from NRVO
 
   typename T::RefCountPolicy::template MemoryGuard<T> memoryGuard = {};
   T::RefCountPolicy::AllocateMemory(memoryGuard, std::forward<TAllocArg>(allocArg));
@@ -117,7 +117,7 @@ inline Mso::TCntPtr<TResult> MakeAllocElseNull(TAllocArg&& allocArg, TArgs&&... 
     T::MakePolicy::template Make<T>(memoryGuard, std::forward<TArgs>(args)...);
     Debug(T::RefCountPolicy::ValidateObject(memoryGuard));
 
-    result = Mso::TCntPtr<TResult>(memoryGuard.Obj, /*fDoAddRef:*/ false);
+    result = Mso::CntPtr<TResult>(memoryGuard.Obj, /*fDoAddRef:*/ false);
     memoryGuard.Obj = nullptr; // To prevent memoryGuard from destroying the object.
   }
 

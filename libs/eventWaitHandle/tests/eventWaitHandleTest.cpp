@@ -9,6 +9,8 @@
 #include <atomic>
 #include <thread>
 
+#undef max
+
 using namespace std::chrono_literals;
 
 namespace Mso { namespace Async { namespace Test {

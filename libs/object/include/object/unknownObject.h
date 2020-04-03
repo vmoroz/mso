@@ -99,7 +99,7 @@ struct QueryInterfaceHelper
         void DoSomething() override { ... }
       };
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
 
 
   2)  A class that implements multiple COM interfaces.
@@ -133,8 +133,8 @@ struct QueryInterfaceHelper
         void DoQuxStuff() override { ... }
       };
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
-      Mso::TCntPtr<IBar> spBar = Mso::Make<Foo, IBar>();			// Create a TCntPtr<IBar> directly.
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<IBar> spBar = Mso::Make<Foo, IBar>();			// Create a CntPtr<IBar> directly.
 
 
   3)  A class that inherits from one or more base classes.
@@ -167,7 +167,7 @@ struct QueryInterfaceHelper
         // Foo::QueryInterface will succeed when queried for IBar, returning a BarMixin*
       };
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
 
 
   4)  A class that implements a COM interface and has support for weak references:
@@ -190,7 +190,7 @@ struct QueryInterfaceHelper
         });
       }
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
 
 
   5) A class that implements a COM interface with weak references and a custom deleter:
@@ -222,7 +222,7 @@ struct QueryInterfaceHelper
         });
       }
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
 
 
   6)  A class that implements a COM interface, with a private constructor.
@@ -241,7 +241,7 @@ struct QueryInterfaceHelper
       };
 
       const Bar& bar = ...;
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>(bar);
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>(bar);
 
 
   7)  A class that uses the 'InitializeThis' pattern, which allows you to separate object construction
@@ -270,13 +270,13 @@ struct QueryInterfaceHelper
 
       const Baz& baz = ...;
       const Qux& qux = ...;
-      Mso::TCntPtr<Foo> spFoo = Mso::Make(baz, qux);
+      Mso::CntPtr<Foo> spFoo = Mso::Make(baz, qux);
 
 
   8)  A class that implements a COM interface without actual ref counting.
 
     This can be useful if the object's lifetime is managed via some other method, but the object
-    still needs to be used with ComPtr, TCntPtr or other code that expects AddRef/Release.
+    still needs to be used with ComPtr, CntPtr or other code that expects AddRef/Release.
     This can happen in several scenarios:
 
       - Singletons that want to avoid any AddRef/Release because there is one long-lived instance.
@@ -333,7 +333,7 @@ struct QueryInterfaceHelper
         ...
       };
 
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>();
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>();
 
 
   12) A class that implements a COM interface with a custom stateful allocator.
@@ -364,7 +364,7 @@ struct QueryInterfaceHelper
       };
 
       ICustomHeap& heap = ...;
-      Mso::TCntPtr<Foo> spFoo = Mso::Make<Foo>(&heap);
+      Mso::CntPtr<Foo> spFoo = Mso::Make<Foo>(&heap);
 
 */
 template <typename TBaseType0, typename... TBaseTypes>
@@ -689,7 +689,7 @@ public:
     {
       if (m_ftm.IsEmpty())
       {
-        Mso::TCntPtr<IUnknown> ftm;
+        Mso::CntPtr<IUnknown> ftm;
         VerifySucceededElseCrashTag(
             CoCreateFreeThreadedMarshaler(this->template StaticCastElseNull<IUnknown*>(), &ftm),
             0x01003719 /* tag_bad2z */);
@@ -713,7 +713,7 @@ protected:
   using AgileUnknownObjectType = AgileUnknownObject;
 
 private:
-  Mso::TCntPtr<IUnknown> m_ftm;
+  Mso::CntPtr<IUnknown> m_ftm;
 };
 
 } // namespace Mso

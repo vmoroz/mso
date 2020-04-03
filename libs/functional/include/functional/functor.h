@@ -8,7 +8,7 @@
 
     - Always performs a heap allocation when creating a new instance from a
     function object, unless the function object is stateless.
-    - Are small (size of a TCntPtr).
+    - Are small (size of a CntPtr).
     - Cheap to copy and move.
     - There will only be one outstanding copy of the function object given to
     the Mso::Functor.
@@ -361,7 +361,7 @@ constexpr const ThrowingFunctorObjectTag ThrowingFunctorObject;
 
 /**
   Functor is a smart pointer to a IFunctor instance.
-  Its constructor accepts either a TCntPtr<IFunctor> for custom implementations or a function object.
+  Its constructor accepts either a CntPtr<IFunctor> for custom implementations or a function object.
   Function object is a class with a call operator(). Lambda is a function object. Function object must be noexcept.
   For throwing function objects such as std::function use overload with Mso::CrashOnException value.
   Functor can work with function pointers without heap allocations using FromFunctionPtr.
@@ -407,17 +407,17 @@ public:
   }
 
   template <typename T, EnableIfIFunctor<T> = 0>
-  _Allow_implicit_ctor_ Functor(Mso::TCntPtr<T>& impl) noexcept : m_impl(impl)
+  _Allow_implicit_ctor_ Functor(Mso::CntPtr<T>& impl) noexcept : m_impl(impl)
   {
   }
 
   template <typename T, EnableIfIFunctor<T> = 0>
-  _Allow_implicit_ctor_ Functor(const Mso::TCntPtr<T>& impl) noexcept : m_impl(impl)
+  _Allow_implicit_ctor_ Functor(const Mso::CntPtr<T>& impl) noexcept : m_impl(impl)
   {
   }
 
   template <typename T, EnableIfIFunctor<T> = 0>
-  _Allow_implicit_ctor_ Functor(Mso::TCntPtr<T>&& impl) noexcept : m_impl(std::move(impl))
+  _Allow_implicit_ctor_ Functor(Mso::CntPtr<T>&& impl) noexcept : m_impl(std::move(impl))
   {
   }
 
@@ -434,7 +434,7 @@ public:
     static TFunc s_func{std::forward<T>(func)};
     static constexpr Mso::Details::StatelessFunctorWrapper<TFunc, TResult, TArgs...> s_impl{s_func};
     m_impl =
-        Mso::TCntPtr<IFunctor>(const_cast<IFunctor*>(static_cast<const IFunctor*>(&s_impl)), /*shouldAddRef:*/ false);
+        Mso::CntPtr<IFunctor>(const_cast<IFunctor*>(static_cast<const IFunctor*>(&s_impl)), /*shouldAddRef:*/ false);
   }
 
   template <typename T, EnableIfFunctionObject<T> = 0, EnableIfThrow<T> = 0>
@@ -528,7 +528,7 @@ private:
   }
 
 private:
-  Mso::TCntPtr<IFunctor> m_impl;
+  Mso::CntPtr<IFunctor> m_impl;
 };
 
 #if defined(__cpp_noexcept_function_type) || (_HAS_NOEXCEPT_FUNCTION_TYPES == 1)
@@ -551,7 +551,7 @@ public:
 
 /**
   FunctorThrow is a smart pointer to a IFunctorThrow instance.
-  Its constructor accepts either a TCntPtr<IFunctorThrow> for custom implementations or a function object.
+  Its constructor accepts either a CntPtr<IFunctorThrow> for custom implementations or a function object.
   Function object is a class with a call operator(). Lambda is a function object. Function object may throw.
   FunctorThrow can work with function pointers without heap allocations using FromFunctionPtr.
 */
@@ -592,17 +592,17 @@ public:
   }
 
   template <typename T, EnableIfIFunctorThrow<T> = 0>
-  _Allow_implicit_ctor_ FunctorThrow(Mso::TCntPtr<T>& impl) noexcept : m_impl(impl)
+  _Allow_implicit_ctor_ FunctorThrow(Mso::CntPtr<T>& impl) noexcept : m_impl(impl)
   {
   }
 
   template <typename T, EnableIfIFunctorThrow<T> = 0>
-  _Allow_implicit_ctor_ FunctorThrow(const Mso::TCntPtr<T>& impl) noexcept : m_impl(impl)
+  _Allow_implicit_ctor_ FunctorThrow(const Mso::CntPtr<T>& impl) noexcept : m_impl(impl)
   {
   }
 
   template <typename T, EnableIfIFunctorThrow<T> = 0>
-  _Allow_implicit_ctor_ FunctorThrow(Mso::TCntPtr<T>&& impl) noexcept : m_impl(std::move(impl))
+  _Allow_implicit_ctor_ FunctorThrow(Mso::CntPtr<T>&& impl) noexcept : m_impl(std::move(impl))
   {
   }
 
@@ -618,7 +618,7 @@ public:
     using TFunc = Mso::Details::Decay_t<T>;
     static TFunc s_func{std::forward<T>(func)};
     static constexpr Mso::Details::StatelessFunctorWrapperThrow<TFunc, TResult, TArgs...> s_impl{s_func};
-    m_impl = Mso::TCntPtr<IFunctorThrow>(
+    m_impl = Mso::CntPtr<IFunctorThrow>(
         const_cast<IFunctorThrow*>(static_cast<const IFunctorThrow*>(&s_impl)), /*shouldAddRef:*/ false);
   }
 
@@ -697,7 +697,7 @@ private:
   }
 
 private:
-  Mso::TCntPtr<IFunctorThrow> m_impl;
+  Mso::CntPtr<IFunctorThrow> m_impl;
 };
 
 template <typename T>

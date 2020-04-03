@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 /****************************************************************************
-Unit tests for the TCntPtrRef class
+Unit tests for the CntPtrRef class
 ****************************************************************************/
 
 #include "precomp.h"
@@ -45,41 +45,41 @@ inline static std::wstring ToString(ISimple* const* q)
 {
   return L"";
 }
-inline static std::wstring ToString(const Mso::TCntPtr<ISimple>* q)
+inline static std::wstring ToString(const Mso::CntPtr<ISimple>* q)
 {
   return L"";
 }
 
-TestClassComponent(TCntPtrRefTest, Mso.TCntPtrRef) TEST_CLASS (TCntPtrRefTest)
+TestClassComponent(TCntPtrRefTest, Mso.CntPtrRef) TEST_CLASS (TCntPtrRefTest)
 {
   TEST_METHOD(TCntPtr_TCntPtrRef_GetRaw)
   {
-    Mso::TCntPtr<ISimple> spObj;
+    Mso::CntPtr<ISimple> spObj;
     TestAssert::AreEqual(spObj.GetRaw(), (&spObj).GetRaw());
   }
 
   TEST_METHOD(TCntPtr_TCntPtrRef_StarOperator)
   {
-    Mso::TCntPtr<ISimple> spObj;
+    Mso::CntPtr<ISimple> spObj;
     TestAssert::AreEqual(spObj.Get(), *(&spObj));
   }
 
   TEST_METHOD(TCntPtr_TCntPtrRef_GetAddressOf)
   {
-    Mso::TCntPtr<ISimple> spObj;
+    Mso::CntPtr<ISimple> spObj;
     TestAssert::AreEqual(spObj.GetAddressOf(), const_cast<ISimple**>((&spObj).GetAddressOf()));
   }
 
   TEST_METHOD(TCntPtr_TCntPtrRef_ClearAndGetAddressOf)
   {
-    Mso::TCntPtr<ISimple> spObj = new SimpleTestRef();
+    Mso::CntPtr<ISimple> spObj = new SimpleTestRef();
     TestAssert::AreEqual(spObj.GetRaw(), (&spObj).ClearAndGetAddressOf());
     TestAssert::IsNull(spObj.Get());
   }
 
   TEST_METHOD(TCntPtr_TCntPtrRef_IID_PPV_ARGS_Helper)
   {
-    Mso::TCntPtr<IUnknown> spObj;
+    Mso::CntPtr<IUnknown> spObj;
     void** ppObj = IID_PPV_ARGS_Helper(&spObj);
     void** ppDesired = &spObj;
     TestAssert::AreEqual((void*)ppDesired, (void*)ppObj);
@@ -87,8 +87,8 @@ TestClassComponent(TCntPtrRefTest, Mso.TCntPtrRef) TEST_CLASS (TCntPtrRefTest)
 
   TEST_METHOD(TCntPtr_TCntPtrRef_EqualOperator)
   {
-    Mso::TCntPtr<IUnknown> spObj1;
-    Mso::TCntPtr<IUnknown> spObj2;
+    Mso::CntPtr<IUnknown> spObj1;
+    Mso::CntPtr<IUnknown> spObj2;
     TestAssert::IsTrue(&spObj1 == &spObj1);
     TestAssert::IsTrue(&spObj2 == &spObj2);
     TestAssert::IsFalse(&spObj1 == &spObj2);
@@ -97,8 +97,8 @@ TestClassComponent(TCntPtrRefTest, Mso.TCntPtrRef) TEST_CLASS (TCntPtrRefTest)
 
   TEST_METHOD(TCntPtr_TCntPtrRef_NotEqualOperator)
   {
-    Mso::TCntPtr<IUnknown> spObj1;
-    Mso::TCntPtr<IUnknown> spObj2;
+    Mso::CntPtr<IUnknown> spObj1;
+    Mso::CntPtr<IUnknown> spObj2;
     TestAssert::IsTrue(&spObj1 != &spObj2);
     TestAssert::IsTrue(&spObj2 != &spObj1);
     TestAssert::IsFalse(&spObj2 != &spObj2);
@@ -110,9 +110,9 @@ TestClassComponent(TCntPtrRefTest, Mso.TCntPtrRef) TEST_CLASS (TCntPtrRefTest)
     *ppObj = pObj;
   }
 
-  static void TestFunc2(_In_ _Notnull_ ISimple * pObj, _Out_ Mso::TCntPtr<ISimple> * spObj)
+  static void TestFunc2(_In_ _Notnull_ ISimple * pObj, _Out_ Mso::CntPtr<ISimple> * spObj)
   {
-    *spObj = Mso::TCntPtr<ISimple>(pObj, false);
+    *spObj = Mso::CntPtr<ISimple>(pObj, false);
   }
 
   static void TestFunc3(_In_ _Notnull_ ISimple * pObj, _Out_ void** ppT)
@@ -129,7 +129,7 @@ TestClassComponent(TCntPtrRefTest, Mso.TCntPtrRef) TEST_CLASS (TCntPtrRefTest)
   static void TestTCntPtrRef(U && func)
   {
     T spObjOutput;
-    Mso::TCntPtr<ISimple> spObjInput = new SimpleTestRef();
+    Mso::CntPtr<ISimple> spObjInput = new SimpleTestRef();
     ISimple* pObjInput = spObjInput.Detach();
 
     func(pObjInput, &spObjOutput);
@@ -139,27 +139,27 @@ TestClassComponent(TCntPtrRefTest, Mso.TCntPtrRef) TEST_CLASS (TCntPtrRefTest)
 
   TEST_METHOD(TCntPtr_TCntPtrRef_NonConst_ppT)
   {
-    TestTCntPtrRef<Mso::TCntPtr<ISimple>>(TestFunc1);
+    TestTCntPtrRef<Mso::CntPtr<ISimple>>(TestFunc1);
   }
 
   TEST_METHOD(TCntPtr_TCntPtrRef_NonConst_pTCntPtr)
   {
-    TestTCntPtrRef<Mso::TCntPtr<ISimple>>(TestFunc2);
+    TestTCntPtrRef<Mso::CntPtr<ISimple>>(TestFunc2);
   }
 
   TEST_METHOD(TCntPtr_TCntPtrRef_NonConst_ppVoid)
   {
-    TestTCntPtrRef<Mso::TCntPtr<ISimple>>(TestFunc3);
+    TestTCntPtrRef<Mso::CntPtr<ISimple>>(TestFunc3);
   }
 
   TEST_METHOD(TCntPtr_TCntPtrRef_NonConst_ppConstVoid)
   {
-    TestTCntPtrRef<Mso::TCntPtr<ISimple>>(TestFunc4);
+    TestTCntPtrRef<Mso::CntPtr<ISimple>>(TestFunc4);
   }
 
   TEST_METHOD(TCntPtr_TCntPtrRef_Const_TCntPtr)
   {
-    const Mso::TCntPtr<ISimple> spObj;
+    const Mso::CntPtr<ISimple> spObj;
     TestAssert::AreEqual(spObj.GetThis(), &spObj);
   }
 
@@ -175,7 +175,7 @@ TestClassComponent(TCntPtrRefTest, Mso.TCntPtrRef) TEST_CLASS (TCntPtrRefTest)
 
   TEST_METHOD(TCntPtr_TCntPtrRef_NonConst_Reinterpret_Cast_ppVoid)
   {
-    TestTCntPtrRef_Reinterpret_Cast<Mso::TCntPtr<ISimple>, void**>();
+    TestTCntPtrRef_Reinterpret_Cast<Mso::CntPtr<ISimple>, void**>();
   }
 
   class SimpleTestRefUnknown : public Mso::UnknownObject<ISimpleUnknown>
@@ -185,7 +185,7 @@ TestClassComponent(TCntPtrRefTest, Mso.TCntPtrRef) TEST_CLASS (TCntPtrRefTest)
 
   TEST_METHOD(TCntPtr_TCntPtrRef_NonConst_Reinterpret_Cast_ppIUnknown)
   {
-    TestTCntPtrRef_Reinterpret_Cast<Mso::TCntPtr<SimpleTestRefUnknown>, IUnknown**>();
+    TestTCntPtrRef_Reinterpret_Cast<Mso::CntPtr<SimpleTestRefUnknown>, IUnknown**>();
   }
 
   template <typename T>
@@ -193,12 +193,12 @@ TestClassComponent(TCntPtrRefTest, Mso.TCntPtrRef) TEST_CLASS (TCntPtrRefTest)
   {
     T spObj;
     void* pVoid = &spObj;
-    Mso::TCntPtr<ISimple>* pTCntPtr = &spObj;
+    Mso::CntPtr<ISimple>* pTCntPtr = &spObj;
     TestAssert::AreEqual(pVoid, (void*)pTCntPtr);
   }
 
   TEST_METHOD(TCntPtr_TCntPtrRef_NonConst_Cast_pVoid)
   {
-    TestTCntPtrRef_Cast_pVoid<Mso::TCntPtr<ISimple>>();
+    TestTCntPtrRef_Cast_pVoid<Mso::CntPtr<ISimple>>();
   }
 };

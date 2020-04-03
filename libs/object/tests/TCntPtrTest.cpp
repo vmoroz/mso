@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 /****************************************************************************
-Unit tests for the TCntPtr smart pointer
+Unit tests for the CntPtr smart pointer
 ****************************************************************************/
 
 #include "precomp.h"
@@ -170,16 +170,16 @@ static void ValidateRefCount(uint32_t expectedIncRefCountCallCount, TAction acti
   TestAssert::AreEqual(expectedIncRefCountCallCount, actualIncRefCountCallCount, L"Unexpected IncCount.");
 }
 
-TestClassComponent(TCntPtrTest, Mso.TCntPtr) TEST_CLASS (TCntPtrTest){
+TestClassComponent(TCntPtrTest, Mso.CntPtr) TEST_CLASS (TCntPtrTest){
 
-    TEST_METHOD(TCntPtr_EmptyCtor){Mso::TCntPtr<SimpleClass> spObj;
+    TEST_METHOD(TCntPtr_EmptyCtor){Mso::CntPtr<SimpleClass> spObj;
 
 TestAssert::IsNull(spObj.Get(), L"Expected null");
 }
 
 TEST_METHOD(TCntPtr_NullCtor)
 {
-  Mso::TCntPtr<SimpleClass> spObj = nullptr;
+  Mso::CntPtr<SimpleClass> spObj = nullptr;
 
   TestAssert::IsNull(spObj.Get(), L"Expected null");
 }
@@ -187,7 +187,7 @@ TEST_METHOD(TCntPtr_NullCtor)
 TEST_METHOD(TCntPtr_DeprecatedNullCtor)
 {
   // TODO: Remove when we stop using NULL
-  Mso::TCntPtr<SimpleClass> spObj;
+  Mso::CntPtr<SimpleClass> spObj;
 
   TestAssert::IsNull(spObj.Get(), L"Expected null");
 }
@@ -196,7 +196,7 @@ TEST_METHOD(TCntPtr_Create)
 {
   ValidateRefCount(1, [](RefCountChangedCallback&& onRefCountChanged) {
     SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
-    Mso::TCntPtr<SimpleClass> spObj(ptr);
+    Mso::CntPtr<SimpleClass> spObj(ptr);
 
     TestAssert::AreEqual((void*)ptr, (void*)spObj.Get(), L"Expected ptr");
   });
@@ -206,7 +206,7 @@ TEST_METHOD(TCntPtr_CreateInterface)
 {
   ValidateRefCount(1, [](RefCountChangedCallback&& onRefCountChanged) {
     SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
-    Mso::TCntPtr<ISimple> spIntf(ptr);
+    Mso::CntPtr<ISimple> spIntf(ptr);
 
     TestAssert::AreEqual((void*)ptr, (void*)spIntf.Get(), L"Expected ptr");
   });
@@ -216,8 +216,8 @@ TEST_METHOD(TCntPtr_CopyConstructor)
 {
   ValidateRefCount(2, [](RefCountChangedCallback&& onRefCountChanged) {
     SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
-    Mso::TCntPtr<SimpleClass> spObj(ptr);
-    Mso::TCntPtr<SimpleClass> spSameObj(spObj);
+    Mso::CntPtr<SimpleClass> spObj(ptr);
+    Mso::CntPtr<SimpleClass> spSameObj(spObj);
 
     TestAssert::AreEqual((void*)ptr, (void*)spObj.Get(), L"Expected ptr");
     TestAssert::AreEqual((void*)ptr, (void*)spSameObj.Get(), L"Expected ptr");
@@ -228,8 +228,8 @@ TEST_METHOD(TCntPtr_CopyConstructorInterface)
 {
   ValidateRefCount(2, [](RefCountChangedCallback&& onRefCountChanged) {
     SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
-    Mso::TCntPtr<SimpleClass> spObj(ptr);
-    Mso::TCntPtr<ISimple> spIntf(spObj);
+    Mso::CntPtr<SimpleClass> spObj(ptr);
+    Mso::CntPtr<ISimple> spIntf(spObj);
 
     TestAssert::AreEqual((void*)ptr, (void*)spObj.Get(), L"Expected ptr");
     TestAssert::AreEqual((void*)ptr, (void*)spIntf.Get(), L"Expected ptr");
@@ -240,8 +240,8 @@ TEST_METHOD(TCntPtr_MoveConstructor)
 {
   ValidateRefCount(1, [](RefCountChangedCallback&& onRefCountChanged) {
     SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
-    Mso::TCntPtr<SimpleClass> spObj(ptr);
-    Mso::TCntPtr<SimpleClass> spSameObj(std::move(spObj));
+    Mso::CntPtr<SimpleClass> spObj(ptr);
+    Mso::CntPtr<SimpleClass> spSameObj(std::move(spObj));
 
     TestAssert::IsNull(spObj.Get(), L"Expected null");
     TestAssert::AreEqual((void*)ptr, (void*)spSameObj.Get(), L"Expected ptr");
@@ -252,8 +252,8 @@ TEST_METHOD(TCntPtr_MoveConstructorInterface)
 {
   ValidateRefCount(1, [](RefCountChangedCallback&& onRefCountChanged) {
     SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
-    Mso::TCntPtr<SimpleClass> spObj(ptr);
-    Mso::TCntPtr<ISimple> spIntf(std::move(spObj));
+    Mso::CntPtr<SimpleClass> spObj(ptr);
+    Mso::CntPtr<ISimple> spIntf(std::move(spObj));
 
     TestAssert::IsNull(spObj.Get(), L"Expected null");
     TestAssert::AreEqual((void*)ptr, (void*)spIntf.Get(), L"Expected ptr");
@@ -261,9 +261,9 @@ TEST_METHOD(TCntPtr_MoveConstructorInterface)
 }
 
 // Factory method to get benefits from using the move constructor
-static Mso::TCntPtr<SimpleClass> CreateSimpleClass(RefCountChangedCallback&& onRefCountChanged)
+static Mso::CntPtr<SimpleClass> CreateSimpleClass(RefCountChangedCallback&& onRefCountChanged)
 {
-  Mso::TCntPtr<SimpleClass> spObj = new SimpleClass(std::move(onRefCountChanged));
+  Mso::CntPtr<SimpleClass> spObj = new SimpleClass(std::move(onRefCountChanged));
   spObj->ClassDoSomething();
   return spObj; // std::move() not needed because the same type allows the named return value optimization.
 }
@@ -271,16 +271,16 @@ static Mso::TCntPtr<SimpleClass> CreateSimpleClass(RefCountChangedCallback&& onR
 TEST_METHOD(TCntPtr_CallCreateSimpleClass)
 {
   ValidateRefCount(1, [](RefCountChangedCallback&& onRefCountChanged) {
-    Mso::TCntPtr<ISimple> spObj = CreateSimpleClass(std::move(onRefCountChanged));
+    Mso::CntPtr<ISimple> spObj = CreateSimpleClass(std::move(onRefCountChanged));
 
     TestAssert::IsNotNull(spObj.Get(), L"Expected not a null value");
   });
 }
 
 // Factory method to get benefits from using the move constructor
-static Mso::TCntPtr<ISimple> CreateISimple(RefCountChangedCallback&& onRefCountChanged)
+static Mso::CntPtr<ISimple> CreateISimple(RefCountChangedCallback&& onRefCountChanged)
 {
-  Mso::TCntPtr<SimpleClass> spObj = new SimpleClass(std::move(onRefCountChanged));
+  Mso::CntPtr<SimpleClass> spObj = new SimpleClass(std::move(onRefCountChanged));
   spObj->ClassDoSomething();
   return std::move(spObj); // We should use std::move() here to avoid use of copy constructor.
                            // Named value return optimization will not work because we have different types.
@@ -289,7 +289,7 @@ static Mso::TCntPtr<ISimple> CreateISimple(RefCountChangedCallback&& onRefCountC
 TEST_METHOD(TCntPtr_CallCreateISimple)
 {
   ValidateRefCount(1, [](RefCountChangedCallback&& onRefCountChanged) {
-    Mso::TCntPtr<ISimple> spIntf = CreateISimple(std::move(onRefCountChanged));
+    Mso::CntPtr<ISimple> spIntf = CreateISimple(std::move(onRefCountChanged));
 
     TestAssert::IsNotNull(spIntf.Get(), L"Expected not a null value");
   });
@@ -298,9 +298,9 @@ TEST_METHOD(TCntPtr_CallCreateISimple)
 TEST_METHOD(TCntPtr_CopyAssignment)
 {
   ValidateRefCount(3, [](RefCountChangedCallback&& onRefCountChanged) {
-    Mso::TCntPtr<SimpleClass> spObj1(new SimpleClass(RefCountChangedCallback(onRefCountChanged)));
+    Mso::CntPtr<SimpleClass> spObj1(new SimpleClass(RefCountChangedCallback(onRefCountChanged)));
     SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
-    Mso::TCntPtr<SimpleClass> spObj2(ptr);
+    Mso::CntPtr<SimpleClass> spObj2(ptr);
     spObj1 = spObj2;
 
     TestAssert::AreEqual((void*)ptr, (void*)spObj1.Get(), L"Expected ptr");
@@ -312,8 +312,8 @@ TEST_METHOD(TCntPtr_CopyAssignmentInterface)
 {
   ValidateRefCount(3, [](RefCountChangedCallback&& onRefCountChanged) {
     SimpleClass* ptr = new SimpleClass(RefCountChangedCallback(onRefCountChanged));
-    Mso::TCntPtr<SimpleClass> spObj(ptr);
-    Mso::TCntPtr<ISimple> spIntf = new SimpleClass(std::move(onRefCountChanged));
+    Mso::CntPtr<SimpleClass> spObj(ptr);
+    Mso::CntPtr<ISimple> spIntf = new SimpleClass(std::move(onRefCountChanged));
     spIntf = spObj;
 
     TestAssert::AreEqual((void*)ptr, (void*)spObj.Get(), L"Expected ptr");
@@ -323,10 +323,10 @@ TEST_METHOD(TCntPtr_CopyAssignmentInterface)
 
 TEST_METHOD(TCntPtr_CopyAssignmentSameObject)
 {
-  // See what happens when we assign TCntPtr to itself.
+  // See what happens when we assign CntPtr to itself.
   ValidateRefCount(1, [](RefCountChangedCallback&& onRefCountChanged) {
     SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
-    Mso::TCntPtr<SimpleClass> spObj(ptr);
+    Mso::CntPtr<SimpleClass> spObj(ptr);
 
     OACR_WARNING_SUPPRESS(IDENTITY_ASSIGNMENT, "We want to test our code that nothing bad happens in this case");
     spObj = spObj;
@@ -337,11 +337,11 @@ TEST_METHOD(TCntPtr_CopyAssignmentSameObject)
 
 TEST_METHOD(TCntPtr_CopyAssignmentConst)
 {
-  // Test that TCntPtr can accept a const variable and AddRef/Release methods are not const.
+  // Test that CntPtr can accept a const variable and AddRef/Release methods are not const.
   ValidateRefCount(3, [](RefCountChangedCallback&& onRefCountChanged) {
-    Mso::TCntPtr<const UnkSimpleClass> spObj1(new UnkSimpleClass(RefCountChangedCallback(onRefCountChanged)));
+    Mso::CntPtr<const UnkSimpleClass> spObj1(new UnkSimpleClass(RefCountChangedCallback(onRefCountChanged)));
     const UnkSimpleClass* ptr = new UnkSimpleClass(std::move(onRefCountChanged));
-    Mso::TCntPtr<const UnkSimpleClass> spObj2(ptr);
+    Mso::CntPtr<const UnkSimpleClass> spObj2(ptr);
     spObj1 = spObj2;
 
     TestAssert::AreEqual((void*)ptr, (void*)spObj1.Get(), L"Expected ptr");
@@ -352,9 +352,9 @@ TEST_METHOD(TCntPtr_CopyAssignmentConst)
 TEST_METHOD(TCntPtr_MoveAssignment)
 {
   ValidateRefCount(2, [](RefCountChangedCallback&& onRefCountChanged) {
-    Mso::TCntPtr<SimpleClass> spObj1 = new SimpleClass(RefCountChangedCallback(onRefCountChanged));
+    Mso::CntPtr<SimpleClass> spObj1 = new SimpleClass(RefCountChangedCallback(onRefCountChanged));
     SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
-    Mso::TCntPtr<SimpleClass> spObj2(ptr);
+    Mso::CntPtr<SimpleClass> spObj2(ptr);
     spObj1 = std::move(spObj2);
 
     TestAssert::AreEqual((void*)ptr, (void*)spObj1.Get(), L"Expected ptr");
@@ -366,8 +366,8 @@ TEST_METHOD(TCntPtr_MoveAssignmentInterface)
 {
   ValidateRefCount(2, [](RefCountChangedCallback&& onRefCountChanged) {
     SimpleClass* ptr = new SimpleClass(RefCountChangedCallback(onRefCountChanged));
-    Mso::TCntPtr<SimpleClass> spObj(ptr);
-    Mso::TCntPtr<ISimple> spIntf = new SimpleClass(std::move(onRefCountChanged));
+    Mso::CntPtr<SimpleClass> spObj(ptr);
+    Mso::CntPtr<ISimple> spIntf = new SimpleClass(std::move(onRefCountChanged));
     spIntf = std::move(spObj);
 
     TestAssert::IsNull(spObj.Get(), L"Expected null");
@@ -380,7 +380,7 @@ TEST_METHOD(TCntPtr_MoveAssignmentSameObject)
   // Our copy assignment does not check if we use the same object. This test is to see that nothing bad happens.
   ValidateRefCount(1, [](RefCountChangedCallback&& onRefCountChanged) {
     SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
-    Mso::TCntPtr<SimpleClass> spObj(ptr);
+    Mso::CntPtr<SimpleClass> spObj(ptr);
     spObj = std::move(spObj);
 
     TestAssert::AreEqual((void*)ptr, (void*)spObj.Get(), L"Expected ptr");
@@ -390,7 +390,7 @@ TEST_METHOD(TCntPtr_MoveAssignmentSameObject)
 TEST_METHOD(TCntPtr_NullAssignment)
 {
   ValidateRefCount(1, [](RefCountChangedCallback&& onRefCountChanged) {
-    Mso::TCntPtr<SimpleClass> spObj = new SimpleClass(RefCountChangedCallback(onRefCountChanged));
+    Mso::CntPtr<SimpleClass> spObj = new SimpleClass(RefCountChangedCallback(onRefCountChanged));
     spObj = nullptr;
 
     TestAssert::IsNull(spObj.Get(), L"Expected null");
@@ -399,16 +399,16 @@ TEST_METHOD(TCntPtr_NullAssignment)
 
 TEST_METHOD(TCntPtr_IsEqualObject_BothISimpleClass_AreEqual)
 {
-  Mso::TCntPtr<IUnkSimple> spObj = Mso::Make<AggregatedObject>();
-  Mso::TCntPtr<IUnkSimple> spObjTwo = spObj;
+  Mso::CntPtr<IUnkSimple> spObj = Mso::Make<AggregatedObject>();
+  Mso::CntPtr<IUnkSimple> spObjTwo = spObj;
 
   TestAssert::IsTrue(Mso::ComUtil::AreEqualObjects(spObj, spObjTwo));
 }
 
 TEST_METHOD(TCntPtr_IsEqualObject_DifferentInterfaceTypes_AreEqual)
 {
-  Mso::TCntPtr<IUnkSimple> spObj = Mso::Make<AggregatedObject>();
-  Mso::TCntPtr<IUnkSample> spSample;
+  Mso::CntPtr<IUnkSimple> spObj = Mso::Make<AggregatedObject>();
+  Mso::CntPtr<IUnkSample> spSample;
   TestAssert::HrSucceeded(Mso::ComUtil::HrQueryFrom(spSample, spObj));
 
   TestAssert::IsTrue(Mso::ComUtil::AreEqualObjects(spObj, spSample));
@@ -416,8 +416,8 @@ TEST_METHOD(TCntPtr_IsEqualObject_DifferentInterfaceTypes_AreEqual)
 
 TEST_METHOD(TCntPtr_IsEqualObject_DifferentObject_AreNotEqual)
 {
-  Mso::TCntPtr<IUnkSimple> spObj = Mso::Make<AggregatedObject>();
-  Mso::TCntPtr<IUnkSimple> spObjTwo = Mso::Make<AggregatedObject>();
+  Mso::CntPtr<IUnkSimple> spObj = Mso::Make<AggregatedObject>();
+  Mso::CntPtr<IUnkSimple> spObjTwo = Mso::Make<AggregatedObject>();
 
   TestAssert::IsFalse(Mso::ComUtil::AreEqualObjects(spObj, spObjTwo));
 }

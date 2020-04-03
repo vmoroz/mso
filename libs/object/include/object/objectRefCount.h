@@ -220,7 +220,7 @@ public:
   The actual type / Make() function everybody would use
 */
 template <typename T>
-using RefCountedPtr = Mso::TCntPtr<RefCountedWrapper<T>>;
+using RefCountedPtr = Mso::CntPtr<RefCountedWrapper<T>>;
 
 template <typename T, typename... U>
 RefCountedPtr<T> Make_RefCounted(U&&... args) noexcept

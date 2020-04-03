@@ -28,7 +28,7 @@ struct DECLSPEC_NOVTABLE IRefCounted
 
 /**
   Provides weak ref-counting support at interface level: when there is a need to convert
-  TCntPtr<IFoo> to WeakPtr<IFoo>, deriving IFoo from IWeakRefCounted ensures that there
+  CntPtr<IFoo> to WeakPtr<IFoo>, deriving IFoo from IWeakRefCounted ensures that there
   is no run-time error tag_bad22 (under condition that implementations of IFoo are derived
   from RefCountedObject<RefCountStrategy::WeakRef, IFoo>).
 */
@@ -101,23 +101,23 @@ struct TReleaseHelper
 };
 
 template <typename T>
-class TCntPtr;
+class CntPtr;
 
 // Code in details namespace is for internal usage only
 namespace Details {
 
-/// Used for TCntPtr operator& implementation.
-/// It allows to avoid memory leaks when non-empty TCntPtr is used as output parameter T**.
-/// For TCntRef class, please find its definition below TCntPtr class
+/// Used for CntPtr operator& implementation.
+/// It allows to avoid memory leaks when non-empty CntPtr is used as output parameter T**.
+/// For TCntRef class, please find its definition below CntPtr class
 template <typename T>
-class TCntPtrRef
+class CntPtrRef
 {
-  // We only allow TCntPtr to make instance of this type
+  // We only allow CntPtr to make instance of this type
   template <typename U>
-  friend class Mso::TCntPtr;
+  friend class Mso::CntPtr;
 
 public:
-  operator Mso::TCntPtr<T> *() noexcept
+  operator Mso::CntPtr<T> *() noexcept
   {
     return m_pTCntPtr;
   }
@@ -163,14 +163,14 @@ public:
   }
 
 private:
-  TCntPtrRef(_In_ Mso::TCntPtr<T>* pT) noexcept : m_pTCntPtr(pT) {}
+  CntPtrRef(_In_ Mso::CntPtr<T>* pT) noexcept : m_pTCntPtr(pT) {}
 
 private:
-  Mso::TCntPtr<T>* m_pTCntPtr;
+  Mso::CntPtr<T>* m_pTCntPtr;
 };
 
 template <typename T, typename U>
-bool operator==(const TCntPtrRef<T>& left, const TCntPtrRef<U>& right) noexcept
+bool operator==(const CntPtrRef<T>& left, const CntPtrRef<U>& right) noexcept
 {
   static_assert(
       std::is_base_of<T, U>::value || std::is_base_of<U, T>::value, "'T' and 'U' pointers must be comparable");
@@ -178,7 +178,7 @@ bool operator==(const TCntPtrRef<T>& left, const TCntPtrRef<U>& right) noexcept
 }
 
 template <typename T, typename U>
-bool operator!=(const TCntPtrRef<T>& left, const TCntPtrRef<U>& right) noexcept
+bool operator!=(const CntPtrRef<T>& left, const CntPtrRef<U>& right) noexcept
 {
   return !(left == right);
 }
@@ -187,7 +187,7 @@ bool operator!=(const TCntPtrRef<T>& left, const TCntPtrRef<U>& right) noexcept
 
 /**
   The TCntPtrAddRefStrategy enumeration and TCntPtrAddRefStrategyForType template allows the
-  code to specify how specific types of TCntPtr's will perform the add ref operation
+  code to specify how specific types of CntPtr's will perform the add ref operation
 */
 enum TCntPtrAddRefStrategy : uint32_t
 {
@@ -196,7 +196,7 @@ enum TCntPtrAddRefStrategy : uint32_t
 };
 
 /**
-  To change the type of RefCount strategy that a particular type of TCntPtr will use
+  To change the type of RefCount strategy that a particular type of CntPtr will use
   override this general template with one specific to the pointer type
 */
 template <typename T>
@@ -211,7 +211,7 @@ namespace Details {
 /**
   Implements CheckedAddRef for ref counted interfaces that are not using RefTrack
 
-  Q: What is this strategy only applied to TCntPtr and not TCntRef
+  Q: What is this strategy only applied to CntPtr and not TCntRef
   A: TCntRef has a Copy method that does AddRef and then returns a reference to the
      object. This is not compatible with RefTrack and so the strategy is not applied.
 */
@@ -417,7 +417,7 @@ bool operator!=(const TCntRef<T1>& left, const TCntRef<T2>& right) noexcept
   Ref-counted smart pointer, possibly null
 */
 template <typename T>
-class TCntPtr
+class CntPtr
 {
   using TNonConst = typename std::remove_const<T>::type; // For AddRef() and Release() calls
   using TAddrType = T**;
@@ -428,55 +428,55 @@ public:
     Constructors
   */
 
-  TCntPtr() noexcept : m_pT(nullptr) {}
-  explicit TCntPtr(std::nullptr_t) noexcept : m_pT(nullptr) {}
+  CntPtr() noexcept : m_pT(nullptr) {}
+  explicit CntPtr(std::nullptr_t) noexcept : m_pT(nullptr) {}
 
   // Expressly delete the legacy NULL ctor
-  TCntPtr(int) = delete;
+  CntPtr(int) = delete;
 
   // TODO: This should be explicit, but it requires fixing a lot of code
-  /*explicit*/ TCntPtr(_In_opt_ T* pT, bool fDoAddRef = true) noexcept : m_pT(pT)
+  /*explicit*/ CntPtr(_In_opt_ T* pT, bool fDoAddRef = true) noexcept : m_pT(pT)
   {
     if (fDoAddRef)
       Details::TCntPtrAddRefStrategyImpl<TAddRefStrategy::Strategy>::CheckedAddRefOnNewlyAssignedPtr(&m_pT);
   }
 
   template <typename TOther, typename = typename std::enable_if<std::is_base_of<T, TOther>::value>::type>
-  explicit TCntPtr(_In_opt_ TOther* pOther, bool fDoAddRef = true) noexcept : m_pT(pOther)
+  explicit CntPtr(_In_opt_ TOther* pOther, bool fDoAddRef = true) noexcept : m_pT(pOther)
   {
     if (fDoAddRef)
       Details::TCntPtrAddRefStrategyImpl<TAddRefStrategy::Strategy>::CheckedAddRefOnNewlyAssignedPtr(&m_pT);
   }
 
   // Delete this constructor. Developers must be explicit in their code when they want to use unsafe conversion from
-  // void* or from a base class. Use TCntPtr<T>(static_cast<T*>(ptr)) or qi_cast<T>(ptr) instead.
+  // void* or from a base class. Use CntPtr<T>(static_cast<T*>(ptr)) or qi_cast<T>(ptr) instead.
   template <typename TOther, typename = typename std::enable_if<!std::is_base_of<T, TOther>::value>::type>
-  explicit TCntPtr(_In_opt_ TOther* pOther, bool fDoAddRef = true, int /*doNotUseThisConstructor*/ = 0) = delete;
+  explicit CntPtr(_In_opt_ TOther* pOther, bool fDoAddRef = true, int /*doNotUseThisConstructor*/ = 0) = delete;
 
-  TCntPtr(const TCntPtr& from) noexcept : m_pT(from.Get())
+  CntPtr(const CntPtr& from) noexcept : m_pT(from.Get())
   {
     Details::TCntPtrAddRefStrategyImpl<TAddRefStrategy::Strategy>::CheckedAddRefOnNewlyAssignedPtr(&m_pT);
   }
 
   template <typename TOther, typename = typename std::enable_if<std::is_base_of<T, TOther>::value>::type>
-  TCntPtr(const Mso::TCntPtr<TOther>& from) noexcept : m_pT(from.Get())
+  CntPtr(const Mso::CntPtr<TOther>& from) noexcept : m_pT(from.Get())
   {
     Details::TCntPtrAddRefStrategyImpl<TAddRefStrategy::Strategy>::CheckedAddRefOnNewlyAssignedPtr(&m_pT);
   }
 
-  TCntPtr(TCntPtr&& from) noexcept : m_pT(from.Detach()) {}
+  CntPtr(CntPtr&& from) noexcept : m_pT(from.Detach()) {}
 
   template <typename TOther, typename = typename std::enable_if<std::is_base_of<T, TOther>::value>::type>
-  TCntPtr(Mso::TCntPtr<TOther>&& from) noexcept : m_pT(from.Detach())
+  CntPtr(Mso::CntPtr<TOther>&& from) noexcept : m_pT(from.Detach())
   {
   }
 
   template <typename TOther>
-  TCntPtr(const Mso::TCntRef<TOther>& from) noexcept : TCntPtr{from.Ptr()}
+  CntPtr(const Mso::TCntRef<TOther>& from) noexcept : CntPtr{from.Ptr()}
   {
   }
 
-  ~TCntPtr() noexcept
+  ~CntPtr() noexcept
   {
     Clear();
   }
@@ -485,14 +485,14 @@ public:
     operator =
   */
 
-  TCntPtr& operator=(std::nullptr_t) noexcept
+  CntPtr& operator=(std::nullptr_t) noexcept
   {
     this->Clear();
     return *this;
   }
 
   template <typename TOther, typename = typename std::enable_if<std::is_base_of<T, TOther>::value>::type>
-  TCntPtr& operator=(_In_opt_ TOther* pT) noexcept
+  CntPtr& operator=(_In_opt_ TOther* pT) noexcept
   {
     if (m_pT != pT)
     {
@@ -505,36 +505,36 @@ public:
     return *this;
   }
 
-  TCntPtr& operator=(const TCntPtr& from) noexcept
+  CntPtr& operator=(const CntPtr& from) noexcept
   {
     return operator=(from.Get());
   }
 
   template <typename TOther, typename = typename std::enable_if<std::is_base_of<T, TOther>::value>::type>
-  TCntPtr& operator=(const Mso::TCntPtr<TOther>& from) noexcept
+  CntPtr& operator=(const Mso::CntPtr<TOther>& from) noexcept
   {
     return operator=(from.Get());
   }
 
-  TCntPtr& operator=(TCntPtr&& from) noexcept
+  CntPtr& operator=(CntPtr&& from) noexcept
   {
-    Mso::TCntPtr<T>(std::move(from)).Swap(*this);
+    Mso::CntPtr<T>(std::move(from)).Swap(*this);
     return *this;
   }
 
   template <typename TOther, typename = typename std::enable_if<std::is_base_of<T, TOther>::value>::type>
-  TCntPtr& operator=(Mso::TCntPtr<TOther>&& from) noexcept
+  CntPtr& operator=(Mso::CntPtr<TOther>&& from) noexcept
   {
-    Mso::TCntPtr<T>(std::move(from)).Swap(*this);
+    Mso::CntPtr<T>(std::move(from)).Swap(*this);
     return *this;
   }
 
   /// The rare case that you need a pointer to the smart pointer itself
-  const TCntPtr* GetThis() const noexcept
+  const CntPtr* GetThis() const noexcept
   {
     return this;
   }
-  TCntPtr* GetThis() noexcept
+  CntPtr* GetThis() noexcept
   {
     return this;
   }
@@ -542,7 +542,7 @@ public:
   /// Return an AddRef'd raw pointer
   T* Copy() const noexcept
   {
-    TCntPtr<T> copy(m_pT);
+    CntPtr<T> copy(m_pT);
     return copy.Detach();
   }
 
@@ -577,7 +577,7 @@ public:
 
   T* Get() const noexcept
   {
-    return const_cast<TCntPtr*>(this)->m_pT;
+    return const_cast<CntPtr*>(this)->m_pT;
   }
 
 #ifndef MSO_THOLDER_EXPLICIT_GET_ONLY
@@ -591,10 +591,10 @@ public:
   T* operator->() const noexcept
   {
     VerifyElseCrashTag(m_pT, 0x0152139a /* tag_bu7o0 */);
-    return const_cast<TCntPtr*>(this)->m_pT;
+    return const_cast<CntPtr*>(this)->m_pT;
   }
 
-  void Swap(TCntPtr& other) noexcept
+  void Swap(CntPtr& other) noexcept
   {
     T* pT = m_pT;
     m_pT = other.m_pT;
@@ -626,18 +626,18 @@ public:
   }
 
   /// & operator to retrieve object.
-  /// Returned TCntPtrRef takes care about safe use of the pointer.
-  Mso::Details::TCntPtrRef<T> operator&() noexcept
+  /// Returned CntPtrRef takes care about safe use of the pointer.
+  Mso::Details::CntPtrRef<T> operator&() noexcept
   {
-    return Mso::Details::TCntPtrRef<T>(this);
+    return Mso::Details::CntPtrRef<T>(this);
   }
 
   /**
-    Retrieves the address of the object. Asserts that TCntPtr is empty.
+    Retrieves the address of the object. Asserts that CntPtr is empty.
 
     void GetSomething(T** ppT);
 
-    Mso::TCntPtr<T> pT;
+    Mso::CntPtr<T> pT;
     GetSomething(pT.GetAddressOf());
 
     ClearAndGetAddressOf() will ensure any existing object is cleared first.
@@ -673,7 +673,7 @@ public:
   {
     return this->Get();
   }
-  /*_SA_deprecated_(Swap)*/ void swap(TCntPtr& from) noexcept
+  /*_SA_deprecated_(Swap)*/ void swap(CntPtr& from) noexcept
   {
     Swap(from);
   }
@@ -706,12 +706,12 @@ public:
     return Detach();
   }
   template <typename TOther>
-  /*_SA_deprecated_(move assignment)*/ void TransferFrom(_Inout_ TCntPtr<TOther>& from) noexcept
+  /*_SA_deprecated_(move assignment)*/ void TransferFrom(_Inout_ CntPtr<TOther>& from) noexcept
   {
     Attach(from.Detach());
   }
   template <typename TOther>
-  /*_SA_deprecated_(move assignment)*/ void Transfer(TCntPtr<TOther>& from) noexcept
+  /*_SA_deprecated_(move assignment)*/ void Transfer(CntPtr<TOther>& from) noexcept
   {
     return TransferFrom(from);
   }
@@ -730,41 +730,41 @@ private:
 
 #ifdef MSO_THOLDER_EXPLICIT_GET_ONLY
 /**
-  Operators for TCntPtr
+  Operators for CntPtr
 */
 
 template <typename T1, typename T2>
-bool operator==(const TCntPtr<T1>& left, const TCntPtr<T2>& right) noexcept
+bool operator==(const CntPtr<T1>& left, const CntPtr<T2>& right) noexcept
 {
   return (left.Get() == right.Get());
 }
 
 template <typename T>
-bool operator==(const TCntPtr<T>& left, std::nullptr_t) noexcept
+bool operator==(const CntPtr<T>& left, std::nullptr_t) noexcept
 {
   return left.IsEmpty();
 }
 
 template <typename T>
-bool operator==(std::nullptr_t, const TCntPtr<T>& right) noexcept
+bool operator==(std::nullptr_t, const CntPtr<T>& right) noexcept
 {
   return right.IsEmpty();
 }
 
 template <typename T1, typename T2>
-bool operator!=(const TCntPtr<T1>& left, const TCntPtr<T2>& right) noexcept
+bool operator!=(const CntPtr<T1>& left, const CntPtr<T2>& right) noexcept
 {
   return !(left == right);
 }
 
 template <typename T>
-bool operator!=(const TCntPtr<T>& left, std::nullptr_t) noexcept
+bool operator!=(const CntPtr<T>& left, std::nullptr_t) noexcept
 {
   return !left.IsEmpty();
 }
 
 template <typename T>
-bool operator!=(std::nullptr_t, const TCntPtr<T>& right) noexcept
+bool operator!=(std::nullptr_t, const CntPtr<T>& right) noexcept
 {
   return !right.IsEmpty();
 }

@@ -187,7 +187,7 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(Functor_ctor_IFunctor_TCntPtrMove)
   {
     auto functorImpl = Mso::Make<TestVoidFunctor>();
-    Mso::TCntPtr<TestVoidFunctor> functorImplCopy = functorImpl; // keep original to check call count
+    Mso::CntPtr<TestVoidFunctor> functorImplCopy = functorImpl; // keep original to check call count
     Mso::VoidFunctor f1(std::move(functorImplCopy));
     TestCheck(!f1.IsEmpty());
     TestCheck(functorImplCopy.IsEmpty());
@@ -223,7 +223,7 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(Functor_ctor_IFunctor_TCntPtrMove_PassToMethod)
   {
     auto functorImpl = Mso::Make<TestVoidFunctor>();
-    Mso::TCntPtr<TestVoidFunctor> functorImplCopy = functorImpl; // keep original to check call count
+    Mso::CntPtr<TestVoidFunctor> functorImplCopy = functorImpl; // keep original to check call count
     VoidFunctorExecutor::Execute(std::move(functorImplCopy));
 
     TestCheckEqual(1, functorImpl->m_callCount);
@@ -384,8 +384,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(Functor_ctor_StdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::TCntPtr<StructParam>)>(
-        [&callCount](Mso::TCntPtr<StructParam>) noexcept { ++callCount; });
+    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
+        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({func, Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }
@@ -393,8 +393,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(Functor_ctor_ConstStdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    const auto func = std::function<void(Mso::TCntPtr<StructParam>)>(
-        [&callCount](Mso::TCntPtr<StructParam>) noexcept { ++callCount; });
+    const auto func = std::function<void(Mso::CntPtr<StructParam>)>(
+        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({func, Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }
@@ -402,8 +402,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(Functor_ctor_StdFunctionMove_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::TCntPtr<StructParam>)>(
-        [&callCount](Mso::TCntPtr<StructParam>) noexcept { ++callCount; });
+    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
+        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({std::move(func), Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }
@@ -542,7 +542,7 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   {
     Mso::Functor<int(int, int)> f1 = [](int x, int y) noexcept { return x + y; };
 
-    Mso::TCntPtr<Mso::IFunctor<int, int, int>> impl(f1.Detach(), /*shouldAddRef*/ false);
+    Mso::CntPtr<Mso::IFunctor<int, int, int>> impl(f1.Detach(), /*shouldAddRef*/ false);
     TestCheck(f1.IsEmpty());
     TestCheck(!impl.IsEmpty());
   }
@@ -665,7 +665,7 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(FunctorThrow_ctor_IFunctorThrow_TCntPtrMove)
   {
     auto functorImpl = Mso::Make<TestVoidFunctorThrow>();
-    Mso::TCntPtr<TestVoidFunctorThrow> functorImplCopy = functorImpl; // keep original to check call count
+    Mso::CntPtr<TestVoidFunctorThrow> functorImplCopy = functorImpl; // keep original to check call count
     Mso::VoidFunctorThrow f1(std::move(functorImplCopy));
     TestCheck(!f1.IsEmpty());
     TestCheck(functorImplCopy.IsEmpty());
@@ -701,7 +701,7 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(FunctorThrow_ctor_IFunctorThrow_TCntPtrMove_PassToMethod)
   {
     auto functorImpl = Mso::Make<TestVoidFunctorThrow>();
-    Mso::TCntPtr<TestVoidFunctorThrow> functorImplCopy = functorImpl; // keep original to check call count
+    Mso::CntPtr<TestVoidFunctorThrow> functorImplCopy = functorImpl; // keep original to check call count
     VoidFunctorThrowExecutor::Execute(std::move(functorImplCopy));
 
     TestCheckEqual(1, functorImpl->m_callCount);
@@ -861,8 +861,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(FunctorThrow_ctor_StdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::TCntPtr<StructParam>)>(
-        [&callCount](Mso::TCntPtr<StructParam>) noexcept { ++callCount; });
+    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
+        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorThrowExecutor::Execute(func);
     TestCheckEqual(1, callCount);
   }
@@ -870,8 +870,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(FunctorThrow_ctor_ConstStdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    const auto func = std::function<void(Mso::TCntPtr<StructParam>)>(
-        [&callCount](Mso::TCntPtr<StructParam>) noexcept { ++callCount; });
+    const auto func = std::function<void(Mso::CntPtr<StructParam>)>(
+        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorThrowExecutor::Execute(func);
     TestCheckEqual(1, callCount);
   }
@@ -879,8 +879,8 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   TEST_METHOD(FunctorThrow_ctor_StdFunctionMove_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::TCntPtr<StructParam>)>(
-        [&callCount](Mso::TCntPtr<StructParam>) noexcept { ++callCount; });
+    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
+        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorThrowExecutor::Execute(std::move(func));
     TestCheckEqual(1, callCount);
   }
@@ -1017,7 +1017,7 @@ TestClassComponent(FunctorTest, Mso.Functor) TEST_CLASS (FunctorTest)
   {
     Mso::FunctorThrow<int(int, int)> f1 = [](int x, int y) noexcept { return x + y; };
 
-    Mso::TCntPtr<Mso::IFunctorThrow<int, int, int>> impl(f1.Detach(), /*shouldAddRef*/ false);
+    Mso::CntPtr<Mso::IFunctorThrow<int, int, int>> impl(f1.Detach(), /*shouldAddRef*/ false);
     TestCheck(f1.IsEmpty());
     TestCheck(!impl.IsEmpty());
   }
@@ -1293,7 +1293,7 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
   TEST_METHOD(Functor_noexcept_ctor_IFunctor_TCntPtrMove)
   {
     auto functorImpl = Mso::Make<TestVoidFunctor>();
-    Mso::TCntPtr<TestVoidFunctor> functorImplCopy = functorImpl; // keep original to check call count
+    Mso::CntPtr<TestVoidFunctor> functorImplCopy = functorImpl; // keep original to check call count
     Mso::VoidFunctor f1(std::move(functorImplCopy));
     TestCheck(!f1.IsEmpty());
     TestCheck(functorImplCopy.IsEmpty());
@@ -1329,7 +1329,7 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
   TEST_METHOD(Functor_noexcept_ctor_IFunctor_TCntPtrMove_PassToMethod)
   {
     auto functorImpl = Mso::Make<TestVoidFunctor>();
-    Mso::TCntPtr<TestVoidFunctor> functorImplCopy = functorImpl; // keep original to check call count
+    Mso::CntPtr<TestVoidFunctor> functorImplCopy = functorImpl; // keep original to check call count
     VoidFunctorExecutor::Execute(std::move(functorImplCopy));
 
     TestCheckEqual(1, functorImpl->m_callCount);
@@ -1471,8 +1471,8 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
   TEST_METHOD(Functor_noexcept_ctor_StdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::TCntPtr<StructParam>)>(
-        [&callCount](Mso::TCntPtr<StructParam>) noexcept { ++callCount; });
+    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
+        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({func, Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }
@@ -1480,8 +1480,8 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
   TEST_METHOD(Functor_noexcept_ctor_ConstStdFunctionCopy_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    const auto func = std::function<void(Mso::TCntPtr<StructParam>)>(
-        [&callCount](Mso::TCntPtr<StructParam>) noexcept { ++callCount; });
+    const auto func = std::function<void(Mso::CntPtr<StructParam>)>(
+        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({func, Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }
@@ -1489,8 +1489,8 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
   TEST_METHOD(Functor_noexcept_ctor_StdFunctionMove_DifferentSignature_PassToMethod)
   {
     int callCount = 0;
-    auto func = std::function<void(Mso::TCntPtr<StructParam>)>(
-        [&callCount](Mso::TCntPtr<StructParam>) noexcept { ++callCount; });
+    auto func = std::function<void(Mso::CntPtr<StructParam>)>(
+        [&callCount](Mso::CntPtr<StructParam>) noexcept { ++callCount; });
     MyFunctorExecutor::Execute({std::move(func), Mso::TerminateOnException});
     TestCheckEqual(1, callCount);
   }
@@ -1629,7 +1629,7 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
   {
     Mso::Functor<int(int, int) noexcept> f1 = [](int x, int y) noexcept { return x + y; };
 
-    Mso::TCntPtr<Mso::IFunctor<int, int, int>> impl(f1.Detach(), /*shouldAddRef*/ false);
+    Mso::CntPtr<Mso::IFunctor<int, int, int>> impl(f1.Detach(), /*shouldAddRef*/ false);
     TestCheck(f1.IsEmpty());
     TestCheck(!impl.IsEmpty());
   }

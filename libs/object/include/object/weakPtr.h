@@ -178,13 +178,13 @@ public:
   {
   }
 
-  WeakPtr(const Mso::TCntPtr<T>& from, _In_opt_ Mso::ObjectWeakRef* weakRef = nullptr) noexcept
+  WeakPtr(const Mso::CntPtr<T>& from, _In_opt_ Mso::ObjectWeakRef* weakRef = nullptr) noexcept
       : Super(from.Get(), weakRef ? weakRef : GetWeakRefCore(from.Get(), 0, 0))
   {
   }
 
   template <class TOther, class = typename std::enable_if<std::is_convertible<TOther*, T*>::value>::type>
-  WeakPtr(const Mso::TCntPtr<TOther>& from, _In_opt_ Mso::ObjectWeakRef* weakRef = nullptr) noexcept
+  WeakPtr(const Mso::CntPtr<TOther>& from, _In_opt_ Mso::ObjectWeakRef* weakRef = nullptr) noexcept
       : Super(static_cast<T*>(from.Get()), weakRef ? weakRef : GetWeakRefCore(from.Get(), 0, 0))
   {
   }
@@ -239,7 +239,7 @@ public:
     return *this;
   }
 
-  WeakPtr& operator=(const Mso::TCntPtr<T>& from) noexcept
+  WeakPtr& operator=(const Mso::CntPtr<T>& from) noexcept
   {
     T* ptr = from.Get();
     if (m_ptr != ptr)
@@ -251,7 +251,7 @@ public:
   }
 
   template <class TOther, class = typename std::enable_if<std::is_convertible<TOther*, T*>::value>::type>
-  WeakPtr& operator=(const Mso::TCntPtr<TOther>& from) noexcept
+  WeakPtr& operator=(const Mso::CntPtr<TOther>& from) noexcept
   {
     TOther* otherPtr = from.Get();
     T* ptr = static_cast<T*>(otherPtr);
@@ -311,9 +311,9 @@ public:
     return *this;
   }
 
-  Mso::TCntPtr<T> GetStrongPtr() const noexcept
+  Mso::CntPtr<T> GetStrongPtr() const noexcept
   {
-    Mso::TCntPtr<T> ptr;
+    Mso::CntPtr<T> ptr;
     if (IncrementRefCountIfNotZero())
     {
       *ptr.GetRaw() = static_cast<T*>(m_ptr);

@@ -34,7 +34,7 @@
 //! Use Mso::FunctorRefThrow for throwing function objects.
 //!
 //! In case if you want to store function object or transfer its ownership, you can use:
-//! - Mso::Functor that is an Mso::TCntPtr to a ref counted heap-allocated object.
+//! - Mso::Functor that is an Mso::CntPtr to a ref counted heap-allocated object.
 //! - Mso::SmallFunctor that uses in-place storage.
 //!
 //! Usage example:

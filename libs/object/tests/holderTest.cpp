@@ -211,12 +211,12 @@ TEST_CLASS (HolderTests)
   ------------------------------------------------------------------------------*/
   TEST_METHOD(CntPtrCore)
   {
-    Mso::TCntPtr<CUnknown> punk1;
-    Mso::TCntPtr<CUnknown> punk2(new CUnknown());
-    Mso::TCntPtr<CUnknown> punk3(new CUnknown(), false);
+    Mso::CntPtr<CUnknown> punk1;
+    Mso::CntPtr<CUnknown> punk2(new CUnknown());
+    Mso::CntPtr<CUnknown> punk3(new CUnknown(), false);
     punk3->AddRef();
-    Mso::TCntPtr<CUnknown> punk4(punk3);
-    Mso::TCntPtr<CUnknown> punk5;
+    Mso::CntPtr<CUnknown> punk4(punk3);
+    Mso::CntPtr<CUnknown> punk5;
     punk5 = new CUnknown();
 
     TestAssert::IsTrue(punk1 == nullptr, L"");
@@ -263,8 +263,8 @@ TEST_CLASS (HolderTests)
   ------------------------------------------------------------------------------*/
   TEST_METHOD(CntPtrMixed)
   {
-    Mso::TCntPtr<IUnknown> punk;
-    Mso::TCntPtr<ICustom> pistm;
+    Mso::CntPtr<IUnknown> punk;
+    Mso::CntPtr<ICustom> pistm;
     TestAssert::IsTrue(pistm == nullptr, L"");
     TestAssert::IsTrue(punk == nullptr, L"");
     punk = pistm;
@@ -284,9 +284,9 @@ TEST_CLASS (HolderTests)
 #ifdef MS_TARGET_WINDOWS
   TEST_METHOD(CntQIPtrCore)
   {
-    Mso::TCntPtr<IUnknown> punk1(new CUnknown());
-    Mso::TCntPtr<IUnknown> punk2(new CUnknown());
-    Mso::TCntPtr<IStream> pistmQI;
+    Mso::CntPtr<IUnknown> punk1(new CUnknown());
+    Mso::CntPtr<IUnknown> punk2(new CUnknown());
+    Mso::CntPtr<IStream> pistmQI;
 
     TestAssert::IsTrue(FAILED(Mso::ComUtil::HrQueryFrom(pistmQI, punk1)), L"");
     TestAssert::IsTrue(SUCCEEDED(CreateStreamOnHGlobal(NULL, TRUE, &pistmQI)), L"");

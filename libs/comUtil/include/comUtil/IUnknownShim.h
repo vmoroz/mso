@@ -2,6 +2,9 @@
 // Licensed under the MIT license.
 
 #pragma once
+#ifndef MSO_COMUTIL_IUNKNOWNSHIM_H
+#define MSO_COMUTIL_IUNKNOWNSHIM_H
+
 #include <guid/msoGuid.h>
 #include <cstdint>
 
@@ -10,10 +13,10 @@ MSO_STRUCT_GUID(IUnknown, "00000000-0000-0000-C000-000000000046")
 
 #if !defined(MS_TARGET_POSIX)
 
-#include <compilerAdapters/declspecDefinitions.h>
-#include <platformAdapters/windowsFirst.h>
-#include <comBaseApi.h>
+#include <combaseapi.h>
 #include <unknwn.h>
+#include "compilerAdapters/declspecDefinitions.h"
+#include "platformAdapters/windowsFirst.h"
 
 #else
 
@@ -100,3 +103,9 @@ struct IUnknown
 #define __RPC_FAR
 
 #endif
+
+namespace Mso {
+using IUnknown = ::IUnknown;
+}
+
+#endif // MSO_COMUTIL_IUNKNOWNSHIM_H

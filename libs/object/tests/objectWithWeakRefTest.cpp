@@ -249,12 +249,12 @@ TEST_CLASS (ObjectWithWeakRefTest)
   {
     bool deleted = false;
     {
-      Mso::TCntPtr<ObjectWithWeakRefSample1> obj1 = Mso::Make<ObjectWithWeakRefSample1>(5, /*ref*/ deleted);
+      Mso::CntPtr<ObjectWithWeakRefSample1> obj1 = Mso::Make<ObjectWithWeakRefSample1>(5, /*ref*/ deleted);
       {
         Debug(TestAssert::AreEqual(1u, obj1->GetWeakRef().RefCount()));
         TestAssert::AreEqual(5, obj1->Value());
 
-        Mso::TCntPtr<ObjectWithWeakRefSample1> obj2(obj1);
+        Mso::CntPtr<ObjectWithWeakRefSample1> obj2(obj1);
         Debug(TestAssert::AreEqual(2u, obj1->GetWeakRef().RefCount()));
         TestAssert::IsNotNull(obj2.Get());
         TestAssert::IsTrue(obj1.Get() == obj2.Get());
@@ -271,13 +271,13 @@ TEST_CLASS (ObjectWithWeakRefTest)
     // Ref count for ObjectWeakRef behaves the same way as for the object.
     bool deleted = false;
     {
-      Mso::TCntPtr<ObjectWithWeakRefSample1> obj1 = Mso::Make<ObjectWithWeakRefSample1>(5, /*ref*/ deleted);
-      Mso::TCntPtr<Mso::ObjectWeakRef> weakRef = &obj1->GetWeakRef();
+      Mso::CntPtr<ObjectWithWeakRefSample1> obj1 = Mso::Make<ObjectWithWeakRefSample1>(5, /*ref*/ deleted);
+      Mso::CntPtr<Mso::ObjectWeakRef> weakRef = &obj1->GetWeakRef();
       {
         Debug(TestAssert::AreEqual(2u, weakRef->RefCount()));
         Debug(TestAssert::AreEqual(1u, weakRef->WeakRefCount()));
 
-        Mso::TCntPtr<ObjectWithWeakRefSample1> obj2(obj1);
+        Mso::CntPtr<ObjectWithWeakRefSample1> obj2(obj1);
         Debug(TestAssert::AreEqual(3u, weakRef->RefCount()));
       }
 
@@ -294,14 +294,14 @@ TEST_CLASS (ObjectWithWeakRefTest)
     bool deleted = false;
     Mso::WeakPtr<ObjectWithWeakRefSample1> weakPtr;
     {
-      Mso::TCntPtr<ObjectWithWeakRefSample1> obj1 = Mso::Make<ObjectWithWeakRefSample1>(5, /*ref*/ deleted);
-      Mso::TCntPtr<Mso::ObjectWeakRef> weakRef = &obj1->GetWeakRef();
+      Mso::CntPtr<ObjectWithWeakRefSample1> obj1 = Mso::Make<ObjectWithWeakRefSample1>(5, /*ref*/ deleted);
+      Mso::CntPtr<Mso::ObjectWeakRef> weakRef = &obj1->GetWeakRef();
       weakPtr = obj1;
       {
         Debug(TestAssert::AreEqual(2u, weakRef->RefCount()));
         Debug(TestAssert::AreEqual(2u, weakRef->WeakRefCount()));
 
-        Mso::TCntPtr<ObjectWithWeakRefSample1> obj2(obj1);
+        Mso::CntPtr<ObjectWithWeakRefSample1> obj2(obj1);
         Debug(TestAssert::AreEqual(3u, weakRef->RefCount()));
       }
 
@@ -328,7 +328,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
 
   TEST_METHOD(ObjectWithWeakRef_Make_CannotAllocate)
   {
-    Mso::TCntPtr<ObjectWithWeakRefSample3CannotAllocate> obj;
+    Mso::CntPtr<ObjectWithWeakRefSample3CannotAllocate> obj;
     TestAssert::ExpectVEC([&]() { obj = Mso::Make<ObjectWithWeakRefSample3CannotAllocate>(); });
 
     TestAssert::IsTrue(obj.IsEmpty());
@@ -336,7 +336,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
 
   TEST_METHOD(ObjectWithWeakRef_Make_CtorThrows)
   {
-    Mso::TCntPtr<ObjectWithWeakRefSample4Throw> obj;
+    Mso::CntPtr<ObjectWithWeakRefSample4Throw> obj;
     bool deleted = false;
     TestAssert::ExpectException<std::runtime_error>(
         [&]() { obj = Mso::Make<ObjectWithWeakRefSample4Throw>(/*ref*/ deleted); });
@@ -347,7 +347,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
 
   TEST_METHOD(ObjectWithWeakRef_Make_InitializeThisThrows)
   {
-    Mso::TCntPtr<ObjectWithWeakRefSample5InitThrow> obj;
+    Mso::CntPtr<ObjectWithWeakRefSample5InitThrow> obj;
     bool deleted = false;
     TestAssert::ExpectException<std::runtime_error>(
         [&]() { obj = Mso::Make<ObjectWithWeakRefSample5InitThrow>(/*ref*/ deleted); });
@@ -388,7 +388,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
 
   TEST_METHOD(ObjectWithWeakRef_MakeElseNull_CtorThrows)
   {
-    Mso::TCntPtr<ObjectWithWeakRefSample4Throw> obj;
+    Mso::CntPtr<ObjectWithWeakRefSample4Throw> obj;
     bool deleted = false;
     TestAssert::ExpectException<std::runtime_error>(
         [&]() { obj = Mso::MakeElseNull<ObjectWithWeakRefSample4Throw>(/*ref*/ deleted); });
@@ -396,7 +396,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
 
   TEST_METHOD(ObjectWithWeakRef_MakeElseNull_InitializeThisThrows)
   {
-    Mso::TCntPtr<ObjectWithWeakRefSample5InitThrow> obj;
+    Mso::CntPtr<ObjectWithWeakRefSample5InitThrow> obj;
     bool deleted = false;
     TestAssert::ExpectException<std::runtime_error>(
         [&]() { obj = Mso::MakeElseNull<ObjectWithWeakRefSample5InitThrow>(/*ref*/ deleted); });
@@ -447,7 +447,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
 
   TEST_METHOD(ObjectWithWeakRef_MakeAlloc_CannotAllocate)
   {
-    Mso::TCntPtr<ObjectWithWeakRefSample31CannotAllocate> obj;
+    Mso::CntPtr<ObjectWithWeakRefSample31CannotAllocate> obj;
     TestAssert::ExpectVEC([&]() {
       AllocTestState state = {};
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
@@ -459,7 +459,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
 
   TEST_METHOD(ObjectWithWeakRef_MakeAlloc_CtorThrows)
   {
-    Mso::TCntPtr<ObjectWithWeakRefSample41Throw> obj;
+    Mso::CntPtr<ObjectWithWeakRefSample41Throw> obj;
     AllocTestState state = {};
     TestAssert::ExpectException<std::runtime_error>([&]() {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
@@ -472,7 +472,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
 
   TEST_METHOD(ObjectWithWeakRef_MakeAlloc_InitializeThisThrows)
   {
-    Mso::TCntPtr<ObjectWithWeakRefSample51InitThrow> obj;
+    Mso::CntPtr<ObjectWithWeakRefSample51InitThrow> obj;
     AllocTestState state = {};
     TestAssert::ExpectException<std::runtime_error>([&]() {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
@@ -519,7 +519,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
 
   TEST_METHOD(ObjectWithWeakRef_MakeAllocElseNull_CtorThrows)
   {
-    Mso::TCntPtr<ObjectWithWeakRefSample41Throw> obj;
+    Mso::CntPtr<ObjectWithWeakRefSample41Throw> obj;
     AllocTestState state = {};
     TestAssert::ExpectException<std::runtime_error>([&]() {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);
@@ -532,7 +532,7 @@ TEST_CLASS (ObjectWithWeakRefTest)
 
   TEST_METHOD(ObjectWithWeakRef_MakeAllocElseNull_InitializeThisThrows)
   {
-    Mso::TCntPtr<ObjectWithWeakRefSample51InitThrow> obj;
+    Mso::CntPtr<ObjectWithWeakRefSample51InitThrow> obj;
     AllocTestState state = {};
     TestAssert::ExpectException<std::runtime_error>([&]() {
       MyMemHeap memHeap(/*ref*/ state.AllocCalled, /*ref*/ state.FreeCalled);

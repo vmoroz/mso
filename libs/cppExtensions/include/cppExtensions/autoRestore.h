@@ -1,14 +1,16 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+#pragma once
+#ifndef MSO_CPPEXTENSIONS_AUTORESTORE_H
+#define MSO_CPPEXTENSIONS_AUTORESTORE_H
+
 /**
   Helper classes to automatically restore/cleanup/undo an operation.
 */
-#ifndef _CPPEXTENSIONS_AUTORESTORE_H_
-#define _CPPEXTENSIONS_AUTORESTORE_H_
 
-#include <compilerAdapters/cppMacros.h>
-#include <typeTraits/typeTraits.h>
+#include "compilerAdapters/cppMacros.h"
+#include "typeTraits/typeTraits.h"
 
 #ifdef __cplusplus
 // 4091: extern __declspec(dllimport)' : ignored on left of 'double' when no variable is declared
@@ -205,7 +207,7 @@ namespace TCleanup {
    you can do so by:
 
     if (/some condition/)
-      cleanupCloseOLDoc.disable();	// The TCleanup will now not run on exit
+      cleanupCloseOLDoc.disable();  // The TCleanup will now not run on exit
 */
 template <typename Func>
 struct TCleanup
@@ -256,4 +258,4 @@ inline TCleanup<Func> Make(const Func& pfnCleanup) noexcept
 
 #endif // __cplusplus
 
-#endif // _CPPEXTENSIONS_AUTORESTORE_H_
+#endif // MSO_CPPEXTENSIONS_AUTORESTORE_H

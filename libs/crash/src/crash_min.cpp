@@ -1,11 +1,9 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-//#include "precomp.h"
-
-#include <crash/verifyElseCrash.h>
-#include <compilerAdapters/cppMacros.h>
-#include <platformAdapters/windowsFirst.h>
+#include "compilerAdapters/cppMacros.h"
+#include "crash/verifyElseCrash.h"
+#include "platformAdapters/windowsFirst.h"
 
 #if defined(MS_TARGET_POSIX)
 

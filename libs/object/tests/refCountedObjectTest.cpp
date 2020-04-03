@@ -407,13 +407,13 @@ protected:
   }
 
 private:
-  RefCountSample101(const Mso::Async::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
+  RefCountSample101(const Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
       : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
   {
   }
 
 private:
-  Mso::Async::ManualResetEvent m_deleted;
+  Mso::ManualResetEvent m_deleted;
   bool& m_isAsyncDestroy;
 };
 
@@ -441,13 +441,13 @@ protected:
   }
 
 private:
-  RefCountSample102(const Mso::Async::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
+  RefCountSample102(const Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
       : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
   {
   }
 
 private:
-  Mso::Async::ManualResetEvent m_deleted;
+  Mso::ManualResetEvent m_deleted;
   bool& m_isAsyncDestroy;
 };
 
@@ -477,13 +477,13 @@ protected:
   }
 
 private:
-  RefCountSample103(const Mso::Async::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
+  RefCountSample103(const Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
       : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
   {
   }
 
 private:
-  Mso::Async::ManualResetEvent m_deleted;
+  Mso::ManualResetEvent m_deleted;
   bool& m_isAsyncDestroy;
 };
 
@@ -513,13 +513,13 @@ protected:
   }
 
 private:
-  RefCountSample104(const Mso::Async::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
+  RefCountSample104(const Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
       : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
   {
   }
 
 private:
-  Mso::Async::ManualResetEvent m_deleted;
+  Mso::ManualResetEvent m_deleted;
   bool& m_isAsyncDestroy;
 };
 
@@ -721,7 +721,7 @@ TEST_CLASS (RefCountedObjectTest)
 
   TEST_METHOD(RefCountedObject_DestroyThis)
   {
-    Mso::Async::ManualResetEvent deleted;
+    Mso::ManualResetEvent deleted;
     bool isAsyncDestroy = false;
 
     {
@@ -737,7 +737,7 @@ TEST_CLASS (RefCountedObjectTest)
 
   TEST_METHOD(RefCountedObject_WeakRef_DestroyThis)
   {
-    Mso::Async::ManualResetEvent deleted;
+    Mso::ManualResetEvent deleted;
     bool isAsyncDestroy = false;
 
     {
@@ -753,7 +753,7 @@ TEST_CLASS (RefCountedObjectTest)
 
   TEST_METHOD(RefCountedObject_NoVTable_DestroyThis)
   {
-    Mso::Async::ManualResetEvent deleted;
+    Mso::ManualResetEvent deleted;
     bool isAsyncDestroy = false;
 
     {
@@ -768,7 +768,7 @@ TEST_CLASS (RefCountedObjectTest)
 
   TEST_METHOD(RefCountedObject_NoVTable_WeakRef_DestroyThis)
   {
-    Mso::Async::ManualResetEvent deleted;
+    Mso::ManualResetEvent deleted;
     bool isAsyncDestroy = false;
 
     {

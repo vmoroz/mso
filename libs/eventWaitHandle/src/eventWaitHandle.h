@@ -7,7 +7,7 @@
 #include <limits>
 #include <mutex>
 
-namespace Mso { namespace Async {
+namespace Mso {
 
 using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
@@ -50,11 +50,12 @@ public: // IEventWaitHandle
     m_state = EventWaitHandleState::NotSet;
   }
 
-  void Wait() const noexcept override
+  bool Wait() const noexcept override
   {
     WaitTimePoint waitTimePoint{};
     waitTimePoint.IsInfinite = true;
     VerifyElseCrashSzTag(WaitUntil(waitTimePoint), "Must not timeout", 0x026e348b /* tag_c19sl */);
+    return true;
   }
 
   bool WaitFor(const std::chrono::milliseconds& waitDuration) const noexcept override
@@ -102,4 +103,4 @@ private:
   mutable EventWaitHandleState m_state;
 };
 
-}} // namespace Mso::Async
+} // namespace Mso::Async

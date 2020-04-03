@@ -2,14 +2,14 @@
 // Licensed under the MIT license.
 
 #pragma once
-#ifndef LIBLET_DISPATCHQUEUE_EVENTWAITHANDLE_H
-#define LIBLET_DISPATCHQUEUE_EVENTWAITHANDLE_H
+#ifndef MSO_EVENTWAITHANDLE_EVENTWAITHANDLE_H
+#define MSO_EVENTWAITHANDLE_EVENTWAITHANDLE_H
 
-#include <smartPtr/cntPtr.h>
-#include <compilerAdapters/functionDecorations.h>
 #include <chrono>
+#include "compilerAdapters/functionDecorations.h"
+#include "smartPtr/cntPtr.h"
 
-namespace Mso { namespace Async {
+namespace Mso {
 
 //! Shared event wait handle interface used by ManualResetEvent and AutoResetEvent.
 //! Since, ManualResetEvent and AutoResetEvent are most commonly used between different threads, we used
@@ -18,7 +18,7 @@ struct IEventWaitHandle : Mso::IRefCounted
 {
   virtual void Set() const noexcept = 0;
   virtual void Reset() const noexcept = 0;
-  virtual void Wait() const noexcept = 0;
+  virtual bool Wait() const noexcept = 0;
   virtual bool WaitFor(const std::chrono::milliseconds& waitDuration) const noexcept = 0;
 };
 
@@ -84,9 +84,9 @@ public:
   }
 
   //! Blocks thread indefinitely and waits for the event signaling state.
-  void Wait() const noexcept
+  bool Wait() const noexcept
   {
-    m_handle->Wait();
+    return m_handle->Wait();
   }
 
   //! Blocks thread for waitDuration time and waits for the event signaling state.
@@ -176,6 +176,6 @@ private:
   Mso::CntPtr<IEventWaitHandle> m_handle;
 };
 
-}} // namespace Mso::Async
+} // namespace Mso
 
-#endif // LIBLET_DISPATCHQUEUE_EVENTWAITHANDLE_H
+#endif // MSO_EVENTWAITHANDLE_EVENTWAITHANDLE_H

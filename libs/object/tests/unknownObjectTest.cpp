@@ -572,13 +572,13 @@ protected:
   }
 
 private:
-  UnknownSample101(Mso::Async::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
+  UnknownSample101(Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
       : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
   {
   }
 
 private:
-  Mso::Async::ManualResetEvent& m_deleted;
+  Mso::ManualResetEvent& m_deleted;
   bool& m_isAsyncDestroy;
 };
 
@@ -606,13 +606,13 @@ protected:
   }
 
 private:
-  UnknownSample102(Mso::Async::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
+  UnknownSample102(Mso::ManualResetEvent& deleted, bool& isAsyncDestroy) noexcept
       : m_deleted(deleted), m_isAsyncDestroy(isAsyncDestroy)
   {
   }
 
 private:
-  Mso::Async::ManualResetEvent& m_deleted;
+  Mso::ManualResetEvent& m_deleted;
   bool& m_isAsyncDestroy;
 };
 
@@ -1352,7 +1352,7 @@ TEST_CLASS (UnknownObjectTest)
 
   TEST_METHOD(UnknownObject_DestroyThis)
   {
-    Mso::Async::ManualResetEvent deleted;
+    Mso::ManualResetEvent deleted;
     bool isAsyncDestroy = false;
 
     {
@@ -1368,7 +1368,7 @@ TEST_CLASS (UnknownObjectTest)
 
   TEST_METHOD(UnknownObject_WeakRef_DestroyThis)
   {
-    Mso::Async::ManualResetEvent deleted;
+    Mso::ManualResetEvent deleted;
     bool isAsyncDestroy = false;
 
     {

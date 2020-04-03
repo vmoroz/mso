@@ -5,8 +5,8 @@ liblet_includes(
   INCLUDES
     core/smartPointerBase.h
     core/smartPointers.h
-    core/TCntPtr.h
     object/smartPointerBase.h
+    smartPtr/cntPtr.h
   INCLUDES_WIN
     core/smartHandles.h    
 )

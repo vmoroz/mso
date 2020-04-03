@@ -6,7 +6,7 @@
 #define LIBLET_COMUTIL_QICASTCORE_H
 #include <guiddef.h>
 #include <comUtil/IUnknownShim.h>
-#include <core/TCntPtr.h>
+#include <smartPtr/cntPtr.h>
 
 //============================================================================
 //

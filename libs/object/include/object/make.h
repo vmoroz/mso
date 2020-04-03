@@ -9,7 +9,7 @@
 
 #ifdef __cplusplus
 
-#include <core/TCntPtr.h>
+#include <smartPtr/cntPtr.h>
 #include <compilerAdapters/cppMacrosDebug.h>
 #include <memoryApi/memoryApi.h>
 

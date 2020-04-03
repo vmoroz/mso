@@ -12,7 +12,7 @@
 #include <compilerAdapters/functionDecorations.h>
 #include <object/smartPointerBase.h>
 #include <core/smartPointers.h>
-#include <core/TCntPtr.h>
+#include <smartPtr/cntPtr.h>
 #include <comUtil/qiCast.h>
 #include <cppExtensions/autoRestore.h>
 

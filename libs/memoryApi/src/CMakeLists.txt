@@ -4,4 +4,5 @@
 liblet_sources(
   SOURCES
     crt/memoryApi.cpp
+    memoryLeakScope_EmptyImpl.cpp
 )

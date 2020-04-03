@@ -13,6 +13,8 @@
   statements are almost always a bug (e.g. Assert(m_foo = fooBar))
 */
 
+#include <debugAssertApi/debugAssertApi.h>
+
 #include <cstdarg>
 #include <cstdint>
 

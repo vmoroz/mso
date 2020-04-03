@@ -264,6 +264,8 @@ private:
   AssertListener m_listener;
 };
 
+enum class AssertResult : uint32_t;
+
 using AssertHandler = AssertResult (*)(const MsoAssertParams& params, const char* szMsg);
 
 /**

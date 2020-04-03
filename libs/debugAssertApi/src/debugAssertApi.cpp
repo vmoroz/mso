@@ -126,12 +126,12 @@ bool IsInAssertHandler() noexcept
 
 }} // namespace Mso::DebugAsserts
 
-LIBLET_PUBLICAPI_APPLE MSOAPI_(void) MsoFAddIgnoredAssertTag(uint32_t tag) noexcept
+LIBLET_PUBLICAPI_APPLE void MsoFAddIgnoredAssertTag(uint32_t tag) noexcept
 {
   Mso::DebugAsserts::DisableAssertTag(tag);
 }
 
-LIBLET_PUBLICAPI_APPLE MSOAPI_(void) MsoFRemoveIgnoredAssertTag(uint32_t tag) noexcept
+LIBLET_PUBLICAPI_APPLE void MsoFRemoveIgnoredAssertTag(uint32_t tag) noexcept
 {
   Mso::DebugAsserts::EnableAssertTag(tag);
 }

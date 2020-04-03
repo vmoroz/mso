@@ -209,9 +209,9 @@ inline void HrFailed(HRESULT hr, _In_z_ const WCHAR* message = L"")
 
 #ifdef MS_TARGET_WINDOWS
 // Code used for all the C++ exceptions
-static const DWORD EXCEPTION_CPLUSPLUS = static_cast<DWORD>(0xE06D7363);
+static const uint32_t EXCEPTION_CPLUSPLUS = static_cast<uint32_t>(0xE06D7363);
 
-inline DWORD FilterCrashExceptions(DWORD exceptionCode) noexcept
+inline uint32_t FilterCrashExceptions(uint32_t exceptionCode) noexcept
 {
   if ((exceptionCode == EXCEPTION_BREAKPOINT) // allow exceptions to get to the debugger
       || (exceptionCode == EXCEPTION_SINGLE_STEP) // allow exceptions to get to the debugger

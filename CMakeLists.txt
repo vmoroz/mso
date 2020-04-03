@@ -2,10 +2,13 @@
 # Licensed under the MIT license.
 
 # set minimum cmake version
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+cmake_policy(SET CMP0092 NEW)
 
 # project name and language
-project(Mso LANGUAGES CXX)
+project(Mso
+  HOMEPAGE_URL "https://github.com/microsoft/Mso"
+  LANGUAGES CXX)
 
 # include liblet.cmake with liblet-specific functions
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake")

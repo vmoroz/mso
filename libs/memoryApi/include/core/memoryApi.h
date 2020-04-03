@@ -19,7 +19,7 @@ See MsoMemory.h for information about operator new.
 
 #ifndef MsoSetLazyLeakDetection
 #ifdef DEBUG
-LIBLET_PUBLICAPI_EX("android", "win") MSOAPI_(void) MsoSetLazyLeakDetection(const void* pv) noexcept;
+LIBLET_PUBLICAPI_EX("android", "win") void MsoSetLazyLeakDetection(const void* pv) noexcept;
 #else
 #define MsoSetLazyLeakDetection(pv) 0
 #endif // DEBUG
@@ -27,7 +27,7 @@ LIBLET_PUBLICAPI_EX("android", "win") MSOAPI_(void) MsoSetLazyLeakDetection(cons
 
 #ifndef MsoSetShutdownLeakDetection
 #ifdef DEBUG
-LIBLET_PUBLICAPI_EX("android", "win") MSOAPI_(void) MsoSetShutdownLeakDetection(const void* pv) noexcept;
+LIBLET_PUBLICAPI_EX("android", "win") void MsoSetShutdownLeakDetection(const void* pv) noexcept;
 #else
 #define MsoSetShutdownLeakDetection(pv) 0
 #endif // DEBUG
@@ -44,20 +44,19 @@ struct ILibletMemoryMarking
 #ifdef DEBUG
 struct IMsoMemHeap;
 LIBLET_PUBLICAPI_EX("android", "win")
-MSOAPI_(BOOL)
-FMemHeapMsoSaveBeHost(void* pinst, LPARAM lParam, const void* pvBlock, LONG_PTR cb, IMsoMemHeap* pmmh) MSONOEXCEPT;
-LIBLET_PUBLICAPI_EX("android", "win") MSOAPI_(void) MsoCheckShutdownLeaks() noexcept;
-LIBLET_PUBLICAPI_EX("win") MSOAPI_(void) HeapEnableLeakTracking(bool isEnabled);
-LIBLET_PUBLICAPI_EX("win") MSOAPI_(void) MsoBeforeThreadTerminatesThreaded(DWORD mainThreadId) noexcept;
+BOOL FMemHeapMsoSaveBeHost(void* pinst, LPARAM lParam, const void* pvBlock, LONG_PTR cb, IMsoMemHeap* pmmh) MSONOEXCEPT;
+LIBLET_PUBLICAPI_EX("android", "win") void MsoCheckShutdownLeaks() noexcept;
+LIBLET_PUBLICAPI_EX("win") void HeapEnableLeakTracking(bool isEnabled);
+LIBLET_PUBLICAPI_EX("win") void MsoBeforeThreadTerminatesThreaded(DWORD mainThreadId) noexcept;
 #endif
 LIBLET_PUBLICAPI_EX("android", "win") __declspec(noreturn) void ThrowOOM();
 
 namespace Mso { namespace Memory {
 #ifdef DEBUG
 LIBLET_PUBLICAPI_EX("android", "win")
-MSOCPPAPI_(void) RegisterCallback(Mso::LibletAPI::ILibletMemoryMarking& libletCallback) noexcept;
+void RegisterCallback(Mso::LibletAPI::ILibletMemoryMarking& libletCallback) noexcept;
 LIBLET_PUBLICAPI_EX("android", "win")
-MSOCPPAPI_(void) UnregisterCallback(Mso::LibletAPI::ILibletMemoryMarking& libletCallback) noexcept;
+void UnregisterCallback(Mso::LibletAPI::ILibletMemoryMarking& libletCallback) noexcept;
 
 /**
 Helper class to register arbitrary callback for memory marking

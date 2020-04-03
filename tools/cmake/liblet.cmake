@@ -45,6 +45,13 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
 endif()
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  set(WIN_TARGET_ARCH $ENV{VSCMD_ARG_TGT_ARCH})
+  if(${WIN_TARGET_ARCH} STREQUAL "")
+    message(FATAL_ERROR "Error: environment variable VSCMD_ARG_TGT_ARCH is not set (required for Windows builds). Are you using a Visual Studio Tools Command Prompt?")
+  endif()
+endif()
+
 function(liblet LIBLET_TARGET)
   # DEPENDS         - liblet dependencies for all platforms
   # DEPENDS_ANDROID - liblet dependencies for Android
@@ -195,6 +202,20 @@ function(liblet_tests)
       Mso::motifCpp
       ${${LIBLET_TESTS_TARGET}_DEPENDS}
   )
+
+  if(${MSO_LIBLET_PLATFORM} STREQUAL WIN32 OR ${MSO_LIBLET_PLATFORM} STREQUAL WINRT)
+    install(
+      TARGETS ${LIBLET_TESTS_TARGET}
+      DESTINATION ${MSO_LIBLET_PLATFORM}/${CMAKE_BUILD_TYPE}/${WIN_TARGET_ARCH}
+      COMPONENT tests
+    )
+  else()
+    install(
+      TARGETS ${LIBLET_TESTS_TARGET}
+      DESTINATION ${MSO_LIBLET_PLATFORM}/${CMAKE_BUILD_TYPE}
+      COMPONENT tests
+    )
+  endif()
 endfunction()
 
 function(_liblet_platform_args RESULT_PREFIX ARG_PREFIXES)
@@ -272,6 +293,14 @@ function(_liblet_set_platform_definitions TARGET)
     message(FATAL_ERROR "Unknown MSO_LIBLET_PLATFORM: \"${MSO_LIBLET_PLATFORM}\"")
   endif()
 
+  if (CMAKE_BUILD_TYPE STREQUAL Debug)
+    target_compile_definitions(${TARGET} PRIVATE DEBUG _DEBUG)
+  endif()
+
+  if (CMAKE_CXX_STANDARD EQUAL 17)
+    target_compile_definitions(${TARGET} PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
+  endif()
+
   if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(${TARGET}
       PRIVATE
@@ -280,10 +309,6 @@ function(_liblet_set_platform_definitions TARGET)
         -Wno-ignored-attributes
         -Wno-nonportable-include-path
     )
-  endif()
-
-  if (CMAKE_CXX_STANDARD EQUAL 17)
-    target_compile_definitions(${TARGET} PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS)
   endif()
 endfunction()
 

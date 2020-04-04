@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-#include "precomp.h"
 #include <compilerAdapters/compilerWarnings.h>
 #include <functional/functor.h>
 #include <object/refCountedObject.h>
@@ -1531,7 +1530,7 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
     TestCheckEqual(10, f1(4, 6));
   }
 
-  TES_TMETHOD(Functor_operator_call_Throws)
+  TEST_METHOD(Functor_operator_call_Throws)
   {
     Mso::Functor<int(int) noexcept> f1 = ([](int) noexcept -> int {
       OACR_NOEXCEPT_MAYTERMINATE;
@@ -1542,7 +1541,7 @@ TestClassComponent(FunctorNoexceptTest, Mso.Functor.Noexcept) TEST_CLASS (Functo
     TestCheckTerminate(f1(5));
   }
 
-  TES_TMETHOD(Functor_operator_call_StdFunction_Throws)
+  TEST_METHOD(Functor_operator_call_StdFunction_Throws)
   {
     int callCount = 0;
     auto func = std::function<int(int)>([&callCount](int) -> int {

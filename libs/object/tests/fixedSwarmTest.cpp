@@ -8,7 +8,6 @@ Unit tests for classes in the ObjectSwarm.h
 #include <object/fixedSwarm.h>
 #include <object/unknownObject.h>
 #include <object/refCountedObject.h>
-#include <test/skipSEHUT.h>
 #include <motifCpp/testCheck.h>
 
 //#define TEST_BAD_INHERITANCE1 // Uncomment to confirm VEC, but observe a memory leak. We cannot safely destroy this

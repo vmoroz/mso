@@ -44,8 +44,6 @@
   };                                                                                                                  \
   virtual void methodName()
 
-#define TEST_METHOD(methodName) TEST_METHOD(methodName)
-
 #define TestClassComponent(x1, x2)
 
 // Allows a test to be compiled, but not executed

@@ -1,13 +1,15 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-#include <combaseapi.h>
-#include <atomic>
-#include <functional>
+#include <comUtil/qiCast.h>
 #include <motifCpp/testCheck.h>
 #include <object/refCountedObject.h>
 #include <object/unknownObject.h>
-#include <comUtil/qiCast.h>
+
+#include <combaseapi.h>
+
+#include <atomic>
+#include <functional>
 
 MSO_STRUCT_GUID(ISimpleUnknown, "C70B7853-1EDB-4AB8-B2D2-F9951A99A847")
 struct DECLSPEC_NOVTABLE ISimpleUnknown : public IUnknown
@@ -15,7 +17,6 @@ struct DECLSPEC_NOVTABLE ISimpleUnknown : public IUnknown
   virtual void DoSomething() = 0;
 };
 
-TestClassComponent(CntPtrRefTest, Mso.CntPtrRef);
 TEST_CLASS (CntPtrRefTest)
 {
   struct ISimple : public Mso::IRefCounted

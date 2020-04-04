@@ -8,7 +8,7 @@
 #include <comUtil/qiCast.h>
 #include <eventWaitHandle/eventWaitHandle.h>
 #include <motifCpp/testCheck.h>
-#include <testAllocators.h>
+#include "testAllocators.h"
 
 
 //#define TEST_BAD_INHERITANCE1 // Uncomment to see compilation error
@@ -1378,7 +1378,7 @@ TEST_CLASS (UnknownObjectTest)
     TestAssert::IsTrue(isAsyncDestroy);
   }
 
-  TESTMETHOD_REQUIRES_SEH(UnknownObject_QI_NullPtr)
+  TEST_METHOD(UnknownObject_QI_NullPtr)
   {
     Mso::CntPtr<IBaseSample1> base1 = Mso::Make<UnknownSample21, IBaseSample1>();
 

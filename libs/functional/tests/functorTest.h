@@ -1,13 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/****************************************************************************
-Common code for functor (Functor, SmallFunctor) unit tests.
-****************************************************************************/
 
 #include <object/refCountedObject.h>
 
-namespace FunctorTestsCommon {
+namespace FunctionalTests {
 
 class TestData : public Mso::RefCountedObjectNoVTable<TestData>
 {
@@ -92,4 +89,4 @@ static Derived& DerivedFromBaseClass(BaseClass& baseClass) noexcept
   return derived;
 }
 
-} // namespace FunctorTestsCommon
+} // namespace FunctionalTests

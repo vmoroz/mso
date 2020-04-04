@@ -1,19 +1,11 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/****************************************************************************
-Unit tests for classes in the ObjectWeakPtr.h
-****************************************************************************/
-
-#include "precomp.h"
-
-#include <compilerAdapters/compilerWarnings.h>
 #include <object/weakPtr.h>
-#include <object/refCountedObject.h>
-#include <test/skipSEHUT.h>
 #include <motifCpp/testCheck.h>
+#include <object/refCountedObject.h>
 
-struct DECLSPEC_NOVTABLE IWeakPtrSample1 : public Mso::IRefCounted
+struct DECLSPEC_NOVTABLE IWeakPtrSample1 : Mso::IRefCounted
 {
   virtual int GetValue1() = 0;
 };
@@ -84,8 +76,11 @@ private:
   bool& m_deleted;
 };
 
-TestClassComponent(ObjectWeakPtrTest, Mso.ObjectWeakPtr)
-    TEST_CLASS (ObjectWeakPtrTest){TEST_METHOD(WeakPtr_Default){Mso::WeakPtr<WeakPtrSample1> weakPtr;
+TEST_CLASS (ObjectWeakPtrTest)
+{
+  TEST_METHOD(WeakPtr_Default)
+  {
+    Mso::WeakPtr<WeakPtrSample1> weakPtr;
 
 TestAssert::IsTrue(weakPtr.IsExpired());
 TestAssert::IsNull(weakPtr.GetStrongPtr().Get(), L"Expected null");
@@ -104,7 +99,7 @@ TEST_METHOD(WeakPtr_PointerAndWeakRef1)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr(ptr.Get(), &ptr->GetWeakRef());
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -119,7 +114,7 @@ TEST_METHOD(WeakPtr_PointerAndWeakRef21)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<IWeakPtrSample1> weakPtr(ptr.Get(), &ptr->GetWeakRef());
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -135,7 +130,7 @@ TEST_METHOD(WeakPtr_PointerAndWeakRef22)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
 
     Mso::WeakPtr<IWeakPtrSample2> weakPtr1(ptr.Get());
     TestAssert::IsFalse(weakPtr1.IsExpired());
@@ -155,7 +150,7 @@ TEST_METHOD(WeakPtr_PointerAndWeakRef3)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<IWeakPtrSample1> weakPtr(static_cast<IWeakPtrSample1*>(ptr.Get()), &ptr->GetWeakRef());
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -170,7 +165,7 @@ TEST_METHOD(WeakPtr_NullPointerAndWeakRef)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     WeakPtrSample1* ptrNull = nullptr;
     Mso::WeakPtr<WeakPtrSample1> weakPtr(ptrNull, &ptr->GetWeakRef());
 
@@ -185,7 +180,7 @@ TEST_METHOD(WeakPtr_Pointer1)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr(ptr.Get());
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -200,7 +195,7 @@ TEST_METHOD(WeakPtr_Pointer2)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<IWeakPtrSample1> weakPtr(ptr.Get());
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -221,11 +216,11 @@ TEST_METHOD(WeakPtr_NullPointer)
 }
 
 // Pointer to a WeakPtrSample1 assigned to Mso::WeakPtr<WeakPtrSample1>
-TEST_METHOD(WeakPtr_TCntPtrAndWeakRef1)
+TEST_METHOD(WeakPtr_CntPtrAndWeakRef1)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr(ptr, &ptr->GetWeakRef());
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -235,12 +230,12 @@ TEST_METHOD(WeakPtr_TCntPtrAndWeakRef1)
   TestAssert::IsTrue(deleted);
 }
 
-// Mso::TCntPtr<WeakPtrSample1> is assigned to Mso::WeakPtr<IWeakPtrSample1>
-TEST_METHOD(WeakPtr_TCntPtrAndWeakRef21)
+// Mso::CntPtr<WeakPtrSample1> is assigned to Mso::WeakPtr<IWeakPtrSample1>
+TEST_METHOD(WeakPtr_CntPtrAndWeakRef21)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<IWeakPtrSample1> weakPtr(ptr, &ptr->GetWeakRef());
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -250,12 +245,12 @@ TEST_METHOD(WeakPtr_TCntPtrAndWeakRef21)
   TestAssert::IsTrue(deleted);
 }
 
-// Mso::TCntPtr<WeakPtrSample1> is assigned to Mso::WeakPtr<IWeakPtrSample1>
-TEST_METHOD(WeakPtr_TCntPtrAndWeakRef22)
+// Mso::CntPtr<WeakPtrSample1> is assigned to Mso::WeakPtr<IWeakPtrSample1>
+TEST_METHOD(WeakPtr_CntPtrAndWeakRef22)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
 
     Mso::WeakPtr<IWeakPtrSample2> weakPtr1(ptr);
     TestAssert::IsFalse(weakPtr1.IsExpired());
@@ -271,12 +266,12 @@ TEST_METHOD(WeakPtr_TCntPtrAndWeakRef22)
 }
 
 // Pointer to a IWeakPtrSample1 assigned to Mso::WeakPtr<IWeakPtrSample1>
-TEST_METHOD(WeakPtr_TCntPtrAndWeakRef3)
+TEST_METHOD(WeakPtr_CntPtrAndWeakRef3)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
-    Mso::WeakPtr<IWeakPtrSample1> weakPtr(static_cast<IWeakPtrSample1*>(ptr), &ptr->GetWeakRef());
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+      Mso::WeakPtr<IWeakPtrSample1> weakPtr(static_cast<IWeakPtrSample1*>(ptr.Get()), &ptr->GetWeakRef());
 
     TestAssert::IsFalse(weakPtr.IsExpired());
     TestAssert::IsNotNull(weakPtr.GetStrongPtr().Get());
@@ -286,13 +281,13 @@ TEST_METHOD(WeakPtr_TCntPtrAndWeakRef3)
 }
 
 // Null pointer to a WeakPtrSample1 assigned to Mso::WeakPtr<WeakPtrSample1>
-TEST_METHOD(WeakPtr_NullTCntPtrAndWeakRef)
+TEST_METHOD(WeakPtr_NullCntPtrAndWeakRef)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
-    Mso::TCntPtr<WeakPtrSample1> ptrNull = nullptr;
-    Mso::WeakPtr<WeakPtrSample1> weakPtr(ptrNull, &ptr->GetWeakRef());
+      Mso::CntPtr<WeakPtrSample1> ptr{Mso::Make<WeakPtrSample1>(/*ref*/ deleted)};
+      Mso::CntPtr<WeakPtrSample1> ptrNull{nullptr};
+      Mso::WeakPtr<WeakPtrSample1> weakPtr{ptrNull, &ptr->GetWeakRef()};
 
     TestAssert::IsTrue(weakPtr.IsExpired());
     TestAssert::IsNull(weakPtr.GetStrongPtr().Get());
@@ -301,11 +296,11 @@ TEST_METHOD(WeakPtr_NullTCntPtrAndWeakRef)
 }
 
 // Pointer to a WeakPtrSample1 assigned to Mso::WeakPtr<WeakPtrSample1>
-TEST_METHOD(WeakPtr_TCntPtr1)
+TEST_METHOD(WeakPtr_CntPtr1)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr(ptr);
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -316,11 +311,11 @@ TEST_METHOD(WeakPtr_TCntPtr1)
 }
 
 // Pointer to a WeakPtrSample1 assigned to Mso::WeakPtr<IWeakPtrSample1>
-TEST_METHOD(WeakPtr_TCntPtr2)
+TEST_METHOD(WeakPtr_CntPtr2)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<IWeakPtrSample1> weakPtr(ptr);
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -331,10 +326,10 @@ TEST_METHOD(WeakPtr_TCntPtr2)
 }
 
 // Null pointer to a WeakPtrSample1 assigned to Mso::WeakPtr<WeakPtrSample1>
-TEST_METHOD(WeakPtr_NullTCntPtr)
+TEST_METHOD(WeakPtr_NullCntPtr)
 {
-  Mso::TCntPtr<WeakPtrSample1> ptrNull = nullptr;
-  Mso::WeakPtr<WeakPtrSample1> weakPtr(ptrNull);
+    Mso::CntPtr<WeakPtrSample1> ptrNull{nullptr};
+    Mso::WeakPtr<WeakPtrSample1> weakPtr{ptrNull};
 
   TestAssert::IsTrue(weakPtr.IsExpired());
   TestAssert::IsNull(weakPtr.GetStrongPtr().Get());
@@ -344,7 +339,7 @@ TEST_METHOD(WeakPtr_CopyConstructor)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     Mso::WeakPtr<WeakPtrSample1> weakPtr2(weakPtr1);
 
@@ -363,7 +358,7 @@ TEST_METHOD(WeakPtr_CopyConstructorInterface)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     Mso::WeakPtr<IWeakPtrSample1> weakPtr2(weakPtr1);
 
@@ -382,7 +377,7 @@ TEST_METHOD(WeakPtr_CopyConstructorInterface2)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     Mso::WeakPtr<IWeakPtrSample2> weakPtr2(weakPtr1);
 
@@ -401,7 +396,7 @@ TEST_METHOD(WeakPtr_MoveConstructor)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     Mso::WeakPtr<WeakPtrSample1> weakPtr2(std::move(weakPtr1));
 
@@ -419,7 +414,7 @@ TEST_METHOD(WeakPtr_MoveConstructorInterface)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     Mso::WeakPtr<IWeakPtrSample1> weakPtr2(std::move(weakPtr1));
 
@@ -437,7 +432,7 @@ TEST_METHOD(WeakPtr_MoveConstructorInterface2)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     Mso::WeakPtr<IWeakPtrSample2> weakPtr2(std::move(weakPtr1));
 
@@ -455,7 +450,7 @@ TEST_METHOD(WeakPtr_NullAssignment)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
 
     weakPtr1 = nullptr;
@@ -471,7 +466,7 @@ TEST_METHOD(WeakPtr_PointerAssignment1)
   bool deleted = false;
   {
     Mso::WeakPtr<WeakPtrSample1> weakPtr;
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     weakPtr = ptr.Get();
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -487,7 +482,7 @@ TEST_METHOD(WeakPtr_PointerAssignment21)
   bool deleted = false;
   {
     Mso::WeakPtr<IWeakPtrSample1> weakPtr;
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     weakPtr = ptr.Get();
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -503,7 +498,7 @@ TEST_METHOD(WeakPtr_PointerAssignment22)
   bool deleted = false;
   {
     Mso::WeakPtr<IWeakPtrSample2> weakPtr;
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     weakPtr = ptr.Get();
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -520,7 +515,7 @@ TEST_METHOD(WeakPtr_NullPointerAssignment)
   {
     Mso::WeakPtr<IWeakPtrSample1> weakPtr;
     WeakPtrSample1* ptrNull = nullptr;
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     weakPtr = ptrNull;
 
     TestAssert::IsTrue(weakPtr.IsExpired());
@@ -529,13 +524,13 @@ TEST_METHOD(WeakPtr_NullPointerAssignment)
   TestAssert::IsTrue(deleted);
 }
 
-// TCntPtr with a WeakPtrSample1 assigned to Mso::WeakPtr<WeakPtrSample1>
-TEST_METHOD(WeakPtr_TCntPtrAssignment1)
+// CntPtr with a WeakPtrSample1 assigned to Mso::WeakPtr<WeakPtrSample1>
+TEST_METHOD(WeakPtr_CntPtrAssignment1)
 {
   bool deleted = false;
   {
     Mso::WeakPtr<WeakPtrSample1> weakPtr;
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     weakPtr = ptr;
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -545,13 +540,13 @@ TEST_METHOD(WeakPtr_TCntPtrAssignment1)
   TestAssert::IsTrue(deleted);
 }
 
-// TCntPtr with a WeakPtrSample1 assigned to Mso::WeakPtr<IWeakPtrSample1>
-TEST_METHOD(WeakPtr_TCntPtrAssignment21)
+// CntPtr with a WeakPtrSample1 assigned to Mso::WeakPtr<IWeakPtrSample1>
+TEST_METHOD(WeakPtr_CntPtrAssignment21)
 {
   bool deleted = false;
   {
     Mso::WeakPtr<IWeakPtrSample1> weakPtr;
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     weakPtr = ptr;
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -561,13 +556,13 @@ TEST_METHOD(WeakPtr_TCntPtrAssignment21)
   TestAssert::IsTrue(deleted);
 }
 
-// TCntPtr with a WeakPtrSample1 assigned to Mso::WeakPtr<IWeakPtrSample2>
-TEST_METHOD(WeakPtr_TCntPtrAssignment22)
+// CntPtr with a WeakPtrSample1 assigned to Mso::WeakPtr<IWeakPtrSample2>
+TEST_METHOD(WeakPtr_CntPtrAssignment22)
 {
   bool deleted = false;
   {
     Mso::WeakPtr<IWeakPtrSample2> weakPtr;
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     weakPtr = ptr;
 
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -577,14 +572,14 @@ TEST_METHOD(WeakPtr_TCntPtrAssignment22)
   TestAssert::IsTrue(deleted);
 }
 
-// TCntPtr with a Null pointer to a WeakPtrSample1 assigned to Mso::WeakPtr<WeakPtrSample1>
-TEST_METHOD(WeakPtr_NullTCntPtrAssignment)
+// CntPtr with a Null pointer to a WeakPtrSample1 assigned to Mso::WeakPtr<WeakPtrSample1>
+TEST_METHOD(WeakPtr_NullCntPtrAssignment)
 {
   bool deleted = false;
   {
     Mso::WeakPtr<IWeakPtrSample1> weakPtr;
-    Mso::TCntPtr<WeakPtrSample1> ptrNull = nullptr;
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+      Mso::CntPtr<WeakPtrSample1> ptrNull{nullptr};
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     weakPtr = ptrNull;
 
     TestAssert::IsTrue(weakPtr.IsExpired());
@@ -598,7 +593,7 @@ TEST_METHOD(WeakPtr_CopyAssignment)
   Mso::WeakPtr<WeakPtrSample1> weakPtr2;
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     weakPtr2 = weakPtr1;
 
@@ -620,7 +615,7 @@ TEST_METHOD(WeakPtr_CopyAssignmentInterface)
   Mso::WeakPtr<IWeakPtrSample1> weakPtr2;
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     weakPtr2 = weakPtr1;
 
@@ -642,7 +637,7 @@ TEST_METHOD(WeakPtr_CopyAssignmentInterface2)
   Mso::WeakPtr<IWeakPtrSample2> weakPtr2;
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     weakPtr2 = weakPtr1;
 
@@ -663,7 +658,7 @@ TEST_METHOD(WeakPtr_CopyAssignmentSamePtr)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
 
     OACR_WARNING_SUPPRESS(IDENTITY_ASSIGNMENT, "We want to test our code that nothing bad happens in this case");
@@ -683,7 +678,7 @@ TEST_METHOD(WeakPtr_MoveAssignment)
   Mso::WeakPtr<WeakPtrSample1> weakPtr2;
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     weakPtr2 = std::move(weakPtr1);
 
@@ -704,7 +699,7 @@ TEST_METHOD(WeakPtr_MoveAssignmentInterface)
   Mso::WeakPtr<IWeakPtrSample1> weakPtr2;
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     weakPtr2 = std::move(weakPtr1);
 
@@ -725,7 +720,7 @@ TEST_METHOD(WeakPtr_MoveAssignmentInterface2)
   Mso::WeakPtr<IWeakPtrSample2> weakPtr2;
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
     weakPtr2 = std::move(weakPtr1);
 
@@ -745,7 +740,7 @@ TEST_METHOD(WeakPtr_MoveAssignmentSamePtr)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr);
 
     BEGIN_DISABLE_WARNING_SELF_MOVE()
@@ -763,7 +758,7 @@ TEST_METHOD(WeakPtr_PassToLambda)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     auto func = ptr->PassThisToLambda();
     func();
   }
@@ -786,7 +781,7 @@ TEST_METHOD(WeakPtr_IsEmptyOnObjectConstructedWithNonNullArg)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/* ref */ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/* ref */ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr = ptr;
     TestAssert::IsFalse(weakPtr.IsEmpty());
   }
@@ -797,7 +792,7 @@ TEST_METHOD(WeakPtr_IsEmptyOnExpiredObject)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/* ref */ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr = Mso::Make<WeakPtrSample1>(/* ref */ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr = ptr;
     TestAssert::IsFalse(weakPtr.IsEmpty());
     TestAssert::IsFalse(weakPtr.IsExpired());
@@ -815,7 +810,7 @@ TEST_METHOD(WeakPtr_EqualityOperator)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<WeakPtrSample1> ptr1 = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<WeakPtrSample1> ptr1 = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<WeakPtrSample1> weakPtr1(ptr1);
 
     Mso::WeakPtr<WeakPtrSample1> weakPtr2 = weakPtr1;
@@ -832,18 +827,18 @@ TEST_METHOD(WeakPtr_EqualityOperator)
   TestAssert::IsTrue(deleted);
 }
 
-TEST_METHOD(WeakPtr_CanConvertFromTCntPtrToIWeakRefCounted)
+TEST_METHOD(WeakPtr_CanConvertFromCntPtrToIWeakRefCounted)
 {
   bool deleted = false;
   {
-    // convert TCntPtr to IWeakRefCounted-derived interface to WeakPtr to that interface
-    Mso::TCntPtr<IWeakPtrSample3> ptr1 = Mso::Make<WeakPtrSample3>(/*ref*/ deleted);
+    // convert CntPtr to IWeakRefCounted-derived interface to WeakPtr to that interface
+    Mso::CntPtr<IWeakPtrSample3> ptr1 = Mso::Make<WeakPtrSample3>(/*ref*/ deleted);
     Mso::WeakPtr<IWeakPtrSample3> weakPtr1(ptr1);
     TestAssert::IsFalse(weakPtr1.IsEmpty());
     TestAssert::IsFalse(weakPtr1.IsExpired());
 
     // transfer the strong reference from ptr1 to ptr2 using weakPtr1
-    Mso::TCntPtr<IWeakPtrSample3> ptr2 = weakPtr1.GetStrongPtr();
+    Mso::CntPtr<IWeakPtrSample3> ptr2 = weakPtr1.GetStrongPtr();
     ptr1 = nullptr;
     TestAssert::IsFalse(weakPtr1.IsEmpty());
     TestAssert::IsFalse(weakPtr1.IsExpired());
@@ -856,11 +851,11 @@ TEST_METHOD(WeakPtr_CanConvertFromTCntPtrToIWeakRefCounted)
   TestAssert::IsTrue(deleted);
 }
 
-TESTMETHOD_REQUIRES_SEH(WeakPtr_CannotConvertFromTCntPtrToIRefCounted)
+TEST_METHOD(WeakPtr_CannotConvertFromCntPtrToIRefCounted)
 {
   bool deleted = false;
   {
-    Mso::TCntPtr<IWeakPtrSample1> ptr1 = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
+    Mso::CntPtr<IWeakPtrSample1> ptr1 = Mso::Make<WeakPtrSample1>(/*ref*/ deleted);
     Mso::WeakPtr<IWeakPtrSample1> weakPtr1;
     TestAssert::ExpectVEC([&]() noexcept {
       weakPtr1 = ptr1; // tag_bad22 is expected here

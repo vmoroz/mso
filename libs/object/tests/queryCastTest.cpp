@@ -1,11 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-/****************************************************************************
-Unit tests for classes in the ObjectQueryCast.h
-****************************************************************************/
-
-#include "precomp.h"
 #include <object/queryCast.h>
 #include <motifCpp/testCheck.h>
 
@@ -484,9 +479,11 @@ inline TTarget* TraitsQueryCast(const TSource& source, const GUID& riid = __uuid
   return nullptr;
 }
 
-TestClassComponent(ObjectQueryCastTest, Mso.ObjectQueryCast)
-    TEST_CLASS (ObjectQueryCastTest){// Use GUID by default.
-                                     TEST_METHOD(QueryCastTraits_Guid){QueryCastTraitsSample1 obj;
+TEST_CLASS (ObjectQueryCastTest)
+{ // Use GUID by default.
+  TEST_METHOD(QueryCastTraits_Guid)
+  {
+    QueryCastTraitsSample1 obj;
 
 auto base1 = TraitsQueryCast<IQueryCastBase1, IQueryCastBase1*>(&obj);
 TestAssert::IsNotNull(base1);
@@ -697,5 +694,4 @@ TEST_METHOD(QueryCastHidden_ForwardCtorArgs)
   TestAssert::AreEqual(5, testStruct.m_int);
   TestAssert::AreEqual("asdf", testStruct.m_string.c_str());
 }
-}
-;
+};

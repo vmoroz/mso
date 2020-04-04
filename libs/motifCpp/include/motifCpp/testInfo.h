@@ -44,7 +44,7 @@
   };                                                                                                                  \
   virtual void methodName()
 
-#define TESTMETHOD_REQUIRES_SEH(methodName) TEST_METHOD(methodName)
+#define TEST_METHOD(methodName) TEST_METHOD(methodName)
 
 #define TestClassComponent(x1, x2)
 

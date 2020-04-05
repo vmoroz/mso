@@ -5,9 +5,10 @@
 #ifndef MSO_ERRORCODE_MAYBE_H
 #define MSO_ERRORCODE_MAYBE_H
 
-#include "crash/verifyElseCrash.h"
-#include "errorCode/errorCode.h"
-#include "memoryApi/memoryApi.h"
+#include <compilerAdapters/compilerWarnings.h>
+#include <crash/verifyElseCrash.h>
+#include <errorCode/errorCode.h>
+#include <memoryApi/memoryApi.h>
 
 #pragma pack(push, _CRT_PACKING)
 
@@ -82,12 +83,13 @@ public:
 private:
   MaybeKind m_kind{MaybeKind::Value};
 
-#pragma warning(suppress : 4624) // union's destructor is implicitly defined as deleted.
+  BEGIN_DISABLE_WARNING_DESTRUCTOR_IMPLICITLY_DELETED()
   union
   {
     ErrorCode m_error;
     T m_value;
   };
+  END_DISABLE_WARNING_DESTRUCTOR_IMPLICITLY_DELETED()
 };
 
 template <>
@@ -116,12 +118,13 @@ public:
 private:
   MaybeKind m_kind{MaybeKind::Value};
 
-#pragma warning(suppress : 4624) // union's destructor is implicitly defined as deleted.
+  BEGIN_DISABLE_WARNING_DESTRUCTOR_IMPLICITLY_DELETED()
   union
   {
     ErrorCode m_error;
     uint8_t m_dummy; // not used. It is only needed to keep the m_error in a union.
   };
+  END_DISABLE_WARNING_DESTRUCTOR_IMPLICITLY_DELETED()
 };
 
 //============================================================================================
@@ -195,9 +198,9 @@ Maybe<T>::Maybe(ErrorCode&& error) noexcept : m_kind(MaybeKind::Error)
   ::new (&m_error) Mso::ErrorCode(std::move(error));
 }
 
+BEGIN_DISABLE_WARNING_DESTRUCTOR_NOT_IMPLICITLY_CALLED()
 template <class T>
 Maybe<T>::~Maybe() noexcept
-#pragma warning(suppress : 4583) //  destructor is not implicitly called
 {
   switch (m_kind)
   {
@@ -205,10 +208,11 @@ Maybe<T>::~Maybe() noexcept
     case MaybeKind::Error: (&m_error)->~ErrorCode(); break;
   }
 }
+END_DISABLE_WARNING_DESTRUCTOR_NOT_IMPLICITLY_CALLED()
 
+BEGIN_DISABLE_WARNING_DESTRUCTOR_NOT_IMPLICITLY_CALLED()
 template <class T>
 Maybe<T>& Maybe<T>::operator=(const Maybe& other) noexcept
-#pragma warning(suppress : 4583) //  destructor is not implicitly called for some simple types
 {
   if (this != &other)
   {
@@ -229,10 +233,11 @@ Maybe<T>& Maybe<T>::operator=(const Maybe& other) noexcept
 
   return *this;
 }
+END_DISABLE_WARNING_DESTRUCTOR_NOT_IMPLICITLY_CALLED()
 
+BEGIN_DISABLE_WARNING_DESTRUCTOR_NOT_IMPLICITLY_CALLED()
 template <class T>
 Maybe<T>& Maybe<T>::operator=(Maybe&& other) noexcept
-#pragma warning(suppress : 4583) //  destructor is not implicitly called for some simple types
 {
   if (this != &other)
   {
@@ -255,6 +260,7 @@ Maybe<T>& Maybe<T>::operator=(Maybe&& other) noexcept
 
   return *this;
 }
+END_DISABLE_WARNING_DESTRUCTOR_NOT_IMPLICITLY_CALLED()
 
 template <class T>
 bool Maybe<T>::IsValue() const noexcept
@@ -359,14 +365,15 @@ inline Maybe<void>::Maybe(ErrorCode&& error) noexcept : m_kind(MaybeKind::Error)
   ::new (&m_error) Mso::ErrorCode(std::move(error));
 }
 
+BEGIN_DISABLE_WARNING_DESTRUCTOR_NOT_IMPLICITLY_CALLED()
 inline Maybe<void>::~Maybe() noexcept
-#pragma warning(suppress : 4583) //  destructor is not implicitly called
 {
   if (m_kind == MaybeKind::Error)
   {
     (&m_error)->~ErrorCode();
   }
 }
+END_DISABLE_WARNING_DESTRUCTOR_NOT_IMPLICITLY_CALLED()
 
 inline Maybe<void>& Maybe<void>::operator=(const Maybe& other) noexcept
 {

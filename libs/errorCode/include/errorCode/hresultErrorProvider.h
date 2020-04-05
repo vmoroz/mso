@@ -19,4 +19,4 @@ LIBLET_PUBLICAPI Mso::CntPtr<Mso::IErrorString> ErrorProvider<HRESULT, HResultEr
 
 } // namespace Mso
 
-#endif MSO_ERRORCODE_HRESULTERRORPROVIDER_H
+#endif // MSO_ERRORCODE_HRESULTERRORPROVIDER_H

@@ -139,7 +139,7 @@ void ErrorProvider<T, GuidToken>::Destroy(const ErrorCodeState& state) const noe
     OnUnhandledError(state);
   }
 
-  static_cast<const Details::ErrorCodeInfo<T>&>(state).~ErrorCodeInfo<T>();
+  static_cast<const Details::ErrorCodeInfo<T>&>(state).~ErrorCodeInfo();
   Mso::Memory::Free(const_cast<ErrorCodeState*>(&state));
 }
 

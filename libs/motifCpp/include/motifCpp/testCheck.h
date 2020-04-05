@@ -11,9 +11,12 @@
 // It allows to write more compact code because we do not need to add comment
 // for every TestAssert.
 //
-// All macros have a form with suffix "L" that accept line number as a parameter.
-// It is done to enable creation of custom check macros that internally
-// use the macros we provide.
+// All macros have a form with suffix "At" that accept file name and line number
+// as parameters. They can be used to enable creation of custom check macros
+// that internally use the macros we provide.
+//
+// The "M" suffix allows to provide a message or a printf-like format string
+// with arguments. (In C++20 we can combine them with macros without suffix.)
 //=============================================================================
 
 #include "motifCpp/assert_motifApi.h"
@@ -21,8 +24,10 @@
 //=============================================================================
 // TestCheckFail fails the test unconditionally.
 //=============================================================================
-#define TestCheckFailAt(file, line, ...) TestAssert::FailAt(file, line, TestAssert::FormatMsg("" __VA_ARGS__).c_str())
-#define TestCheckFail(...) TestCheckFailAt(__FILE__, __LINE__, __VA_ARGS__)
+#define TestCheckFailAtM(file, line, ...) TestAssert::FailAt(file, line, TestAssert::FormatMsg("" __VA_ARGS__).c_str())
+#define TestCheckFailAt(file, line) TestAssert::FailAt(file, line, TestAssert::FormatMsg("").c_str())
+#define TestCheckFailM(...) TestCheckFailAtM(__FILE__, __LINE__, __VA_ARGS__)
+#define TestCheckFail() TestCheckFailAt(__FILE__, __LINE__)
 
 //=============================================================================
 // TestCheck checks if provided expression evaluates to true.
@@ -34,8 +39,10 @@
 //=============================================================================
 #define TestCheckAtInternal(file, line, expr, exprStr, ...) \
   TestAssert::IsTrueAt(file, line, expr, exprStr, TestAssert::FormatMsg("" __VA_ARGS__).c_str())
-#define TestCheckAt(file, line, expr, ...) TestCheckAtInternal(file, line, expr, #expr, __VA_ARGS__)
-#define TestCheck(expr, ...) TestCheckAtInternal(__FILE__, __LINE__, expr, #expr, __VA_ARGS__)
+#define TestCheckAtM(file, line, expr, ...) TestCheckAtInternal(file, line, expr, #expr, __VA_ARGS__)
+#define TestCheckAt(file, line, expr) TestCheckAtInternal(file, line, expr, #expr, "")
+#define TestCheckM(expr, ...) TestCheckAtInternal(__FILE__, __LINE__, expr, #expr, __VA_ARGS__)
+#define TestCheck(expr) TestCheckAtInternal(__FILE__, __LINE__, expr, #expr, "")
 
 //=============================================================================
 // TestCheckEqual checks if two provided values are equal.
@@ -45,10 +52,14 @@
 #define TestCheckEqualAtInternal(file, line, expected, actual, expectedStr, actualStr, ...) \
   TestAssert::AreEqualAt(                                                                   \
       file, line, expected, actual, expectedStr, actualStr, TestAssert::FormatMsg("" __VA_ARGS__).c_str())
-#define TestCheckEqualAt(file, line, expected, actual, ...) \
+#define TestCheckEqualAtM(file, line, expected, actual, ...) \
   TestCheckEqualAtInternal(file, line, expected, actual, #expected, #actual, __VA_ARGS__)
-#define TestCheckEqual(expected, actual, ...) \
+#define TestCheckEqualAt(file, line, expected, actual) \
+  TestCheckEqualAtInternal(file, line, expected, actual, #expected, #actual, "")
+#define TestCheckEqualM(expected, actual, ...) \
   TestCheckEqualAtInternal(__FILE__, __LINE__, expected, actual, #expected, #actual, __VA_ARGS__)
+#define TestCheckEqual(expected, actual) \
+  TestCheckEqualAtInternal(__FILE__, __LINE__, expected, actual, #expected, #actual, "")
 
 //=============================================================================
 // TestCheckIgnore ignores the provided expression.
@@ -63,8 +74,10 @@
 #define TestCheckCrashAtInternal(file, line, expr, exprStr, ...) \
   TestAssert::ExpectCrashAt(                                     \
       file, line, [&]() { expr; }, exprStr, TestAssert::FormatMsg("" __VA_ARGS__).c_str())
-#define TestCheckCrashAt(file, line, expr, ...) TestCheckCrashAtInternal(file, line, expr, #expr, __VA_ARGS__)
-#define TestCheckCrash(expr, ...) TestCheckCrashAtInternal(__FILE__, __LINE__, expr, #expr, __VA_ARGS__)
+#define TestCheckCrashAtM(file, line, expr, ...) TestCheckCrashAtInternal(file, line, expr, #expr, __VA_ARGS__)
+#define TestCheckCrashAt(file, line, expr) TestCheckCrashAtInternal(file, line, expr, #expr, "")
+#define TestCheckCrashM(expr, ...) TestCheckCrashAtInternal(__FILE__, __LINE__, expr, #expr, __VA_ARGS__)
+#define TestCheckCrash(expr) TestCheckCrashAtInternal(__FILE__, __LINE__, expr, #expr, "")
 
 //=============================================================================
 // TestCheckTerminate expects that the provided expression causes process termination
@@ -78,8 +91,10 @@
 #define TestCheckTerminateAtInternal(file, line, expr, exprStr, ...) \
   TestAssert::ExpectTerminateAt(                                     \
       file, line, [&]() { expr; }, exprStr, TestAssert::FormatMsg("" __VA_ARGS__).c_str())
-#define TestCheckTerminateAt(file, line, expr, ...) TestCheckTerminateAtInternal(file, line, expr, #expr, __VA_ARGS__)
-#define TestCheckTerminate(expr, ...) TestCheckTerminateAtInternal(__FILE__, __LINE__, expr, #expr, __VA_ARGS__)
+#define TestCheckTerminateAtM(file, line, expr, ...) TestCheckTerminateAtInternal(file, line, expr, #expr, __VA_ARGS__)
+#define TestCheckTerminateAt(file, line, expr) TestCheckTerminateAtInternal(file, line, expr, #expr, "")
+#define TestCheckTerminateM(expr, ...) TestCheckTerminateAtInternal(__FILE__, __LINE__, expr, #expr, __VA_ARGS__)
+#define TestCheckTerminate(expr) TestCheckTerminateAtInternal(__FILE__, __LINE__, expr, #expr, "")
 
 //=============================================================================
 // TestCheckException expects that the provided expression throws an exception.
@@ -95,10 +110,12 @@
       exStr,                                                                    \
       exprStr,                                                                  \
       TestAssert::FormatMsg("" __VA_ARGS__).c_str())
-#define TestCheckExceptionAt(file, line, ex, expr, ...) \
+#define TestCheckExceptionAtM(file, line, ex, expr, ...) \
   TestCheckExceptionAtInternal(file, line, ex, expr, #ex, #expr, __VA_ARGS__)
-#define TestCheckException(ex, expr, ...) \
+#define TestCheckExceptionAt(file, line, ex, expr) TestCheckExceptionAtInternal(file, line, ex, expr, #ex, #expr, "")
+#define TestCheckExceptionM(ex, expr, ...) \
   TestCheckExceptionAtInternal(__FILE__, __LINE__, ex, expr, #ex, #expr, __VA_ARGS__)
+#define TestCheckException(ex, expr) TestCheckExceptionAtInternal(__FILE__, __LINE__, ex, expr, #ex, #expr, "")
 
 //=============================================================================
 // TestCheckNoThrow expects that the provided expression does not throw an exception.
@@ -106,8 +123,10 @@
 #define TestCheckNoThrowAtInternal(file, line, expr, exprStr, ...) \
   TestAssert::ExpectNoThrowAt(                                     \
       file, line, [&]() { expr; }, exprStr, TestAssert::FormatMsg("" __VA_ARGS__).c_str())
-#define TestCheckNoThrowAt(file, line, expr, ...) TestCheckNoThrowAtInternal(file, line, expr, #expr, __VA_ARGS__)
-#define TestCheckNoThrow(expr, ...) TestCheckNoThrowAtInternal(__FILE__, __LINE__, expr, #expr, __VA_ARGS__)
+#define TestCheckNoThrowAtM(file, line, expr, ...) TestCheckNoThrowAtInternal(file, line, expr, #expr, __VA_ARGS__)
+#define TestCheckNoThrowAt(file, line, expr) TestCheckNoThrowAtInternal(file, line, expr, #expr, "")
+#define TestCheckNoThrowM(expr, ...) TestCheckNoThrowAtInternal(__FILE__, __LINE__, expr, #expr, __VA_ARGS__)
+#define TestCheckNoThrow(expr) TestCheckNoThrowAtInternal(__FILE__, __LINE__, expr, #expr, "")
 
 //=============================================================================
 // TestCheckAssert checks for the code to produce assert with specified tag.
@@ -122,11 +141,6 @@
 // It is done by adding the following member to the test class:
 // MemoryLeakDetectionHook::TrackPerTest m_trackLeakPerTest;
 //=============================================================================
-#define TEST_DISABLE_MEMORY_LEAK_DETECTION() \
-  //StopTrackingMemoryAllocations(); \
-	//auto restartTrackingMemoryAllocations = Mso::TCleanup::Make([&]() noexcept \
-	//{ \
-	//	StartTrackingMemoryAllocations(); \
-	//});
+#define TEST_DISABLE_MEMORY_LEAK_DETECTION()
 
 #endif // MSO_MOTIFCPP_TESTCHECK_H

@@ -95,7 +95,8 @@ inline void AreEqualAt(
   GTEST_ASSERT_AT_(
       file,
       line,
-      ::testing::internal::EqHelper::Compare(expectedExpr, actualExpr, expected, actual),
+      ::testing::internal::EqHelper<GTEST_IS_NULL_LITERAL_(expected)>::Compare(
+          expectedExpr, actualExpr, expected, actual),
       GTEST_FATAL_FAILURE_AT_)
       << FormatCustomMsg(line, message);
 }
@@ -192,6 +193,7 @@ inline void AreEqualAt(
       << FormatCustomMsg(line, message);
 }
 
+#ifdef MS_TARGET_WINDOWS
 // Code used for all the C++ exceptions
 constexpr uint32_t EXCEPTION_CPLUSPLUS = static_cast<uint32_t>(0xE06D7363);
 
@@ -227,6 +229,61 @@ inline bool ExpectCrashCore(TLambda const& lambda)
     return true;
   }
 }
+#else
+
+using SigAction = void (*)(int, siginfo_t*, void*);
+
+// An RAII class that sets custom action for segmentation fault signal and
+// restores the old one in the destructor.
+struct CrashState
+{
+  CrashState(SigAction action) noexcept
+  {
+    sigemptyset(&m_action.sa_mask);
+    m_action.sa_sigaction = action;
+    m_action.sa_flags = SA_NODEFER;
+    sigaction(SIGSEGV, &m_action, &m_oldAction);
+  }
+
+  ~CrashState() noexcept
+  {
+    sigaction(SIGSEGV, &m_oldAction, nullptr);
+  }
+
+private:
+  struct sigaction m_action
+  {
+  };
+  struct sigaction m_oldAction
+  {
+  };
+};
+
+BEGIN_DISABLE_WARNING_FUNCTION_MAY_NOT_CALL_DTOR()
+// Returns true if crash (segmentation fault happened)
+template <class Fn>
+inline bool ExpectCrashCore(const Fn& fn)
+{
+  static sigjmp_buf buf{};
+
+  // Set sigaction and save the previous action to be restored in the end of
+  // function.
+  CrashState crashState{[](int /*signal*/, siginfo_t* /*si*/, void* /*arg*/) { longjmp(buf, 1); }};
+
+  // setjmp originally returns 0, and when longjmp is called it returns 1.
+  if (!setjmp(buf))
+  {
+    fn();
+    return true; // must not be executed if fn() caused crash and the longjmp is executed.
+  }
+  else
+  {
+    return true; // executed if longjmp is executed in the SigAction handler.
+  }
+}
+END_DISABLE_WARNING_FUNCTION_MAY_NOT_CALL_DTOR()
+
+#endif // MS_TARGET_WINDOWS
 
 template <class TLambda>
 inline void
@@ -255,8 +312,7 @@ struct TerminateHandlerRestorer
   std::terminate_handler Handler;
 };
 
-#pragma warning(push)
-#pragma warning(disable : 4611) // interaction between '_setjmp' and C++ object destruction is non-portable
+BEGIN_DISABLE_WARNING_FUNCTION_MAY_NOT_CALL_DTOR()
 template <class TLambda>
 inline bool ExpectTerminateCore(TLambda const& lambda)
 {
@@ -276,7 +332,7 @@ inline bool ExpectTerminateCore(TLambda const& lambda)
     return true; // executed if longjmp is executed in the terminate handler.
   }
 }
-#pragma warning(pop)
+END_DISABLE_WARNING_FUNCTION_MAY_NOT_CALL_DTOR()
 
 template <class TLambda>
 inline void

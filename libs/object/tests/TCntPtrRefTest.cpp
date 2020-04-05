@@ -2,11 +2,11 @@
 // Licensed under the MIT license.
 
 #include <comUtil/qiCast.h>
+#include <guid/msoGuid.h>
 #include <motifCpp/testCheck.h>
 #include <object/refCountedObject.h>
 #include <object/unknownObject.h>
-
-#include <combaseapi.h>
+#include <smartPtr/cntPtr.h>
 
 #include <atomic>
 #include <functional>
@@ -54,13 +54,13 @@ TEST_CLASS (CntPtrRefTest)
     TestAssert::IsNull(spObj.Get());
   }
 
-  TEST_METHOD(CntPtr_CntPtrRef_IID_PPV_ARGS_Helper)
-  {
-    Mso::CntPtr<IUnknown> spObj;
-    void** ppObj = IID_PPV_ARGS_Helper<IUnknown>(&spObj);
-    void** ppDesired = &spObj;
-    TestAssert::AreEqual(ppDesired, ppObj);
-  }
+  // TEST_METHOD(CntPtr_CntPtrRef_IID_PPV_ARGS_Helper)
+  // {
+  //   Mso::CntPtr<IUnknown> spObj;
+  //   void** ppObj = IID_PPV_ARGS_Helper<IUnknown>(&spObj);
+  //   void** ppDesired = &spObj;
+  //   TestAssert::AreEqual(ppDesired, ppObj);
+  // }
 
   TEST_METHOD(CntPtr_CntPtrRef_EqualOperator)
   {

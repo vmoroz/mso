@@ -22,138 +22,138 @@ struct IUnkSample : public IUnknown
 
 TEST_CLASS (CntPtrTest)
 {
-struct ISimple : public Mso::IRefCounted
-{
-  virtual void DoSomething() = 0;
-};
-
-typedef std::function<void(bool inc)> RefCountChangedCallback;
-class SimpleClass : public ISimple
-{
-public:
-  SimpleClass(RefCountChangedCallback&& onRefCountChanged)
-      : m_refCount(0), m_onRefCountChanged(std::move(onRefCountChanged))
+  struct ISimple : public Mso::IRefCounted
   {
-  }
-
-  virtual ~SimpleClass() = default;
-
-  virtual void AddRef() const noexcept override
-  {
-    OACR_ASSUME_NOTHROW_BEGIN
-
-    m_onRefCountChanged(/*incremented*/ true);
-
-    OACR_ASSUME_NOTHROW_END
-
-    ++m_refCount;
-  }
-
-  virtual void Release() const noexcept override
-  {
-    OACR_ASSUME_NOTHROW_BEGIN
-
-    m_onRefCountChanged(/*incremented*/ false);
-
-    OACR_ASSUME_NOTHROW_END
-
-    if (--m_refCount == 0)
-    {
-      delete this;
-    }
-  }
-
-  virtual void DoSomething() noexcept override {}
-
-  void ClassDoSomething() noexcept
-  {
-    OACR_USE_PTR(this); // simulates access to 'this' for OACR build
-  }
-
-private:
-  mutable std::atomic<uint32_t> m_refCount;
-  RefCountChangedCallback m_onRefCountChanged;
-};
-
-class UnkSimpleClass : public IUnkSimple
-{
-public:
-  UnkSimpleClass(RefCountChangedCallback&& onRefCountChanged)
-      : m_refCount(0), m_onRefCountChanged(std::move(onRefCountChanged))
-  {
-  }
-
-  virtual ~UnkSimpleClass() = default;
-
-  _Success_(return == S_OK)
-      STDMETHOD(QueryInterface)(const GUID& /*riid*/, _Outptr_ void** /*ppvObject*/) noexcept override
-  {
-    return E_NOINTERFACE;
-  }
-
-  STDMETHOD_(ULONG, AddRef)() noexcept override
-  {
-    OACR_ASSUME_NOTHROW_BEGIN
-    m_onRefCountChanged(/*incremented*/ true);
-    OACR_ASSUME_NOTHROW_END
-    ++m_refCount;
-    return 1;
-  }
-
-  STDMETHOD_(ULONG, Release)() noexcept override
-  {
-    OACR_ASSUME_NOTHROW_BEGIN
-    m_onRefCountChanged(/*incremented*/ false);
-    OACR_ASSUME_NOTHROW_END
-    if (--m_refCount == 0)
-    {
-      delete this;
-    }
-
-    return 1;
-  }
-
-  virtual void DoSomething() noexcept override {}
-
-  void ClassDoSomething() noexcept
-  {
-    OACR_USE_PTR(this); // simulates access to 'this' for OACR build
-  }
-
-private:
-  mutable std::atomic<uint32_t> m_refCount;
-  RefCountChangedCallback m_onRefCountChanged;
-};
-
-class AggregatedObject : public Mso::UnknownObject<IUnkSimple, IUnkSample>
-{
-public:
-  virtual void DoSomething() noexcept override {}
-
-  virtual void DoAnything() noexcept override {}
-};
-
-template <typename TAction>
-static void ValidateRefCount(uint32_t expectedIncRefCountCallCount, TAction action)
-{
-  uint32_t actualIncRefCountCallCount = 0;
-  uint32_t actualDecRefCountCallCount = 0;
-  auto callback = [&actualIncRefCountCallCount, &actualDecRefCountCallCount](bool incremented) noexcept {
-    if (incremented)
-    {
-      ++actualIncRefCountCallCount;
-    }
-    else
-    {
-      ++actualDecRefCountCallCount;
-    }
+    virtual void DoSomething() = 0;
   };
 
-  action(RefCountChangedCallback(callback));
+  typedef std::function<void(bool inc)> RefCountChangedCallback;
+  class SimpleClass : public ISimple
+  {
+  public:
+    SimpleClass(RefCountChangedCallback&& onRefCountChanged)
+        : m_refCount(0), m_onRefCountChanged(std::move(onRefCountChanged))
+    {
+    }
 
-  TestAssert::AreEqual(actualIncRefCountCallCount, actualDecRefCountCallCount, L"IncCount != DecCount.");
-  TestAssert::AreEqual(expectedIncRefCountCallCount, actualIncRefCountCallCount, L"Unexpected IncCount.");
-}
+    virtual ~SimpleClass() = default;
+
+    virtual void AddRef() const noexcept override
+    {
+      OACR_ASSUME_NOTHROW_BEGIN
+
+      m_onRefCountChanged(/*incremented*/ true);
+
+      OACR_ASSUME_NOTHROW_END
+
+      ++m_refCount;
+    }
+
+    virtual void Release() const noexcept override
+    {
+      OACR_ASSUME_NOTHROW_BEGIN
+
+      m_onRefCountChanged(/*incremented*/ false);
+
+      OACR_ASSUME_NOTHROW_END
+
+      if (--m_refCount == 0)
+      {
+        delete this;
+      }
+    }
+
+    virtual void DoSomething() noexcept override {}
+
+    void ClassDoSomething() noexcept
+    {
+      OACR_USE_PTR(this); // simulates access to 'this' for OACR build
+    }
+
+  private:
+    mutable std::atomic<uint32_t> m_refCount;
+    RefCountChangedCallback m_onRefCountChanged;
+  };
+
+  class UnkSimpleClass : public IUnkSimple
+  {
+  public:
+    UnkSimpleClass(RefCountChangedCallback&& onRefCountChanged)
+        : m_refCount(0), m_onRefCountChanged(std::move(onRefCountChanged))
+    {
+    }
+
+    virtual ~UnkSimpleClass() = default;
+
+    _Success_(return == S_OK)
+        STDMETHOD(QueryInterface)(const GUID& /*riid*/, _Outptr_ void** /*ppvObject*/) noexcept override
+    {
+      return E_NOINTERFACE;
+    }
+
+    STDMETHOD_(ULONG, AddRef)() noexcept override
+    {
+      OACR_ASSUME_NOTHROW_BEGIN
+      m_onRefCountChanged(/*incremented*/ true);
+      OACR_ASSUME_NOTHROW_END
+      ++m_refCount;
+      return 1;
+    }
+
+    STDMETHOD_(ULONG, Release)() noexcept override
+    {
+      OACR_ASSUME_NOTHROW_BEGIN
+      m_onRefCountChanged(/*incremented*/ false);
+      OACR_ASSUME_NOTHROW_END
+      if (--m_refCount == 0)
+      {
+        delete this;
+      }
+
+      return 1;
+    }
+
+    virtual void DoSomething() noexcept override {}
+
+    void ClassDoSomething() noexcept
+    {
+      OACR_USE_PTR(this); // simulates access to 'this' for OACR build
+    }
+
+  private:
+    mutable std::atomic<uint32_t> m_refCount;
+    RefCountChangedCallback m_onRefCountChanged;
+  };
+
+  class AggregatedObject : public Mso::UnknownObject<IUnkSimple, IUnkSample>
+  {
+  public:
+    virtual void DoSomething() noexcept override {}
+
+    virtual void DoAnything() noexcept override {}
+  };
+
+  template <typename TAction>
+  static void ValidateRefCount(uint32_t expectedIncRefCountCallCount, TAction action)
+  {
+    uint32_t actualIncRefCountCallCount = 0;
+    uint32_t actualDecRefCountCallCount = 0;
+    auto callback = [&actualIncRefCountCallCount, &actualDecRefCountCallCount](bool incremented) noexcept {
+      if (incremented)
+      {
+        ++actualIncRefCountCallCount;
+      }
+      else
+      {
+        ++actualDecRefCountCallCount;
+      }
+    };
+
+    action(RefCountChangedCallback(callback));
+
+    TestAssert::AreEqual(actualIncRefCountCallCount, actualDecRefCountCallCount, L"IncCount != DecCount.");
+    TestAssert::AreEqual(expectedIncRefCountCallCount, actualIncRefCountCallCount, L"Unexpected IncCount.");
+  }
 
   TEST_METHOD(CntPtr_EmptyCtor)
   {
@@ -313,13 +313,14 @@ static void ValidateRefCount(uint32_t expectedIncRefCountCallCount, TAction acti
       SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
       Mso::CntPtr<SimpleClass> spObj{ptr};
 
-    OACR_WARNING_SUPPRESS(IDENTITY_ASSIGNMENT, "We want to test our code that nothing bad happens in this case");
-    BEGIN_DISABLE_WARNING_SELF_ASSIGN_OVERLOADED()
-    spObj = spObj;
-    END_DISABLE_WARNING_SELF_ASSIGN_OVERLOADED()
+      OACR_WARNING_SUPPRESS(IDENTITY_ASSIGNMENT, "We want to test our code that nothing bad happens in this case");
+      BEGIN_DISABLE_WARNING_SELF_ASSIGN_OVERLOADED()
+      spObj = spObj;
+      END_DISABLE_WARNING_SELF_ASSIGN_OVERLOADED()
       TestAssert::AreEqual(ptr, spObj.Get(), L"Expected ptr");
-  });
-}
+    });
+  }
+
   TEST_METHOD(CntPtr_CopyAssignmentConst)
   {
     // Test that CntPtr can accept a const variable and AddRef/Release methods are not const.
@@ -366,11 +367,11 @@ static void ValidateRefCount(uint32_t expectedIncRefCountCallCount, TAction acti
     ValidateRefCount(1, [](RefCountChangedCallback&& onRefCountChanged) {
       SimpleClass* ptr = new SimpleClass(std::move(onRefCountChanged));
       Mso::CntPtr<SimpleClass> spObj(ptr);
-    BEGIN_DISABLE_WARNING_SELF_MOVE()
-    spObj = std::move(spObj);
-    END_DISABLE_WARNING_SELF_MOVE()
+      BEGIN_DISABLE_WARNING_SELF_MOVE()
+      spObj = std::move(spObj);
+      END_DISABLE_WARNING_SELF_MOVE()
 
-    TestAssert::AreEqual(ptr, spObj.Get(), L"Expected ptr");
+      TestAssert::AreEqual(ptr, spObj.Get(), L"Expected ptr");
     });
   }
   TEST_METHOD(CntPtr_NullAssignment)

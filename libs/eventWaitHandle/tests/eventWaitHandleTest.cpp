@@ -1,17 +1,19 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-#include "eventWaitHandle/eventWaitHandle.h"
+#include <eventWaitHandle/eventWaitHandle.h>
+
+#include <compilerAdapters/cppMacrosDebug.h>
+#include <motifCpp/libletAwareMemLeakDetection.h>
+#include <motifCpp/motifCppTest.h>
+#include <motifCpp/testCheck.h>
+
 #include <atomic>
 #include <thread>
-#include "compilerAdapters/cppMacrosDebug.h"
-#include "motifCpp/TestCheck.h"
-#include "motifCpp/libletawarememleakdetection.h"
-//#include "debugHeap/memoryLeakDetection.h"
 
 using namespace std::chrono_literals;
 
-namespace Mso::Async::Test {
+namespace Mso::Test {
 
 TEST_CLASS_EX (EventWaitHandleTest, LibletAwareMemLeakDetection)
 {
@@ -399,4 +401,4 @@ TEST_CLASS_EX (EventWaitHandleTest, LibletAwareMemLeakDetection)
   }
 };
 
-} // namespace Mso::Async::Test
+} // namespace Mso::Test

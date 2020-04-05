@@ -5,15 +5,11 @@
 #ifndef MSO_SMARTPTR_SMARTPOINTERBASE_H
 #define MSO_SMARTPTR_SMARTPOINTERBASE_H
 
-/**
-  Base class for all Mso Smart Pointers
-*/
-
 #include <compilerAdapters/compilerWarnings.h>
 #include <compilerAdapters/cppMacros.h>
-#include <typeTraits/typeTraits.h>
 #include <crash/verifyElseCrash.h>
 #include <debugAssertApi/debugAssertApi.h>
+#include <typeTraits/typeTraits.h>
 
 BEGIN_DISABLE_WARNING_DEPRECATED()
 #include <utility>
@@ -330,13 +326,13 @@ bool operator==(const THolder<T1, THelper1, TEmptyTraits1>& a, const THolder<T2,
 }
 
 template <typename T1, typename THelper1, typename TEmptyTraits1>
-bool operator==(const THolder<T1, THelper1, TEmptyTraits1>& a, decltype(__nullptr)) noexcept
+bool operator==(const THolder<T1, THelper1, TEmptyTraits1>& a, std::nullptr_t) noexcept
 {
   return a.Get() == nullptr;
 }
 
 template <typename T1, typename THelper1, typename TEmptyTraits1>
-bool operator==(decltype(__nullptr), const THolder<T1, THelper1, TEmptyTraits1>& a) noexcept
+bool operator==(std::nullptr_t, const THolder<T1, THelper1, TEmptyTraits1>& a) noexcept
 {
   return a.Get() == nullptr;
 }
@@ -354,13 +350,13 @@ bool operator!=(const THolder<T1, THelper1, TEmptyTraits1>& a, const THolder<T2,
 }
 
 template <typename T1, typename THelper1, typename TEmptyTraits1>
-bool operator!=(const THolder<T1, THelper1, TEmptyTraits1>& a, decltype(__nullptr)) noexcept
+bool operator!=(const THolder<T1, THelper1, TEmptyTraits1>& a, std::nullptr_t) noexcept
 {
   return a.Get() != nullptr;
 }
 
 template <typename T1, typename THelper1, typename TEmptyTraits1>
-bool operator!=(decltype(__nullptr), const THolder<T1, THelper1, TEmptyTraits1>& a) noexcept
+bool operator!=(std::nullptr_t, const THolder<T1, THelper1, TEmptyTraits1>& a) noexcept
 {
   return a.Get() != nullptr;
 }
@@ -589,13 +585,13 @@ bool operator==(const THolderPair<T1, TData1, THelper1>& a, const THolderPair<T2
 }
 
 template <typename T1, typename TData1, typename THelper1>
-bool operator==(const THolderPair<T1, TData1, THelper1>& a, decltype(__nullptr)) noexcept
+bool operator==(const THolderPair<T1, TData1, THelper1>& a, std::nullptr_t) noexcept
 {
   return a.Get() == nullptr;
 }
 
 template <typename T1, typename TData1, typename THelper1>
-bool operator==(decltype(__nullptr), const THolderPair<T1, TData1, THelper1>& a) noexcept
+bool operator==(std::nullptr_t, const THolderPair<T1, TData1, THelper1>& a) noexcept
 {
   return a.Get() == nullptr;
 }
@@ -607,13 +603,13 @@ bool operator!=(const THolderPair<T1, TData1, THelper1>& a, const THolderPair<T2
 }
 
 template <typename T1, typename TData1, typename THelper1>
-bool operator!=(const THolderPair<T1, TData1, THelper1>& a, decltype(__nullptr)) noexcept
+bool operator!=(const THolderPair<T1, TData1, THelper1>& a, std::nullptr_t) noexcept
 {
   return a.Get() != nullptr;
 }
 
 template <typename T1, typename TData1, typename THelper1>
-bool operator!=(decltype(__nullptr), const THolderPair<T1, TData1, THelper1>& a) noexcept
+bool operator!=(std::nullptr_t, const THolderPair<T1, TData1, THelper1>& a) noexcept
 {
   return a.Get() != nullptr;
 }

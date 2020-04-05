@@ -5,15 +5,17 @@
 #ifndef MSO_SMARTPTR_CNTPTR_H
 #define MSO_SMARTPTR_CNTPTR_H
 
+#include <compilerAdapters/declspecDefinitions.h>
+#include <crash/verifyElseCrash.h>
+#include <debugAssertApi/debugAssertApi.h>
+#include <guid/msoGuid.h>
+#include <platformAdapters/IUnknownShim.h>
+#include <platformAdapters/windowsFirst.h>
+#include <typeTraits/sfinae.h>
+#include <typeTraits/tags.h>
+
 #include <atomic>
 #include <utility>
-#include "compilerAdapters/declspecDefinitions.h"
-#include "crash/verifyElseCrash.h"
-#include "debugAssertApi/debugAssertApi.h"
-#include "guid/msoGuid.h"
-#include "platformAdapters/windowsFirst.h"
-#include "typeTraits/sfinae.h"
-#include "typeTraits/tags.h"
 
 namespace Mso {
 
@@ -128,19 +130,19 @@ struct CntPtr
 
   template <typename T1, typename T2>
   friend bool operator==(CntPtr<T1> const& left, CntPtr<T2> const& right) noexcept;
-  template <typename T>
-  friend bool operator==(CntPtr<T> const& left, std::nullptr_t) noexcept;
-  template <typename T>
-  friend bool operator==(std::nullptr_t, CntPtr<T> const& right) noexcept;
+  template <typename T1>
+  friend bool operator==(CntPtr<T1> const& left, std::nullptr_t) noexcept;
+  template <typename T2>
+  friend bool operator==(std::nullptr_t, CntPtr<T2> const& right) noexcept;
   template <typename T1, typename T2>
   friend bool operator!=(CntPtr<T1> const& left, CntPtr<T2> const& right) noexcept;
-  template <typename T>
-  friend bool operator!=(CntPtr<T> const& left, std::nullptr_t) noexcept;
-  template <typename T>
-  friend bool operator!=(std::nullptr_t, CntPtr<T> const& right) noexcept;
+  template <typename T1>
+  friend bool operator!=(CntPtr<T1> const& left, std::nullptr_t) noexcept;
+  template <typename T2>
+  friend bool operator!=(std::nullptr_t, CntPtr<T2> const& right) noexcept;
 
-  template <typename T>
-  friend void std::swap(CntPtr<T>& left, CntPtr<T>& right) noexcept;
+  template <typename U>
+  friend void std::swap(CntPtr<U>& left, CntPtr<U>& right) noexcept;
 
   template <typename TOther>
   friend struct CntPtr;

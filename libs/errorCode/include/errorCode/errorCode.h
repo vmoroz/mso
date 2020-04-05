@@ -115,8 +115,9 @@ struct ErrorCodeState;
       // - crash the app using VerifyElseCrash() macro.
     }
 */
-class ErrorCode final {
- public:
+class ErrorCode final
+{
+public:
   //! Creates new ErrorCode with empty state.
   ErrorCode() = default;
 
@@ -124,22 +125,22 @@ class ErrorCode final {
   ErrorCode(std::nullptr_t) noexcept;
 
   //! Creates new ErrorCode with provided state.
-  explicit ErrorCode(Mso::CntPtr<ErrorCodeState> &&state) noexcept;
+  explicit ErrorCode(Mso::CntPtr<ErrorCodeState>&& state) noexcept;
 
   //! Creates new ErrorCode with the same state as the other ErrorCode.
-  ErrorCode(const ErrorCode &other) = default;
+  ErrorCode(const ErrorCode& other) = default;
 
   //! Creates new ErrorCode with the state taken from the other ErrorCode. The other ErrorCode state becomes empty.
-  ErrorCode(ErrorCode &&other) = default;
+  ErrorCode(ErrorCode&& other) = default;
 
   //! Assigns the same state as the other ErrorCode.
-  ErrorCode &operator=(const ErrorCode &other) = default;
+  ErrorCode& operator=(const ErrorCode& other) = default;
 
   //! Assigns the same state as the other ErrorCode. The other ErrorCode state becomes empty.
-  ErrorCode &operator=(ErrorCode &&other) = default;
+  ErrorCode& operator=(ErrorCode&& other) = default;
 
   //! Swaps states with the other ErrorCode.
-  void Swap(ErrorCode &other) noexcept;
+  void Swap(ErrorCode& other) noexcept;
 
   //! True if state is not empty.
   explicit operator bool() const noexcept;
@@ -153,85 +154,90 @@ class ErrorCode final {
   //! Handle error code when it contains error created by errorProvider.
   //! It returns the pointer to the TErrorInfo if succeeded, otherwise it returns null.
   template <class TErrorProvider, class TErrorInfo = typename TErrorProvider::ErrorInfoType>
-  const TErrorInfo *HandleAs(const TErrorProvider &errorProvider) const noexcept;
+  const TErrorInfo* HandleAs(const TErrorProvider& errorProvider) const noexcept;
 
   //! Handle the error and throw an exception associated with the error code.
   void HandleAndThrow() const;
 
   //! Handle the error and throw an exception associated with the error code created by errorProvider.
   template <class TErrorProvider>
-  void HandleAndThrowAs(const TErrorProvider &errorProvider) const;
+  void HandleAndThrowAs(const TErrorProvider& errorProvider) const;
 
   //! Gets TErrorInfo data associated with the error code created by errorProvider.
   //! It returns the pointer to the TErrorInfo if succeeded, otherwise it returns null.
   template <class TErrorProvider, class TErrorInfo = typename TErrorProvider::ErrorInfoType>
-  const TErrorInfo *As(const TErrorProvider &errorProvider) const noexcept;
+  const TErrorInfo* As(const TErrorProvider& errorProvider) const noexcept;
 
   //! Throw an exception associated with the error code.
   void Throw() const;
 
   //! Throw an exception associated with the error code created by errorProvider.
   template <class TErrorProvider>
-  void ThrowAs(const TErrorProvider &errorProvider) const;
+  void ThrowAs(const TErrorProvider& errorProvider) const;
 
-  friend ErrorCodeState *GetErrorCodeState(const ErrorCode &errorCode) noexcept;
+  friend ErrorCodeState* GetErrorCodeState(const ErrorCode& errorCode) noexcept;
 
-  LIBLET_PUBLICAPI const char *ToString() const noexcept;
+  LIBLET_PUBLICAPI const char* ToString() const noexcept;
 
- private:
+private:
   Mso::CntPtr<ErrorCodeState> m_state;
 };
 
 //! std::swap specializations. Swaps states between ErrorCode instances.
-void swap(ErrorCode &left, ErrorCode &right) noexcept;
+void swap(ErrorCode& left, ErrorCode& right) noexcept;
 
 //! True if two ErrorCode have the same state instance.
-bool operator==(const ErrorCode &left, const ErrorCode &right) noexcept;
+bool operator==(const ErrorCode& left, const ErrorCode& right) noexcept;
 
 //! True if two ErrorCode have different state instance.
-bool operator!=(const ErrorCode &left, const ErrorCode &right) noexcept;
+bool operator!=(const ErrorCode& left, const ErrorCode& right) noexcept;
 
 //! True if left ErrorCode is empty.
-bool operator==(const ErrorCode &left, std::nullptr_t) noexcept;
+bool operator==(const ErrorCode& left, std::nullptr_t) noexcept;
 
 //! True if left ErrorCode is not empty.
-bool operator!=(const ErrorCode &left, std::nullptr_t) noexcept;
+bool operator!=(const ErrorCode& left, std::nullptr_t) noexcept;
 
 //! True is right ErrorCode is empty.
-bool operator==(std::nullptr_t, const ErrorCode &right) noexcept;
+bool operator==(std::nullptr_t, const ErrorCode& right) noexcept;
 
 //! True is right ErrorCode is not empty.
-bool operator!=(std::nullptr_t, const ErrorCode &right) noexcept;
+bool operator!=(std::nullptr_t, const ErrorCode& right) noexcept;
 
 // Interface for strings with following properties:
 // * Abi compatible
 // * Ref-counted
 // * Immutable
 // * Utf-8 Encoded
-struct DECLSPEC_NOVTABLE IErrorString : Mso::IRefCounted {
-  virtual const char *Data() noexcept = 0;
+struct DECLSPEC_NOVTABLE IErrorString : Mso::IRefCounted
+{
+  virtual const char* Data() noexcept = 0;
 };
 
-LIBLET_PUBLICAPI Mso::CntPtr<Mso::IErrorString> MakeErrorString(const char *value) noexcept;
+LIBLET_PUBLICAPI Mso::CntPtr<Mso::IErrorString> MakeErrorString(const char* value) noexcept;
 
 namespace Internal {
 
 // Holds atomic IErrorString pointer and calls Release on it in destructor.
-struct ErrorStringHolder {
-  ~ErrorStringHolder() noexcept {
-    Mso::IErrorString *instance = m_errorString.exchange(nullptr);
+struct ErrorStringHolder
+{
+  ~ErrorStringHolder() noexcept
+  {
+    Mso::IErrorString* instance = m_errorString.exchange(nullptr);
     OACR_USE_PTR(instance);
-    if (instance) {
+    if (instance)
+    {
       instance->Release();
     }
   }
 
-  std::atomic<Mso::IErrorString *> *operator->() const noexcept {
+  std::atomic<Mso::IErrorString*>* operator->() const noexcept
+  {
     return &m_errorString;
   }
 
- private:
-  mutable std::atomic<Mso::IErrorString *> m_errorString{nullptr};
+private:
+  mutable std::atomic<Mso::IErrorString*> m_errorString{nullptr};
 };
 
 } // namespace Internal
@@ -239,17 +245,18 @@ struct ErrorStringHolder {
 // Ref-counted state of error code.
 // It has a flag indicating whether the error was handled or not
 // In future we want to extend it with a pointer to parent ErrorCode and error creation context.
-struct ErrorCodeState {
-  ErrorCodeState(const IErrorProvider &errorProvider) noexcept;
-  const IErrorProvider &ErrorProvider() const noexcept;
+struct ErrorCodeState
+{
+  ErrorCodeState(const IErrorProvider& errorProvider) noexcept;
+  const IErrorProvider& ErrorProvider() const noexcept;
   bool IsHandled() const noexcept;
   void Handle() const noexcept;
   LIBLET_PUBLICAPI void AddRef() const noexcept;
   LIBLET_PUBLICAPI void Release() const noexcept;
 
- private:
+private:
   friend ErrorCode; // Creates m_errorString
-  const IErrorProvider &m_errorProvider;
+  const IErrorProvider& m_errorProvider;
   const Internal::ErrorStringHolder m_errorString;
   mutable std::atomic<uint32_t> m_refCount{1};
   mutable std::atomic<bool> m_isHandled{false};
@@ -257,28 +264,31 @@ struct ErrorCodeState {
 
 // Handles specific error type. Consider to use the default implementation of this interface: ErrorProvider<T,
 // GuidType>.
-struct IErrorProvider {
+struct IErrorProvider
+{
   // Returns true if provider is associated with the provided GUID.
   // It can be used by error providers to handle cases where provider code exists in multiple dlls.
-  virtual bool IsOfType(const GUID &type) const noexcept = 0;
+  virtual bool IsOfType(const GUID& type) const noexcept = 0;
 
-  virtual void Destroy(const ErrorCodeState &state) const noexcept = 0;
-  virtual void Throw(const ErrorCode &errorCode, bool shouldHandle) const = 0;
-  virtual Mso::CntPtr<Mso::IErrorString> ToString(const ErrorCode &errorCode) const noexcept = 0;
+  virtual void Destroy(const ErrorCodeState& state) const noexcept = 0;
+  virtual void Throw(const ErrorCode& errorCode, bool shouldHandle) const = 0;
+  virtual Mso::CntPtr<Mso::IErrorString> ToString(const ErrorCode& errorCode) const noexcept = 0;
 };
 
 // ErrorCode can be carried as an exception by wrapping into ErrorCodeException class
-class ErrorCodeException : public std::exception {
- public:
-  ErrorCodeException(const ErrorCode &errorCode) noexcept : m_errorCode(errorCode) {}
+class ErrorCodeException : public std::exception
+{
+public:
+  ErrorCodeException(const ErrorCode& errorCode) noexcept : m_errorCode(errorCode) {}
 
-  ErrorCodeException(ErrorCode &&errorCode) noexcept : m_errorCode(std::move(errorCode)) {}
+  ErrorCodeException(ErrorCode&& errorCode) noexcept : m_errorCode(std::move(errorCode)) {}
 
-  const ErrorCode &Error() const noexcept {
+  const ErrorCode& Error() const noexcept
+  {
     return m_errorCode;
   }
 
- private:
+private:
   ErrorCode m_errorCode;
 };
 
@@ -288,56 +298,69 @@ class ErrorCodeException : public std::exception {
 
 inline ErrorCode::ErrorCode(std::nullptr_t) noexcept {}
 
-inline ErrorCode::ErrorCode(Mso::CntPtr<ErrorCodeState> &&state) noexcept : m_state(std::move(state)) {}
+inline ErrorCode::ErrorCode(Mso::CntPtr<ErrorCodeState>&& state) noexcept : m_state(std::move(state)) {}
 
-inline void ErrorCode::Swap(ErrorCode &other) noexcept {
+inline void ErrorCode::Swap(ErrorCode& other) noexcept
+{
   using std::swap;
   swap(m_state, other.m_state);
 }
 
-inline ErrorCode::operator bool() const noexcept {
+inline ErrorCode::operator bool() const noexcept
+{
   return !m_state.IsEmpty();
 }
 
-inline bool ErrorCode::IsHandled() const noexcept {
+inline bool ErrorCode::IsHandled() const noexcept
+{
   return m_state && m_state->IsHandled();
 }
 
-inline void ErrorCode::Handle() const noexcept {
-  if (m_state) {
+inline void ErrorCode::Handle() const noexcept
+{
+  if (m_state)
+  {
     m_state->Handle();
   }
 }
 
 template <class TErrorProvider, class TErrorInfo>
-inline const TErrorInfo *ErrorCode::HandleAs(const TErrorProvider &errorProvider) const noexcept {
+inline const TErrorInfo* ErrorCode::HandleAs(const TErrorProvider& errorProvider) const noexcept
+{
   return errorProvider.TryGetErrorInfo(*this, /*shouldHandle:*/ true);
 }
 
-inline void ErrorCode::HandleAndThrow() const {
-  if (m_state) {
+inline void ErrorCode::HandleAndThrow() const
+{
+  if (m_state)
+  {
     m_state->ErrorProvider().Throw(*this, /*shouldHandle:*/ true);
   }
 }
 
 template <class TErrorProvider>
-inline void ErrorCode::HandleAndThrowAs(const TErrorProvider &errorProvider) const {
+inline void ErrorCode::HandleAndThrowAs(const TErrorProvider& errorProvider) const
+{
   errorProvider.Throw(m_state.Get(), /*shouldHandle:*/ true);
 }
 
 template <class TErrorProvider, class TErrorInfo>
-inline const TErrorInfo *ErrorCode::As(const TErrorProvider &errorProvider) const noexcept {
+inline const TErrorInfo* ErrorCode::As(const TErrorProvider& errorProvider) const noexcept
+{
   return errorProvider.TryGetErrorInfo(*this, /*shouldHandle:*/ false);
 }
 
-inline void ErrorCode::Throw() const {
-  if (m_state) {
+inline void ErrorCode::Throw() const
+{
+  if (m_state)
+  {
     m_state->ErrorProvider().Throw(*this, /*shouldHandle:*/ false);
   }
 }
 
 template <class TErrorProvider>
-inline void ErrorCode::ThrowAs(const TErrorProvider &errorProvider) const {
+inline void ErrorCode::ThrowAs(const TErrorProvider& errorProvider) const
+{
   errorProvider.Throw(m_state.Get(), /*shouldHandle:*/ false);
 }
 
@@ -345,35 +368,43 @@ inline void ErrorCode::ThrowAs(const TErrorProvider &errorProvider) const {
 // ErrorCode standalone functions implementation
 //============================================================================================
 
-inline ErrorCodeState *GetErrorCodeState(const ErrorCode &errorCode) noexcept {
+inline ErrorCodeState* GetErrorCodeState(const ErrorCode& errorCode) noexcept
+{
   return errorCode.m_state.Get();
 }
 
-inline void swap(ErrorCode &left, ErrorCode &right) noexcept {
+inline void swap(ErrorCode& left, ErrorCode& right) noexcept
+{
   left.Swap(right);
 }
 
-inline bool operator==(const ErrorCode &left, const ErrorCode &right) noexcept {
+inline bool operator==(const ErrorCode& left, const ErrorCode& right) noexcept
+{
   return GetErrorCodeState(left) == GetErrorCodeState(right);
 }
 
-inline bool operator!=(const ErrorCode &left, const ErrorCode &right) noexcept {
+inline bool operator!=(const ErrorCode& left, const ErrorCode& right) noexcept
+{
   return GetErrorCodeState(left) != GetErrorCodeState(right);
 }
 
-inline bool operator==(const ErrorCode &left, std::nullptr_t) noexcept {
+inline bool operator==(const ErrorCode& left, std::nullptr_t) noexcept
+{
   return GetErrorCodeState(left) == nullptr;
 }
 
-inline bool operator!=(const ErrorCode &left, std::nullptr_t) noexcept {
+inline bool operator!=(const ErrorCode& left, std::nullptr_t) noexcept
+{
   return GetErrorCodeState(left) != nullptr;
 }
 
-inline bool operator==(std::nullptr_t, const ErrorCode &right) noexcept {
+inline bool operator==(std::nullptr_t, const ErrorCode& right) noexcept
+{
   return nullptr == GetErrorCodeState(right);
 }
 
-inline bool operator!=(std::nullptr_t, const ErrorCode &right) noexcept {
+inline bool operator!=(std::nullptr_t, const ErrorCode& right) noexcept
+{
   return nullptr != GetErrorCodeState(right);
 }
 
@@ -381,17 +412,20 @@ inline bool operator!=(std::nullptr_t, const ErrorCode &right) noexcept {
 // ErrorCodeState implementation
 //============================================================================================
 
-inline ErrorCodeState::ErrorCodeState(const IErrorProvider &errorProvider) noexcept : m_errorProvider(errorProvider) {}
+inline ErrorCodeState::ErrorCodeState(const IErrorProvider& errorProvider) noexcept : m_errorProvider(errorProvider) {}
 
-inline const IErrorProvider &ErrorCodeState::ErrorProvider() const noexcept {
+inline const IErrorProvider& ErrorCodeState::ErrorProvider() const noexcept
+{
   return m_errorProvider;
 }
 
-inline bool ErrorCodeState::IsHandled() const noexcept {
+inline bool ErrorCodeState::IsHandled() const noexcept
+{
   return m_isHandled;
 }
 
-inline void ErrorCodeState::Handle() const noexcept {
+inline void ErrorCodeState::Handle() const noexcept
+{
   m_isHandled = true;
 }
 

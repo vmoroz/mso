@@ -7,35 +7,43 @@
 
 // Simple Unit Test error structure
 // UtSimpleError uses default .ToString()
-struct UtSimpleError {};
+struct UtSimpleError
+{
+};
 
 MSO_CLASS_GUID(UtSimpleErrorProviderGuid, "4dfc7563-9fbc-4628-9bcf-307475f0d54b")
 const Mso::ErrorProvider<UtSimpleError, UtSimpleErrorProviderGuid> s_utSimpleErrorProvider{};
-const Mso::ErrorProvider<UtSimpleError, UtSimpleErrorProviderGuid> &UtSimpleErrorProvider() noexcept {
+const Mso::ErrorProvider<UtSimpleError, UtSimpleErrorProviderGuid>& UtSimpleErrorProvider() noexcept
+{
   return s_utSimpleErrorProvider;
 }
 
 // Unit Test error example with overriden.ToString()
-struct UtError {
+struct UtError
+{
   int Value;
 };
 
 MSO_CLASS_GUID(UtErrorProviderGuid, "4dfc7563-9fbc-4628-9bcf-307475f0d54b")
 const Mso::ErrorProvider<UtError, UtErrorProviderGuid> s_utErrorProvider{};
-const Mso::ErrorProvider<UtError, UtErrorProviderGuid> &UtErrorProvider() noexcept {
+const Mso::ErrorProvider<UtError, UtErrorProviderGuid>& UtErrorProvider() noexcept
+{
   return s_utErrorProvider;
 }
 
 template <>
 Mso::CntPtr<Mso::IErrorString> Mso::ErrorProvider<UtError, UtErrorProviderGuid>::ToString(
-    const ::Mso::ErrorCode &errorCode) const noexcept {
+    const ::Mso::ErrorCode& errorCode) const noexcept
+{
   OACR_NOEXCEPT_MAYTERMINATE_IGNORE_STL;
   std::string resultString = "UtError Value: " + std::to_string(GetErrorInfo(errorCode).Value);
   return Mso::MakeErrorString(resultString.c_str());
 }
 
-TEST_CLASS (ErrorProviderTest) {
-  TEST_METHOD(ToStringApiTest) {
+TEST_CLASS (ErrorProviderTest)
+{
+  TEST_METHOD(ToStringApiTest)
+  {
     // UtSimpleError
     // Default Error Message
     Mso::ErrorCode utSimpleErrorCode = UtSimpleErrorProvider().MakeErrorCode(UtSimpleError{});

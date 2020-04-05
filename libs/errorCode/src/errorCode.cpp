@@ -15,14 +15,18 @@ namespace Mso {
 // ErrorCode implementation
 //============================================================================================
 
-const char *ErrorCode::ToString() const noexcept {
+const char* ErrorCode::ToString() const noexcept
+{
   auto state = m_state.Get();
 
-  if (state) {
+  if (state)
+  {
     auto returnValue{state->m_errorString->load(std::memory_order_acquire)};
-    if (!returnValue) {
+    if (!returnValue)
+    {
       Mso::CntPtr<Mso::IErrorString> newInstance{state->m_errorProvider.ToString(*this)};
-      if (state->m_errorString->compare_exchange_strong(returnValue, newInstance.Get())) {
+      if (state->m_errorString->compare_exchange_strong(returnValue, newInstance.Get()))
+      {
         // The current thread won the race.
         // Ensure that a pointer with a reference count of 1 is stored.
         returnValue = newInstance.Detach();
@@ -39,28 +43,30 @@ const char *ErrorCode::ToString() const noexcept {
 // String implementation
 //============================================================================================
 
-struct ErrorString : Mso::RefCountedObject<IErrorString> {
-  const char *Data() noexcept override;
+struct ErrorString : Mso::RefCountedObject<IErrorString>
+{
+  const char* Data() noexcept override;
 
- private:
+private:
   friend MakePolicy;
-  ErrorString(const char *value) noexcept;
+  ErrorString(const char* value) noexcept;
 
- private:
+private:
   std::string m_stringValue;
 };
 
-ErrorString::ErrorString(const char *value) noexcept
-    : m_stringValue(value) // Copy
+ErrorString::ErrorString(const char* value) noexcept : m_stringValue(value) // Copy
 {
   OACR_NOEXCEPT_MAYTERMINATE_IGNORE_STL;
 }
 
-const char *ErrorString::Data() noexcept {
+const char* ErrorString::Data() noexcept
+{
   return m_stringValue.c_str();
 }
 
-Mso::CntPtr<Mso::IErrorString> MakeErrorString(const char *value) noexcept {
+Mso::CntPtr<Mso::IErrorString> MakeErrorString(const char* value) noexcept
+{
   return Mso::Make<ErrorString>(value);
 }
 
@@ -68,16 +74,19 @@ Mso::CntPtr<Mso::IErrorString> MakeErrorString(const char *value) noexcept {
 // ErrorCodeState implementation
 //============================================================================================
 
-LIBLET_PUBLICAPI void ErrorCodeState::AddRef() const noexcept {
+LIBLET_PUBLICAPI void ErrorCodeState::AddRef() const noexcept
+{
   uint32_t refCount = ++m_refCount;
   (void)refCount; // To avoid unused variable warning
   Debug(VerifyElseCrashSzTag(refCount != 1, "Ref count must not bounce from zero", 0x0158c55e /* tag_bwmv4 */));
 }
 
-LIBLET_PUBLICAPI void ErrorCodeState::Release() const noexcept {
+LIBLET_PUBLICAPI void ErrorCodeState::Release() const noexcept
+{
   uint32_t refCount = --m_refCount;
   Debug(VerifyElseCrashSzTag((int32_t)refCount >= 0, "Ref count must not be negative", 0x0158c55f /* tag_bwmv5 */));
-  if (refCount == 0) {
+  if (refCount == 0)
+  {
     m_errorProvider.Destroy(*this);
   }
 }
@@ -88,36 +97,44 @@ LIBLET_PUBLICAPI void ErrorCodeState::Release() const noexcept {
 
 template <>
 LIBLET_PUBLICAPI void ErrorProvider<std::exception_ptr, ExceptionErrorProviderGuid>::Throw(
-    const ErrorCode &errorCode,
-    bool shouldHandle) const {
-  const std::exception_ptr *exception = TryGetErrorInfo(errorCode, shouldHandle);
-  if (exception) {
+    const ErrorCode& errorCode,
+    bool shouldHandle) const
+{
+  const std::exception_ptr* exception = TryGetErrorInfo(errorCode, shouldHandle);
+  if (exception)
+  {
     std::rethrow_exception(*exception);
   }
 }
 
 const ErrorProvider<std::exception_ptr, ExceptionErrorProviderGuid> s_exceptionErrorProvider{};
 
-LIBLET_PUBLICAPI const ErrorProvider<std::exception_ptr, ExceptionErrorProviderGuid>
-    &ExceptionErrorProvider() noexcept {
+LIBLET_PUBLICAPI const ErrorProvider<std::exception_ptr, ExceptionErrorProviderGuid>& ExceptionErrorProvider() noexcept
+{
   return s_exceptionErrorProvider;
 }
 
 template <>
 LIBLET_PUBLICAPI _Noexcept_mayterminate_ Mso::CntPtr<Mso::IErrorString>
-ErrorProvider<std::exception_ptr, ExceptionErrorProviderGuid>::ToString(const ErrorCode &errorCode) const noexcept {
+ErrorProvider<std::exception_ptr, ExceptionErrorProviderGuid>::ToString(const ErrorCode& errorCode) const noexcept
+{
   OACR_WARNING_PUSH;
   OACR_WARNING_DISABLE(
       CATCH_ALL_IS_FORBIDDEN,
       "Rethrow and Catch All is needed to differentiate between C++ Arbitrary and Std exception types");
 
-  try {
+  try
+  {
     std::rethrow_exception(GetErrorInfo(errorCode));
-  } catch (const std::exception &e) {
+  }
+  catch (const std::exception& e)
+  {
     OACR_NOEXCEPT_MAYTERMINATE_IGNORE_STL;
     // Std exception type
     return Mso::MakeErrorString((std::string("Exception: ") + e.what()).c_str());
-  } catch (...) {
+  }
+  catch (...)
+  {
     // C++ Arbitrary exception type
     return Mso::MakeErrorString("Exception");
   }
@@ -131,7 +148,8 @@ ErrorProvider<std::exception_ptr, ExceptionErrorProviderGuid>::ToString(const Er
 
 const ErrorProvider<HRESULT, HResultErrorProviderGuid> s_hResultErrorProvider{};
 
-LIBLET_PUBLICAPI const ErrorProvider<HRESULT, HResultErrorProviderGuid> &HResultErrorProvider() noexcept {
+LIBLET_PUBLICAPI const ErrorProvider<HRESULT, HResultErrorProviderGuid>& HResultErrorProvider() noexcept
+{
   return s_hResultErrorProvider;
 }
 
@@ -139,7 +157,8 @@ LIBLET_PUBLICAPI const ErrorProvider<HRESULT, HResultErrorProviderGuid> &HResult
 // For example: E_OUTOFMEMORY will return "0x8007000E"
 template <>
 LIBLET_PUBLICAPI Mso::CntPtr<Mso::IErrorString> ErrorProvider<HRESULT, HResultErrorProviderGuid>::ToString(
-    const ErrorCode &errorCode) const noexcept {
+    const ErrorCode& errorCode) const noexcept
+{
   OACR_NOEXCEPT_MAYTERMINATE_IGNORE_STL;
 
   std::stringstream ss;

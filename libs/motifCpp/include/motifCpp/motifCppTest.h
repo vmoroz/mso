@@ -216,6 +216,7 @@ inline uint32_t FilterCrashExceptions(uint32_t exceptionCode) noexcept
   return EXCEPTION_EXECUTE_HANDLER;
 }
 
+BEGIN_DISABLE_WARNING_UNREACHABLE_CODE()
 template <class TLambda>
 inline bool ExpectCrashCore(TLambda const& lambda)
 {
@@ -229,6 +230,8 @@ inline bool ExpectCrashCore(TLambda const& lambda)
     return true;
   }
 }
+END_DISABLE_WARNING_UNREACHABLE_CODE()
+
 #else
 
 using SigAction = void (*)(int, siginfo_t*, void*);

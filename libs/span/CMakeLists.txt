@@ -1,9 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-liblet(dispatchQueue
+liblet(span
   DEPENDS
-    Mso::eventWaitHandle
-    Mso::functional
-    Mso::span
+    Mso::crash
 )

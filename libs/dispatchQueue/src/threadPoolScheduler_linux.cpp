@@ -37,7 +37,7 @@ private:
   };
 
 private:
-  constexpr static size_t MaxConcurrentThreads{64};
+  constexpr static uint32_t MaxConcurrentThreads{64};
 
   Mso::WeakPtr<IDispatchQueueService> m_queue;
   ManualResetEvent m_wakeUpEvent;
@@ -45,7 +45,7 @@ private:
   std::atomic<uint32_t> m_busyThreads{0};
   std::atomic<uint32_t> m_threadCount{0};
   std::atomic_bool m_isShutdown{false};
-  std::array<std::thread, MaxConcurrentThreads> m_threads;
+  std::array<std::thread, (size_t)MaxConcurrentThreads> m_threads;
 };
 
 //=============================================================================

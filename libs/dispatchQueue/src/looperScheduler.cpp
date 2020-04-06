@@ -7,21 +7,22 @@
 
 namespace Mso {
 
-struct LooperScheduler : Mso::UnknownObject<Mso::RefCountStrategy::WeakRef, IDispatchQueueScheduler> {
+struct LooperScheduler : Mso::UnknownObject<Mso::RefCountStrategy::WeakRef, IDispatchQueueScheduler>
+{
   LooperScheduler() noexcept;
   ~LooperScheduler() noexcept override;
 
-  static void RunLoop(const Mso::WeakPtr<LooperScheduler> &weakSelf) noexcept;
+  static void RunLoop(const Mso::WeakPtr<LooperScheduler>& weakSelf) noexcept;
 
- public: // IDispatchQueueScheduler
-  void IntializeScheduler(Mso::WeakPtr<IDispatchQueueService> &&queue) noexcept override;
+public: // IDispatchQueueScheduler
+  void IntializeScheduler(Mso::WeakPtr<IDispatchQueueService>&& queue) noexcept override;
   bool HasThreadAccess() noexcept override;
   bool IsSerial() noexcept override;
   void Post() noexcept override;
   void Shutdown() noexcept override;
   void AwaitTermination() noexcept override;
 
- private:
+private:
   ManualResetEvent m_wakeUpEvent;
   Mso::WeakPtr<IDispatchQueueService> m_queue;
   std::atomic_bool m_isShutdown{false};
@@ -33,23 +34,32 @@ struct LooperScheduler : Mso::UnknownObject<Mso::RefCountStrategy::WeakRef, IDis
 //=============================================================================
 
 LooperScheduler::LooperScheduler() noexcept
-    : m_looperThread([weakSelf = Mso::WeakPtr{this}]() noexcept { RunLoop(weakSelf); }) {}
+    : m_looperThread([weakSelf = Mso::WeakPtr{this}]() noexcept { RunLoop(weakSelf); })
+{
+}
 
-LooperScheduler::~LooperScheduler() noexcept {
+LooperScheduler::~LooperScheduler() noexcept
+{
   AwaitTermination();
 }
 
-/*static*/ void LooperScheduler::RunLoop(const Mso::WeakPtr<LooperScheduler> &weakSelf) noexcept {
-  for (;;) {
-    if (auto self = weakSelf.GetStrongPtr()) {
-      if (auto queue = self->m_queue.GetStrongPtr()) {
+/*static*/ void LooperScheduler::RunLoop(const Mso::WeakPtr<LooperScheduler>& weakSelf) noexcept
+{
+  for (;;)
+  {
+    if (auto self = weakSelf.GetStrongPtr())
+    {
+      if (auto queue = self->m_queue.GetStrongPtr())
+      {
         DispatchTask task;
-        while (queue->TryDequeTask(task)) {
+        while (queue->TryDequeTask(task))
+        {
           queue->InvokeTask(std::move(task), std::nullopt);
         }
       }
 
-      if (self->m_isShutdown) {
+      if (self->m_isShutdown)
+      {
         break;
       }
 
@@ -62,33 +72,43 @@ LooperScheduler::~LooperScheduler() noexcept {
   }
 }
 
-void LooperScheduler::IntializeScheduler(Mso::WeakPtr<IDispatchQueueService> &&queue) noexcept {
+void LooperScheduler::IntializeScheduler(Mso::WeakPtr<IDispatchQueueService>&& queue) noexcept
+{
   m_queue = std::move(queue);
 }
 
-bool LooperScheduler::HasThreadAccess() noexcept {
+bool LooperScheduler::HasThreadAccess() noexcept
+{
   return m_looperThread.get_id() == std::this_thread::get_id();
 }
 
-bool LooperScheduler::IsSerial() noexcept {
+bool LooperScheduler::IsSerial() noexcept
+{
   return true;
 }
 
-void LooperScheduler::Post() noexcept {
+void LooperScheduler::Post() noexcept
+{
   m_wakeUpEvent.Set();
 }
 
-void LooperScheduler::Shutdown() noexcept {
+void LooperScheduler::Shutdown() noexcept
+{
   m_isShutdown = true;
   m_wakeUpEvent.Set();
 }
 
-void LooperScheduler::AwaitTermination() noexcept {
+void LooperScheduler::AwaitTermination() noexcept
+{
   Shutdown();
-  if (m_looperThread.joinable()) {
-    if (m_looperThread.get_id() != std::this_thread::get_id()) {
+  if (m_looperThread.joinable())
+  {
+    if (m_looperThread.get_id() != std::this_thread::get_id())
+    {
       m_looperThread.join();
-    } else {
+    }
+    else
+    {
       // We are on the same thread. We cannot join because it would crash because of a deadlock.
       // We also cannot allow std::thread destructor to run because it would crash on non-joined thread.
       // So, we just detach and let the underlying system thread finish on its own.
@@ -101,7 +121,8 @@ void LooperScheduler::AwaitTermination() noexcept {
 // DispatchQueueStatic::MakeThreadPoolScheduler implementation
 //=============================================================================
 
-/*static*/ Mso::CntPtr<IDispatchQueueScheduler> DispatchQueueStatic::MakeLooperScheduler() noexcept {
+/*static*/ Mso::CntPtr<IDispatchQueueScheduler> DispatchQueueStatic::MakeLooperScheduler() noexcept
+{
   return Mso::Make<LooperScheduler, IDispatchQueueScheduler>();
 }
 

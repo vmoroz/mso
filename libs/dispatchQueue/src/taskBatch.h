@@ -9,18 +9,19 @@
 
 namespace Mso {
 
-struct TaskBatch : UnknownObject<QueryCastHidden<IVoidFunctor>, ICancellationListener> {
-  void AddTask(DispatchTask &&task) noexcept;
-  void SetEnclosingBatch(Mso::CntPtr<TaskBatch> &&batch) noexcept;
+struct TaskBatch : UnknownObject<QueryCastHidden<IVoidFunctor>, ICancellationListener>
+{
+  void AddTask(DispatchTask&& task) noexcept;
+  void SetEnclosingBatch(Mso::CntPtr<TaskBatch>&& batch) noexcept;
   Mso::CntPtr<TaskBatch> TakeEnclosingBatch() noexcept;
 
- public: // IVoidFunctor
+public: // IVoidFunctor
   void Invoke() noexcept override;
 
- public: // ICancellationListener
+public: // ICancellationListener
   void OnCancel() noexcept override;
 
- private:
+private:
   std::vector<DispatchTask> m_tasks;
   Mso::CntPtr<TaskBatch> m_enclosingBatch;
 };

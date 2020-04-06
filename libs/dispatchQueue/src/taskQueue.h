@@ -11,19 +11,20 @@ namespace Mso {
 
 //! ReadBuffer is used by task queue to dequeue items.
 //! It moves read index instead of resizing buffer.
-struct TaskReadBuffer {
+struct TaskReadBuffer
+{
   TaskReadBuffer() = default;
 
   // Prohibit copy and move
-  TaskReadBuffer(TaskReadBuffer const &other) = delete;
-  TaskReadBuffer &operator=(TaskReadBuffer const &other) = delete;
+  TaskReadBuffer(TaskReadBuffer const& other) = delete;
+  TaskReadBuffer& operator=(TaskReadBuffer const& other) = delete;
 
-  bool TryDequeue(DispatchTask &task) noexcept;
-  void SwapBuffer(std::vector<DispatchTask> &buffer) noexcept;
+  bool TryDequeue(DispatchTask& task) noexcept;
+  void SwapBuffer(std::vector<DispatchTask>& buffer) noexcept;
   size_t Size() const noexcept;
   bool IsEmpty() const noexcept;
 
- private:
+private:
   std::vector<DispatchTask> m_buffer;
   size_t m_index{0};
 };
@@ -33,22 +34,23 @@ struct TaskReadBuffer {
 //!
 //! Internally we have two vectors: one to enqueue items (write) and another to dequeue items (read).
 //! When the read queue is empty we swap them.
-struct TaskQueue {
-  TaskQueue(Mso::WeakPtr<IUnknown> &&weakOwnerPtr) noexcept;
+struct TaskQueue
+{
+  TaskQueue(Mso::WeakPtr<IUnknown>&& weakOwnerPtr) noexcept;
 
   ~TaskQueue() noexcept;
 
   // Prohibit copy and move
-  TaskQueue(TaskQueue const &other) = delete;
-  TaskQueue &operator=(TaskQueue const &other) = delete;
+  TaskQueue(TaskQueue const& other) = delete;
+  TaskQueue& operator=(TaskQueue const& other) = delete;
 
-  void Enqueue(DispatchTask &&task) noexcept;
-  bool TryDequeue(DispatchTask &task) noexcept;
-  bool DequeueAll(/*out*/ std::vector<DispatchTask> &tasks) noexcept;
+  void Enqueue(DispatchTask&& task) noexcept;
+  bool TryDequeue(DispatchTask& task) noexcept;
+  bool DequeueAll(/*out*/ std::vector<DispatchTask>& tasks) noexcept;
   size_t Size() const noexcept;
   bool IsEmpty() const noexcept;
 
- private:
+private:
   std::vector<DispatchTask> m_writeBuffer; // To enqueue items.
   TaskReadBuffer m_readBuffer; // To dequeue items.
   Mso::WeakPtr<IUnknown> m_weakOwnerPtr;

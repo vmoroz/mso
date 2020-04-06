@@ -14,6 +14,8 @@ liblet_sources(
     taskQueue.h
     threadMutex.h
     uiSchedulerStub.h
+  SOURCES_LINUX
+    threadPoolScheduler_linux.cpp
   SOURCES_WIN
     threadPoolScheduler_win.cpp
   SOURCES_WINRT

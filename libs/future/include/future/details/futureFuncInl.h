@@ -14,87 +14,100 @@ namespace Mso {
 //=============================================================================
 
 template <class T>
-inline Mso::Futures::IFuture *GetIFuture(const T &future) noexcept {
+inline Mso::Futures::IFuture* GetIFuture(const T& future) noexcept
+{
   return future.m_state.Get();
 }
 
 template <class T>
-inline auto MakeCompletedFuture(T &&value) noexcept {
+inline auto MakeCompletedFuture(T&& value) noexcept
+{
   Promise<std::decay_t<T>> promise;
   promise.SetValue(std::forward<T>(value));
   return promise.AsFuture();
 }
 
-inline Future<void> MakeCompletedFuture() noexcept {
+inline Future<void> MakeCompletedFuture() noexcept
+{
   Promise<void> promise;
   promise.SetValue();
   return promise.AsFuture();
 }
 
 template <class T, class... TArgs>
-inline Future<T> MakeCompletedFutureEmplaced(TArgs &&... args) noexcept {
+inline Future<T> MakeCompletedFutureEmplaced(TArgs&&... args) noexcept
+{
   Promise<T> promise;
   promise.EmplaceValue(std::forward<TArgs>(args)...);
   return promise.AsFuture();
 }
 
 template <class T, class U, class... TArgs>
-inline Future<T> MakeCompletedFutureEmplaced(std::initializer_list<U> il, TArgs &&... args) noexcept {
+inline Future<T> MakeCompletedFutureEmplaced(std::initializer_list<U> il, TArgs&&... args) noexcept
+{
   Promise<T> promise;
   promise.EmplaceValue(il, std::forward<TArgs>(args)...);
   return promise.AsFuture();
 }
 
 template <class T>
-auto MakeSucceededFuture(T &&value) noexcept {
+auto MakeSucceededFuture(T&& value) noexcept
+{
   Promise<std::decay_t<T>> promise;
   promise.SetValue(std::forward<T>(value));
   return promise.AsFuture();
 }
 
-inline Future<void> MakeSucceededFuture() noexcept {
+inline Future<void> MakeSucceededFuture() noexcept
+{
   Promise<void> promise;
   promise.SetValue();
   return promise.AsFuture();
 }
 
 template <class T, class... TArgs>
-inline Future<T> MakeSucceededFutureEmplaced(TArgs &&... args) noexcept {
+inline Future<T> MakeSucceededFutureEmplaced(TArgs&&... args) noexcept
+{
   Promise<T> promise;
   promise.EmplaceValue(std::forward<TArgs>(args)...);
   return promise.AsFuture();
 }
 
 template <class T, class U, class... TArgs>
-inline Future<T> MakeSucceededFutureEmplaced(std::initializer_list<U> il, TArgs &&... args) noexcept {
+inline Future<T> MakeSucceededFutureEmplaced(std::initializer_list<U> il, TArgs&&... args) noexcept
+{
   Promise<T> promise;
   promise.EmplaceValue(il, std::forward<TArgs>(args)...);
   return promise.AsFuture();
 }
 
 template <class T>
-inline Future<T> MakeFailedFuture(Mso::ErrorCode &&error) noexcept {
+inline Future<T> MakeFailedFuture(Mso::ErrorCode&& error) noexcept
+{
   Promise<T> promise;
   promise.SetError(std::move(error));
   return promise.AsFuture();
 }
 
 template <class T>
-Future<T> MakeFailedFuture(const Mso::ErrorCode &error) noexcept {
+Future<T> MakeFailedFuture(const Mso::ErrorCode& error) noexcept
+{
   Promise<T> promise;
   promise.SetError(error);
   return promise.AsFuture();
 }
 
 template <class T>
-auto MakeCompletedOptionalFuture(T &&value) noexcept {
+auto MakeCompletedOptionalFuture(T&& value) noexcept
+{
   Promise<std::decay_t<T>> promise;
   promise.SetValue(std::forward<T>(value));
   return promise.AsFuture();
 }
 
 template <class TExecutor, class TCallback>
-auto PostFuture(TCallback &&callback) noexcept {
+auto PostFuture(TCallback&& callback) noexcept
+{
   using Mso::Futures::GetExecutorType;
   using ExecutorType = decltype(GetExecutorType(std::declval<TExecutor>(), 0));
   using ExecutorTraits = Mso::Futures::ExecutorTraits<ExecutorType>;
@@ -106,7 +119,7 @@ auto PostFuture(TCallback &&callback) noexcept {
   using ValueType = typename ResultTraits::ValueType;
   using TaskType = Mso::Futures::FutureTask<ExecutorType, CallbackType>;
 
-  constexpr const auto &futureTraits = Mso::Futures::FutureTraitsProvider<
+  constexpr const auto& futureTraits = Mso::Futures::FutureTraitsProvider<
       /*Options:    */ Mso::Futures::FutureOptions::DestroyTaskAfterInvoke,
       /*ResultType: */ ValueType,
       /*TaskType:   */ TaskType,
@@ -125,7 +138,8 @@ auto PostFuture(TCallback &&callback) noexcept {
 }
 
 template <class TExecutor, class TCallback>
-auto PostFuture(TExecutor &&executor, TCallback &&callback) noexcept {
+auto PostFuture(TExecutor&& executor, TCallback&& callback) noexcept
+{
   using Mso::Futures::GetExecutorType;
   using ExecutorType = decltype(GetExecutorType(std::declval<TExecutor>(), 0));
   using ExecutorTraits = Mso::Futures::ExecutorTraits<ExecutorType>;
@@ -137,7 +151,7 @@ auto PostFuture(TExecutor &&executor, TCallback &&callback) noexcept {
   using ValueType = typename ResultTraits::ValueType;
   using TaskType = Mso::Futures::FutureTask<ExecutorType, CallbackType>;
 
-  constexpr const auto &futureTraits = Mso::Futures::FutureTraitsProvider<
+  constexpr const auto& futureTraits = Mso::Futures::FutureTraitsProvider<
       /*Options:    */ Mso::Futures::FutureOptions::DestroyTaskAfterInvoke,
       /*ResultType: */ ValueType,
       /*TaskType:   */ TaskType,

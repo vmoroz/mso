@@ -11,98 +11,117 @@
 
 namespace FutureTests {
 
-TEST_CLASS_EX (FutureFuncTest, LibletAwareMemLeakDetection) {
+TEST_CLASS_EX (FutureFuncTest, LibletAwareMemLeakDetection)
+{
   // MemoryLeakDetectionHook::TrackPerTest m_trackLeakPerTest;
 
-  TEST_METHOD(PostFutureDefaultExecutor) {
+  TEST_METHOD(PostFutureDefaultExecutor)
+  {
     auto future = Mso::PostFuture([]() noexcept { return 5; });
     TestCheckEqual(5, Mso::FutureWaitAndGetValue(future));
   }
 
-  TEST_METHOD(PostFutureDefaultExecutor_mutable) {
+  TEST_METHOD(PostFutureDefaultExecutor_mutable)
+  {
     auto future = Mso::PostFuture([]() mutable noexcept { return 5; });
     TestCheckEqual(5, Mso::FutureWaitAndGetValue(future));
   }
 
-  TEST_METHOD(PostFuture) {
+  TEST_METHOD(PostFuture)
+  {
     auto future = Mso::PostFuture(Mso::Executors::Concurrent{}, []() noexcept { return 5; });
     TestCheckEqual(5, Mso::FutureWaitAndGetValue(future));
   }
 
-  TEST_METHOD(PostFuture_mutable) {
+  TEST_METHOD(PostFuture_mutable)
+  {
     auto future = Mso::PostFuture(Mso::Executors::Concurrent{}, []() mutable noexcept { return 5; });
     TestCheckEqual(5, Mso::FutureWaitAndGetValue(future));
   }
 
-  TEST_METHOD(PostFuture_DispatchQueue) {
+  TEST_METHOD(PostFuture_DispatchQueue)
+  {
     auto future = Mso::PostFuture(Mso::DispatchQueue::ConcurrentQueue(), []() noexcept { return 5; });
     TestCheckEqual(5, Mso::FutureWaitAndGetValue(future));
   }
 
-  TEST_METHOD(PostFuture_DispatchQueue_mutable) {
+  TEST_METHOD(PostFuture_DispatchQueue_mutable)
+  {
     auto future = Mso::PostFuture(Mso::DispatchQueue::ConcurrentQueue(), []() mutable noexcept { return 5; });
     TestCheckEqual(5, Mso::FutureWaitAndGetValue(future));
   }
 
-  TEST_METHOD(PostFuture_DispatchQueue_mutable_WaitOnly) {
+  TEST_METHOD(PostFuture_DispatchQueue_mutable_WaitOnly)
+  {
     auto future = Mso::PostFuture(Mso::DispatchQueue::ConcurrentQueue(), []() mutable noexcept { return 5; });
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PostFutureDefaultExecutor_void) {
+  TEST_METHOD(PostFutureDefaultExecutor_void)
+  {
     auto future = Mso::PostFuture([]() noexcept {});
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PostFutureDefaultExecutor_void_mutable) {
+  TEST_METHOD(PostFutureDefaultExecutor_void_mutable)
+  {
     auto future = Mso::PostFuture([]() mutable noexcept {});
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PostFuture_void) {
+  TEST_METHOD(PostFuture_void)
+  {
     auto future = Mso::PostFuture(Mso::Executors::Concurrent{}, []() noexcept {});
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PostFuture_void_mutable) {
+  TEST_METHOD(PostFuture_void_mutable)
+  {
     auto future = Mso::PostFuture(Mso::Executors::Concurrent{}, []() mutable noexcept {});
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(MakeCompletedFuture) {
+  TEST_METHOD(MakeCompletedFuture)
+  {
     auto future = Mso::MakeCompletedFuture(5);
     TestCheckEqual(5, Mso::FutureWaitAndGetValue(future));
   }
 
-  TEST_METHOD(MakeCompletedFutureValue) {
+  TEST_METHOD(MakeCompletedFutureValue)
+  {
     auto str = std::wstring(L"Hello");
     auto future = Mso::MakeCompletedFuture(str);
     TestCheckEqual(str, Mso::FutureWaitAndGetValue(future));
   }
 
-  TEST_METHOD(MakeCompletedFutureConst) {
+  TEST_METHOD(MakeCompletedFutureConst)
+  {
     const auto str = std::wstring(L"Hello");
     auto future = Mso::MakeCompletedFuture(str);
     TestCheckEqual(str, Mso::FutureWaitAndGetValue(future));
   }
 
-  TEST_METHOD(MakeCompletedFutureRvalueRef) {
+  TEST_METHOD(MakeCompletedFutureRvalueRef)
+  {
     auto future = Mso::MakeCompletedFuture(std::wstring(L"Hello"));
     TestCheckEqual(std::wstring(L"Hello"), Mso::FutureWaitAndGetValue(future));
   }
 
-  TEST_METHOD(MakeCompletedFuture_void) {
+  TEST_METHOD(MakeCompletedFuture_void)
+  {
     auto future = Mso::MakeCompletedFuture();
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(MakeCompletedFutureEmplaced) {
+  TEST_METHOD(MakeCompletedFutureEmplaced)
+  {
     auto future = Mso::MakeCompletedFutureEmplaced<std::unique_ptr<int>>(new int(5));
     auto result = Mso::FutureWaitAndGetValue(future);
     TestCheckEqual(5, *result);
   }
 
-  TEST_METHOD(MakeCompletedFutureEmplaced_InitializationList) {
+  TEST_METHOD(MakeCompletedFutureEmplaced_InitializationList)
+  {
     auto future = Mso::MakeCompletedFutureEmplaced<std::vector<int>>({1, 2, 3, 4});
     auto result = Mso::FutureWaitAndGetValue(future);
     TestCheckEqual(4, result.size());

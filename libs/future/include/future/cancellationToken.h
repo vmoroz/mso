@@ -78,27 +78,28 @@ class CancellationToken;
 //! The variable is set to true by calling Cancel() method to indicate that the cancellation happened.
 //! Or the variable can be set to false by calling Abandon() method to indicate that the cancellation will never happen.
 //! The Abandon() method is called automatically when state's ref count becomes zero.
-class CancellationTokenSource {
- public:
+class CancellationTokenSource
+{
+public:
   //! Creates new CancellationTokenSource with a new non-empty state.
   LIBLET_PUBLICAPI CancellationTokenSource() noexcept;
 
   //! Creates new CancellationTokenSource with the same state as the other CancellationTokenSource.
-  LIBLET_PUBLICAPI CancellationTokenSource(const CancellationTokenSource &other) noexcept;
+  LIBLET_PUBLICAPI CancellationTokenSource(const CancellationTokenSource& other) noexcept;
 
   //! Creates new CancellationTokenSource with the state taken from the other CancellationTokenSource. The other
   //! CancellationTokenSource state becomes empty.
-  LIBLET_PUBLICAPI CancellationTokenSource(CancellationTokenSource &&other) noexcept;
+  LIBLET_PUBLICAPI CancellationTokenSource(CancellationTokenSource&& other) noexcept;
 
   //! Assigns the state from the other CancellationTokenSource.
-  LIBLET_PUBLICAPI CancellationTokenSource &operator=(const CancellationTokenSource &other) noexcept;
+  LIBLET_PUBLICAPI CancellationTokenSource& operator=(const CancellationTokenSource& other) noexcept;
 
   //! Assigns the state taken from the other CancellationTokenSource. The other CancellationTokenSource state becomes
   //! empty.
-  LIBLET_PUBLICAPI CancellationTokenSource &operator=(CancellationTokenSource &&other) noexcept;
+  LIBLET_PUBLICAPI CancellationTokenSource& operator=(CancellationTokenSource&& other) noexcept;
 
   //! Swaps states with the other CancellationTokenSource.
-  LIBLET_PUBLICAPI void Swap(CancellationTokenSource &other) noexcept;
+  LIBLET_PUBLICAPI void Swap(CancellationTokenSource& other) noexcept;
 
   //! Makes state empty to reduce ref count for the state.
   LIBLET_PUBLICAPI void Clear() noexcept;
@@ -107,7 +108,7 @@ class CancellationTokenSource {
   LIBLET_PUBLICAPI explicit operator bool() const noexcept;
 
   //! Gets the CancellationToken associated with the CancellationTokenSource instance.
-  LIBLET_PUBLICAPI const CancellationToken &GetToken() const noexcept;
+  LIBLET_PUBLICAPI const CancellationToken& GetToken() const noexcept;
 
   //! Sets the cancellation state to true.
   LIBLET_PUBLICAPI void Cancel() const noexcept;
@@ -117,37 +118,38 @@ class CancellationTokenSource {
   LIBLET_PUBLICAPI void Abandon() const noexcept;
 
   template <class U>
-  friend Mso::Futures::IFuture *GetIFuture(const U &tokenSource) noexcept;
+  friend Mso::Futures::IFuture* GetIFuture(const U& tokenSource) noexcept;
 
- private:
+private:
   //! Points to the first instance in the pair of IFuture instances used for the cancellation state.
   Mso::CntPtr<Mso::Futures::IFuture> m_state;
 };
 
 //! True if two CancellationTokenSource have the same state instance.
-LIBLET_PUBLICAPI bool operator==(const CancellationTokenSource &left, const CancellationTokenSource &right) noexcept;
+LIBLET_PUBLICAPI bool operator==(const CancellationTokenSource& left, const CancellationTokenSource& right) noexcept;
 
 //! True if two CancellationTokenSource have different state instance.
-LIBLET_PUBLICAPI bool operator!=(const CancellationTokenSource &left, const CancellationTokenSource &right) noexcept;
+LIBLET_PUBLICAPI bool operator!=(const CancellationTokenSource& left, const CancellationTokenSource& right) noexcept;
 
 //! True if left CancellationTokenSource is empty.
-LIBLET_PUBLICAPI bool operator==(const CancellationTokenSource &left, std::nullptr_t) noexcept;
+LIBLET_PUBLICAPI bool operator==(const CancellationTokenSource& left, std::nullptr_t) noexcept;
 
 //! True if left CancellationTokenSource is not empty.
-LIBLET_PUBLICAPI bool operator!=(const CancellationTokenSource &left, std::nullptr_t) noexcept;
+LIBLET_PUBLICAPI bool operator!=(const CancellationTokenSource& left, std::nullptr_t) noexcept;
 
 //! True if right CancellationTokenSource is empty.
-LIBLET_PUBLICAPI bool operator==(std::nullptr_t, const CancellationTokenSource &right) noexcept;
+LIBLET_PUBLICAPI bool operator==(std::nullptr_t, const CancellationTokenSource& right) noexcept;
 
 //! True if right CancellationTokenSource is not empty.
-LIBLET_PUBLICAPI bool operator!=(std::nullptr_t, const CancellationTokenSource &right) noexcept;
+LIBLET_PUBLICAPI bool operator!=(std::nullptr_t, const CancellationTokenSource& right) noexcept;
 
 //! CancellationToken is a weak pointer to the cancellation state held by CancellationTokenSource.
 //! It allows to observe the state with help of IsCanceled(), WhenCanceled(), and WhenChanged() methods.
-class CancellationToken {
+class CancellationToken
+{
   friend CancellationTokenSource;
 
- public:
+public:
   //! Creates new CancellationToken with an empty state.
   LIBLET_PUBLICAPI CancellationToken() noexcept;
 
@@ -155,20 +157,20 @@ class CancellationToken {
   LIBLET_PUBLICAPI CancellationToken(std::nullptr_t) noexcept;
 
   //! Creates new CancellationToken with the same state as the other CancellationToken.
-  LIBLET_PUBLICAPI CancellationToken(const CancellationToken &other) noexcept;
+  LIBLET_PUBLICAPI CancellationToken(const CancellationToken& other) noexcept;
 
   //! Creates new CancellationToken with the state taken from the other CancellationToken. The other CancellationToken
   //! state becomes empty.
-  LIBLET_PUBLICAPI CancellationToken(CancellationToken &&other) noexcept;
+  LIBLET_PUBLICAPI CancellationToken(CancellationToken&& other) noexcept;
 
   //! Assigns the state from the other CancellationToken.
-  LIBLET_PUBLICAPI CancellationToken &operator=(const CancellationToken &other) noexcept;
+  LIBLET_PUBLICAPI CancellationToken& operator=(const CancellationToken& other) noexcept;
 
   //! Assigns the state taken from the other CancellationToken. The other CancellationToken state becomes empty.
-  LIBLET_PUBLICAPI CancellationToken &operator=(CancellationToken &&other) noexcept;
+  LIBLET_PUBLICAPI CancellationToken& operator=(CancellationToken&& other) noexcept;
 
   //! Swaps states with the other CancellationToken.
-  LIBLET_PUBLICAPI void Swap(CancellationToken &other) noexcept;
+  LIBLET_PUBLICAPI void Swap(CancellationToken& other) noexcept;
 
   //! Makes state empty to reduce weak ref count for the state. Part of the state is kept in memory until weak ref count
   //! is not zero.
@@ -188,33 +190,33 @@ class CancellationToken {
 
   //! Registers an action to be executed when token is canceled.
   //! It is never executed if cancellation token is abandoned.
-  LIBLET_PUBLICAPI void WhenCanceled(Mso::VoidFunctor &&action) const noexcept;
+  LIBLET_PUBLICAPI void WhenCanceled(Mso::VoidFunctor&& action) const noexcept;
 
   template <class U>
-  friend Mso::Futures::IFuture *GetIFuture(const U &token) noexcept;
+  friend Mso::Futures::IFuture* GetIFuture(const U& token) noexcept;
 
- private:
+private:
   //! Points to the second instance in the pair of IFuture instances used for the cancellation state.
   Mso::CntPtr<Mso::Futures::IFuture> m_state;
 };
 
 //! True if two CancellationToken have the same state instance.
-LIBLET_PUBLICAPI bool operator==(const CancellationToken &left, const CancellationToken &right) noexcept;
+LIBLET_PUBLICAPI bool operator==(const CancellationToken& left, const CancellationToken& right) noexcept;
 
 //! True if two CancellationToken have different state instance.
-LIBLET_PUBLICAPI bool operator!=(const CancellationToken &left, const CancellationToken &right) noexcept;
+LIBLET_PUBLICAPI bool operator!=(const CancellationToken& left, const CancellationToken& right) noexcept;
 
 //! True if left CancellationToken is empty.
-LIBLET_PUBLICAPI bool operator==(const CancellationToken &left, std::nullptr_t) noexcept;
+LIBLET_PUBLICAPI bool operator==(const CancellationToken& left, std::nullptr_t) noexcept;
 
 //! True if left CancellationToken is not empty.
-LIBLET_PUBLICAPI bool operator!=(const CancellationToken &left, std::nullptr_t) noexcept;
+LIBLET_PUBLICAPI bool operator!=(const CancellationToken& left, std::nullptr_t) noexcept;
 
 //! True if right CancellationToken is empty.
-LIBLET_PUBLICAPI bool operator==(std::nullptr_t, const CancellationToken &right) noexcept;
+LIBLET_PUBLICAPI bool operator==(std::nullptr_t, const CancellationToken& right) noexcept;
 
 //! True if right CancellationToken is not empty.
-LIBLET_PUBLICAPI bool operator!=(std::nullptr_t, const CancellationToken &right) noexcept;
+LIBLET_PUBLICAPI bool operator!=(std::nullptr_t, const CancellationToken& right) noexcept;
 
 } // namespace Mso
 
@@ -222,12 +224,14 @@ LIBLET_PUBLICAPI bool operator!=(std::nullptr_t, const CancellationToken &right)
 namespace std {
 
 //! Swaps states between CancellationTokenSource instances.
-inline void swap(Mso::CancellationTokenSource &tokenSource1, Mso::CancellationTokenSource &tokenSource2) noexcept {
+inline void swap(Mso::CancellationTokenSource& tokenSource1, Mso::CancellationTokenSource& tokenSource2) noexcept
+{
   tokenSource1.Swap(tokenSource2);
 }
 
 //! Swaps states between CancellationToken instances.
-inline void swap(Mso::CancellationToken &token1, Mso::CancellationToken &token2) noexcept {
+inline void swap(Mso::CancellationToken& token1, Mso::CancellationToken& token2) noexcept
+{
   token1.Swap(token2);
 }
 

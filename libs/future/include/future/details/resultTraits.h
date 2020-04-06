@@ -13,37 +13,43 @@
 namespace Mso::Futures {
 
 template <class TFutureValue, class TResult>
-struct ResultTraits {
+struct ResultTraits
+{
   using ReturnType = TResult;
   using ValueType = TResult;
 };
 
 template <class TFutureValue>
-struct ResultTraits<TFutureValue, Mso::ErrorCode> {
+struct ResultTraits<TFutureValue, Mso::ErrorCode>
+{
   using ReturnType = Mso::Maybe<TFutureValue>;
   using ValueType = TFutureValue;
 };
 
 template <class TFutureValue, class TResult>
-struct ResultTraits<TFutureValue, Mso::Maybe<TResult>> {
+struct ResultTraits<TFutureValue, Mso::Maybe<TResult>>
+{
   using ReturnType = Mso::Maybe<TResult>;
   using ValueType = TResult;
 };
 
 template <class TFutureValue>
-struct ResultTraits<TFutureValue, void> {
+struct ResultTraits<TFutureValue, void>
+{
   using ReturnType = void;
   using ValueType = void;
 };
 
 template <class TFutureValue, class TResult>
-struct ResultTraits<TFutureValue, Mso::Future<TResult>> {
+struct ResultTraits<TFutureValue, Mso::Future<TResult>>
+{
   using ReturnType = Mso::Future<TResult>;
   using ValueType = typename Mso::Future<TResult>::ResultType;
 };
 
 template <class TFutureValue, class TResult>
-struct ResultTraits<TFutureValue, Mso::Maybe<Mso::Future<TResult>>> {
+struct ResultTraits<TFutureValue, Mso::Maybe<Mso::Future<TResult>>>
+{
   using ReturnType = Mso::Maybe<Mso::Future<TResult>>;
   using ValueType = typename Mso::Future<TResult>::ResultType;
 };
@@ -52,50 +58,53 @@ template <class TFutureValue, class TExecutor, class TCallback, CallbackArgKind 
 struct GetResultTraits;
 
 template <class TFutureValue, class TExecutor, class TCallback>
-struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::Value> {
+struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::Value>
+{
   using Type = ResultTraits<
       TFutureValue,
-      decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<TFutureValue &&>()))>;
+      decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<TFutureValue&&>()))>;
   static_assert(
-      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<TFutureValue &&>())),
+      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<TFutureValue&&>())),
       "Executor's Invoke method must not throw");
 };
 
 template <class TFutureValue, class TExecutor, class TCallback>
-struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::ValueRef> {
+struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::ValueRef>
+{
   using Type = ResultTraits<
       TFutureValue,
-      decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<TFutureValue &>()))>;
+      decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<TFutureValue&>()))>;
   static_assert(
-      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<TFutureValue &>())),
+      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<TFutureValue&>())),
       "Executor's Invoke method must not throw");
 };
 
 template <class TFutureValue, class TExecutor, class TCallback>
-struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::Maybe> {
-  using Type = ResultTraits<
-      TFutureValue,
-      decltype(
-          std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<TFutureValue> &&>()))>;
-  static_assert(
-      noexcept(
-          std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<TFutureValue> &&>())),
-      "Executor's Invoke method must not throw");
-};
-
-template <class TFutureValue, class TExecutor, class TCallback>
-struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::MaybeRef> {
+struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::Maybe>
+{
   using Type = ResultTraits<
       TFutureValue,
       decltype(
-          std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<TFutureValue> &>()))>;
+          std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<TFutureValue>&&>()))>;
   static_assert(
-      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<TFutureValue> &>())),
+      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<TFutureValue>&&>())),
       "Executor's Invoke method must not throw");
 };
 
 template <class TFutureValue, class TExecutor, class TCallback>
-struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::Void> {
+struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::MaybeRef>
+{
+  using Type = ResultTraits<
+      TFutureValue,
+      decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<TFutureValue>&>()))>;
+  static_assert(
+      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<TFutureValue>&>())),
+      "Executor's Invoke method must not throw");
+};
+
+template <class TFutureValue, class TExecutor, class TCallback>
+struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::Void>
+{
   using Type = ResultTraits<TFutureValue, decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>()))>;
   static_assert(
       noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>())),
@@ -103,53 +112,60 @@ struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::Void
 };
 
 template <class TFutureValue, class TExecutor, class TCallback>
-struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::MaybeVoid> {
+struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::MaybeVoid>
+{
   using Type = ResultTraits<
       TFutureValue,
-      decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<void> &&>()))>;
+      decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<void>&&>()))>;
   static_assert(
-      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<void> &&>())),
+      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<void>&&>())),
       "Executor's Invoke method must not throw");
 };
 
 template <class TFutureValue, class TExecutor, class TCallback>
-struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::MaybeVoidRef> {
+struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::MaybeVoidRef>
+{
   using Type = ResultTraits<
       TFutureValue,
-      decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<void> &>()))>;
+      decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<void>&>()))>;
   static_assert(
-      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<void> &>())),
+      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::Maybe<void>&>())),
       "Executor's Invoke method must not throw");
 };
 
 template <class TFutureValue, class TExecutor, class TCallback>
-struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::ErrorCode> {
+struct GetResultTraits<TFutureValue, TExecutor, TCallback, CallbackArgKind::ErrorCode>
+{
   using Type = ResultTraits<
       TFutureValue,
-      decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::ErrorCode &&>()))>;
+      decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::ErrorCode&&>()))>;
   static_assert(
-      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::ErrorCode &&>())),
+      noexcept(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<Mso::ErrorCode&&>())),
       "Executor's Invoke method must not throw");
 };
 
 template <class T, class TExecutor, class TCallback>
-struct GetSharedResultTraits {
+struct GetSharedResultTraits
+{
   using Type =
-      ResultTraits<T, decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<const T &>()))>;
+      ResultTraits<T, decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>(), std::declval<const T&>()))>;
 };
 
 template <class TExecutor, class TCallback>
-struct GetSharedResultTraits<void, TExecutor, TCallback> {
+struct GetSharedResultTraits<void, TExecutor, TCallback>
+{
   using Type = ResultTraits<void, decltype(std::declval<TExecutor>().Invoke(std::declval<TCallback>()))>;
 };
 
 template <class T>
-struct AsConst {
+struct AsConst
+{
   using Type = const T;
 };
 
 template <>
-struct AsConst<void> {
+struct AsConst<void>
+{
   using Type = void;
 };
 

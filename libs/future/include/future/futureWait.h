@@ -24,10 +24,11 @@ namespace Mso {
 //=============================================================================
 
 template <class T>
-Mso::Maybe<T> FutureWait(const Mso::Future<T> &future) noexcept {
+Mso::Maybe<T> FutureWait(const Mso::Future<T>& future) noexcept
+{
   Mso::Maybe<T> value;
   Mso::ManualResetEvent finished;
-  future.Then(Mso::Executors::Inline{}, [&finished, &value ](Mso::Maybe<T> && result) noexcept {
+  future.Then(Mso::Executors::Inline{}, [&finished, &value](Mso::Maybe<T>&& result) noexcept {
     value = std::move(result);
     finished.Set();
   });
@@ -36,22 +37,26 @@ Mso::Maybe<T> FutureWait(const Mso::Future<T> &future) noexcept {
 }
 
 template <class T>
-inline T FutureWaitAndGetValue(const Mso::Future<T> &future) noexcept {
+inline T FutureWaitAndGetValue(const Mso::Future<T>& future) noexcept
+{
   return FutureWait(future).TakeValue();
 }
 
 template <class T>
-inline Mso::ErrorCode FutureWaitAndGetError(const Mso::Future<T> &future) noexcept {
+inline Mso::ErrorCode FutureWaitAndGetError(const Mso::Future<T>& future) noexcept
+{
   return FutureWait(future).TakeError();
 }
 
 template <class T>
-inline bool FutureWaitIsSucceeded(const Mso::Future<T> &future) noexcept {
+inline bool FutureWaitIsSucceeded(const Mso::Future<T>& future) noexcept
+{
   return FutureWait(future).IsValue();
 }
 
 template <class T>
-inline bool FutureWaitIsFailed(const Mso::Future<T> &future) noexcept {
+inline bool FutureWaitIsFailed(const Mso::Future<T>& future) noexcept
+{
   return FutureWait(future).IsError();
 }
 

@@ -11,11 +11,11 @@ namespace Mso {
 
 MSO_GUID(CancellationErrorProviderGuid, "e7d1526a-efcf-4e62-a906-84fdcd4b6371")
 
-LIBLET_PUBLICAPI const ErrorProvider<bool, CancellationErrorProviderGuid> &CancellationErrorProvider() noexcept;
+LIBLET_PUBLICAPI const ErrorProvider<bool, CancellationErrorProviderGuid>& CancellationErrorProvider() noexcept;
 
 template <>
 LIBLET_PUBLICAPI void ErrorProvider<bool, CancellationErrorProviderGuid>::Throw(
-    const ErrorCode &errorCode,
+    const ErrorCode& errorCode,
     bool shouldHandle) const;
 
 } // namespace Mso

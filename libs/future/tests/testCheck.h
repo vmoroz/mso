@@ -10,7 +10,8 @@
   TestCheckEqualAt(__FILE__, __LINE__, v2, obj.Value2); \
   TestCheckEqualAt(__FILE__, __LINE__, v3, obj.Value3);
 
-struct EmplacedType {
+struct EmplacedType
+{
   EmplacedType() noexcept {}
 
   EmplacedType(int v1) noexcept : Value1(v1) {}

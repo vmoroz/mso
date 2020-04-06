@@ -9,34 +9,40 @@
 
 namespace FutureTests {
 
-TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
+TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection)
+{
   // MemoryLeakDetectionHook::TrackPerTest m_trackLeakPerTest;
 
-  TEST_METHOD(PromiseGroup_ctor_Default) {
+  TEST_METHOD(PromiseGroup_ctor_Default)
+  {
     Mso::PromiseGroup<int> p1;
     TestCheck(p1);
   }
 
-  TEST_METHOD(PromiseGroup_ctor_nullptr) {
+  TEST_METHOD(PromiseGroup_ctor_nullptr)
+  {
     Mso::PromiseGroup<int> p1(nullptr);
     TestCheck(!p1);
   }
 
-  TEST_METHOD(PromiseGroup_ctor_state) {
+  TEST_METHOD(PromiseGroup_ctor_state)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::PromiseGroup<int> p2(Mso::CntPtr<Mso::Futures::IFuture>(Mso::GetIFuture(p1)));
     TestCheck(p1);
     TestCheck(p1 == p2);
   }
 
-  TEST_METHOD(PromiseGroup_ctor_copy) {
+  TEST_METHOD(PromiseGroup_ctor_copy)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::PromiseGroup<int> p2(p1);
     TestCheck(p1);
     TestCheck(p1 == p2);
   }
 
-  TEST_METHOD(PromiseGroup_ctor_move) {
+  TEST_METHOD(PromiseGroup_ctor_move)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::PromiseGroup<int> p2(p1); // copy of p1
     Mso::PromiseGroup<int> p3(std::move(p1));
@@ -45,13 +51,15 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p3 == p2);
   }
 
-  TEST_METHOD(PromiseGroup_Assign_nullptr) {
+  TEST_METHOD(PromiseGroup_Assign_nullptr)
+  {
     Mso::PromiseGroup<int> p1;
     p1 = nullptr;
     TestCheck(!p1);
   }
 
-  TEST_METHOD(PromiseGroup_Assign_copy) {
+  TEST_METHOD(PromiseGroup_Assign_copy)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::PromiseGroup<int> p2;
     TestCheck(p1 != p2);
@@ -62,7 +70,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p1 != p3);
   }
 
-  TEST_METHOD(PromiseGroup_Assign_move) {
+  TEST_METHOD(PromiseGroup_Assign_move)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::PromiseGroup<int> p2;
     Mso::PromiseGroup<int> p3(p1); // copy of p1
@@ -74,7 +83,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p1 == p4);
   }
 
-  TEST_METHOD(PromiseGroup_Assign_EmptyInit) {
+  TEST_METHOD(PromiseGroup_Assign_EmptyInit)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::PromiseGroup<int> p2(p1); // copy of p1
     p1 = {}; // Assigns new non-empty Promise
@@ -83,22 +93,27 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p1 != p2);
   }
 
-  TEST_METHOD(PromiseGroup_dtor_Unfulfilled) {
+  TEST_METHOD(PromiseGroup_dtor_Unfulfilled)
+  {
     Mso::PromiseGroup<int> p1;
     // This PromiseGroup is unfulfilled but no one observes it. We let it to be destroyed without any side effects.
   }
 
-  TEST_METHOD(PromiseGroup_dtor_Unfulfilled_Observed) {
+  TEST_METHOD(PromiseGroup_dtor_Unfulfilled_Observed)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::Future<void> f1 = p1.AddFuture().Then([](int /*value*/) noexcept {});
 
     // Move p1 to the local variable p2 which should destroy the promise group when goes out of scope.
-    { Mso::PromiseGroup<int> p2(std::move(p1)); }
+    {
+      Mso::PromiseGroup<int> p2(std::move(p1));
+    }
 
     TestCheck(Mso::FutureWaitIsFailed(f1));
   }
 
-  TEST_METHOD(PromiseGroup_Swap) {
+  TEST_METHOD(PromiseGroup_Swap)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::PromiseGroup<int> p2;
     Mso::PromiseGroup<int> p3(p1); // copy of p1
@@ -108,7 +123,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p2 == p3);
   }
 
-  TEST_METHOD(PromiseGroup_std_swap) {
+  TEST_METHOD(PromiseGroup_std_swap)
+  {
     using std::swap; // The typical pattern how to call the swap method.
     Mso::PromiseGroup<int> p1;
     Mso::PromiseGroup<int> p2;
@@ -119,27 +135,31 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p2 == p3);
   }
 
-  TEST_METHOD(PromiseGroup_GetIFuture) {
+  TEST_METHOD(PromiseGroup_GetIFuture)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::PromiseGroup<int> p2(nullptr);
     TestCheck(Mso::GetIFuture(p1) != nullptr);
     TestCheck(Mso::GetIFuture(p2) == nullptr);
   }
 
-  TEST_METHOD(PromiseGroup_operator_bool) {
+  TEST_METHOD(PromiseGroup_operator_bool)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::PromiseGroup<int> p2(nullptr);
     TestCheck(p1);
     TestCheck(!p2);
   }
 
-  TEST_METHOD(PromiseGroup_AddFuture) {
+  TEST_METHOD(PromiseGroup_AddFuture)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::Future<int> f1 = p1.AddFuture();
     TestCheck(f1);
   }
 
-  TEST_METHOD(PromiseGroup_AddFuture_three) {
+  TEST_METHOD(PromiseGroup_AddFuture_three)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::Future<int> f1 = p1.AddFuture();
     Mso::Future<int> f2 = p1.AddFuture();
@@ -149,7 +169,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(f3);
   }
 
-  TEST_METHOD(PromiseGroup_SetValue_Completes) {
+  TEST_METHOD(PromiseGroup_SetValue_Completes)
+  {
     Mso::PromiseGroup<int> p1;
     p1.SetValue(5);
     TestCheck(Mso::GetIFuture(p1)->IsDone());
@@ -157,7 +178,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(!Mso::GetIFuture(p1)->IsFailed());
   }
 
-  TEST_METHOD(PromiseGroup_SetValue_Observe) {
+  TEST_METHOD(PromiseGroup_SetValue_Observe)
+  {
     Mso::PromiseGroup<int> p1;
     auto future = p1.AddFuture().Then([&](int value) noexcept { TestCheck(value == 5); });
 
@@ -165,7 +187,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_SetValue_Observe_three) {
+  TEST_METHOD(PromiseGroup_SetValue_Observe_three)
+  {
     Mso::PromiseGroup<int> p1;
     auto future1 = p1.AddFuture().Then([&](int value) noexcept { TestCheck(value == 5); });
     auto future2 = p1.AddFuture().Then([&](int value) noexcept { TestCheck(value == 5); });
@@ -177,7 +200,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     Mso::FutureWait(future3);
   }
 
-  TEST_METHOD(PromiseGroup_SetValue_Copy) {
+  TEST_METHOD(PromiseGroup_SetValue_Copy)
+  {
     Mso::PromiseGroup<std::vector<int>> p1;
     std::vector<int> vec({1, 2, 3});
     p1.SetValue(vec);
@@ -185,15 +209,15 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     // modify original vector and see that the Promise still has the original copy.
     vec.push_back(4);
 
-    auto future1 = p1.AddFuture().Then([&](std::vector<int> & value) noexcept {
+    auto future1 = p1.AddFuture().Then([&](std::vector<int>& value) noexcept {
       std::vector<int> v1 = std::move(value);
       TestCheckEqual(3, v1.size());
     });
-    auto future2 = p1.AddFuture().Then([&](std::vector<int> & value) noexcept {
+    auto future2 = p1.AddFuture().Then([&](std::vector<int>& value) noexcept {
       std::vector<int> v1 = std::move(value);
       TestCheckEqual(3, v1.size());
     });
-    auto future3 = p1.AddFuture().Then([&](std::vector<int> & value) noexcept {
+    auto future3 = p1.AddFuture().Then([&](std::vector<int>& value) noexcept {
       std::vector<int> v1 = std::move(value);
       TestCheckEqual(3, v1.size());
     });
@@ -204,7 +228,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(4, vec.size());
   }
 
-  TEST_METHOD(PromiseGroup_SetValue_Moves) {
+  TEST_METHOD(PromiseGroup_SetValue_Moves)
+  {
     // Note that we cannot use move-only types like std::unique_ptr with the PromiseGroup.
     Mso::PromiseGroup<std::vector<int>> p1;
     std::vector<int> vec({1, 2, 3});
@@ -212,15 +237,15 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
 
     TestCheck(vec.empty());
 
-    auto future1 = p1.AddFuture().Then([&](std::vector<int> & value) noexcept {
+    auto future1 = p1.AddFuture().Then([&](std::vector<int>& value) noexcept {
       std::vector<int> v1 = std::move(value);
       TestCheckEqual(3, v1.size());
     });
-    auto future2 = p1.AddFuture().Then([&](std::vector<int> & value) noexcept {
+    auto future2 = p1.AddFuture().Then([&](std::vector<int>& value) noexcept {
       std::vector<int> v1 = std::move(value);
       TestCheckEqual(3, v1.size());
     });
-    auto future3 = p1.AddFuture().Then([&](std::vector<int> & value) noexcept {
+    auto future3 = p1.AddFuture().Then([&](std::vector<int>& value) noexcept {
       std::vector<int> v1 = std::move(value);
       TestCheckEqual(3, v1.size());
     });
@@ -230,24 +255,28 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     Mso::FutureWait(future3);
   }
 
-  TEST_METHOD(PromiseGroup_SetValue_Empty) {
+  TEST_METHOD(PromiseGroup_SetValue_Empty)
+  {
     Mso::PromiseGroup<int> p1(nullptr);
     TestCheckCrash(p1.SetValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_SetValue_AlreadySet) {
+  TEST_METHOD(PromiseGroup_SetValue_AlreadySet)
+  {
     Mso::PromiseGroup<int> p1;
     p1.SetValue(5);
     TestCheckCrash(p1.SetValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_SetValue_AlreadyAbandoned) {
+  TEST_METHOD(PromiseGroup_SetValue_AlreadyAbandoned)
+  {
     Mso::PromiseGroup<int> p1;
     TestCheck(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheckCrash(p1.SetValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_TrySetValue_Completes) {
+  TEST_METHOD(PromiseGroup_TrySetValue_Completes)
+  {
     Mso::PromiseGroup<int> p1;
     TestCheck(p1.TrySetValue(5));
     TestCheck(Mso::GetIFuture(p1)->IsDone());
@@ -255,7 +284,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(!Mso::GetIFuture(p1)->IsFailed());
   };
 
-  TEST_METHOD(PromiseGroup_TrySetValue_Observe) {
+  TEST_METHOD(PromiseGroup_TrySetValue_Observe)
+  {
     Mso::PromiseGroup<int> p1;
     auto future = p1.AddFuture().Then([&](int value) noexcept { TestCheck(value == 5); });
 
@@ -263,7 +293,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_TrySetValue_Copy) {
+  TEST_METHOD(PromiseGroup_TrySetValue_Copy)
+  {
     Mso::PromiseGroup<std::vector<int>> p1;
     std::vector<int> vec({1, 2, 3});
     TestCheck(p1.TrySetValue(vec));
@@ -272,11 +303,11 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     vec.push_back(4);
 
     auto future1 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
     auto future2 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
     auto future3 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
 
     Mso::FutureWait(future1);
     Mso::FutureWait(future2);
@@ -284,7 +315,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(4, vec.size());
   }
 
-  TEST_METHOD(PromiseGroup_TrySetValue_Moves) {
+  TEST_METHOD(PromiseGroup_TrySetValue_Moves)
+  {
     Mso::PromiseGroup<std::vector<int>> p1;
     std::vector<int> vec({1, 2, 3});
     TestCheck(p1.TrySetValue(std::move(vec)));
@@ -293,35 +325,39 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(vec.empty());
 
     auto future1 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
     auto future2 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
     auto future3 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
 
     Mso::FutureWait(future1);
     Mso::FutureWait(future2);
     Mso::FutureWait(future3);
   }
 
-  TEST_METHOD(PromiseGroup_TrySetValue_Empty) {
+  TEST_METHOD(PromiseGroup_TrySetValue_Empty)
+  {
     Mso::PromiseGroup<int> p1(nullptr);
     TestCheckCrash(p1.TrySetValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_TrySetValue_AlreadySet) {
+  TEST_METHOD(PromiseGroup_TrySetValue_AlreadySet)
+  {
     Mso::PromiseGroup<int> p1;
     TestCheck(p1.TrySetValue(5));
     TestCheck(!p1.TrySetValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_TrySetValue_AlreadyAbandoned) {
+  TEST_METHOD(PromiseGroup_TrySetValue_AlreadyAbandoned)
+  {
     Mso::PromiseGroup<int> p1;
     TestCheck(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheck(!p1.TrySetValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_EmplaceValue_Completes) {
+  TEST_METHOD(PromiseGroup_EmplaceValue_Completes)
+  {
     Mso::PromiseGroup<int> p1;
     p1.EmplaceValue(5);
     TestCheck(Mso::GetIFuture(p1)->IsDone());
@@ -329,7 +365,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(!Mso::GetIFuture(p1)->IsFailed());
   }
 
-  TEST_METHOD(PromiseGroup_EmplaceValue_Observe) {
+  TEST_METHOD(PromiseGroup_EmplaceValue_Observe)
+  {
     Mso::PromiseGroup<int> p1;
     auto future = p1.AddFuture().Then([&](int value) noexcept { TestCheck(value == 5); });
 
@@ -337,11 +374,12 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_EmplaceValue_pair) {
+  TEST_METHOD(PromiseGroup_EmplaceValue_pair)
+  {
     Mso::PromiseGroup<std::pair<int, double>> p1;
     p1.EmplaceValue(1, 2.3);
 
-    auto future1 = p1.AddFuture().Then([&](const std::pair<int, double> &value) noexcept {
+    auto future1 = p1.AddFuture().Then([&](const std::pair<int, double>& value) noexcept {
       TestCheckEqual(1, value.first);
       TestCheckEqual(2.3, value.second);
     });
@@ -349,76 +387,85 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     Mso::FutureWait(future1);
   }
 
-  TEST_METHOD(PromiseGroup_EmplaceValue_Vector_init) {
+  TEST_METHOD(PromiseGroup_EmplaceValue_Vector_init)
+  {
     Mso::PromiseGroup<std::vector<int>> p1;
     p1.EmplaceValue({1, 2, 3});
 
     auto future1 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
     auto future2 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
     auto future3 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
 
     Mso::FutureWait(future1);
     Mso::FutureWait(future2);
     Mso::FutureWait(future3);
   }
 
-  TEST_METHOD(PromiseGroup_EmplaceValue_NoArgs) {
+  TEST_METHOD(PromiseGroup_EmplaceValue_NoArgs)
+  {
     Mso::PromiseGroup<EmplacedType> p1;
     auto future =
-        p1.AddFuture().Then([&](const EmplacedType &value) noexcept { ValidateEmplacedType(value, 1, 2, 3); });
+        p1.AddFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 1, 2, 3); });
 
     p1.EmplaceValue();
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_EmplaceValue_OneArg) {
+  TEST_METHOD(PromiseGroup_EmplaceValue_OneArg)
+  {
     Mso::PromiseGroup<EmplacedType> p1;
     auto future =
-        p1.AddFuture().Then([&](const EmplacedType &value) noexcept { ValidateEmplacedType(value, 5, 2, 3); });
+        p1.AddFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 2, 3); });
 
     p1.EmplaceValue(5);
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_EmplaceValue_TwoArgs) {
+  TEST_METHOD(PromiseGroup_EmplaceValue_TwoArgs)
+  {
     Mso::PromiseGroup<EmplacedType> p1;
     auto future =
-        p1.AddFuture().Then([&](const EmplacedType &value) noexcept { ValidateEmplacedType(value, 5, 6, 3); });
+        p1.AddFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 3); });
 
     p1.EmplaceValue(5, 6);
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_EmplaceValue_ThreeArgs) {
+  TEST_METHOD(PromiseGroup_EmplaceValue_ThreeArgs)
+  {
     Mso::PromiseGroup<EmplacedType> p1;
     auto future =
-        p1.AddFuture().Then([&](const EmplacedType &value) noexcept { ValidateEmplacedType(value, 5, 6, 7); });
+        p1.AddFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 7); });
 
     p1.EmplaceValue(5, 6, 7);
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_EmplaceValue_Empty) {
+  TEST_METHOD(PromiseGroup_EmplaceValue_Empty)
+  {
     Mso::PromiseGroup<int> p1(nullptr);
     TestCheckCrash(p1.EmplaceValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_EmplaceValue_AlreadySet) {
+  TEST_METHOD(PromiseGroup_EmplaceValue_AlreadySet)
+  {
     Mso::PromiseGroup<int> p1;
     p1.EmplaceValue(5);
     TestCheckCrash(p1.EmplaceValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_EmplaceValue_AlreadyAbandoned) {
+  TEST_METHOD(PromiseGroup_EmplaceValue_AlreadyAbandoned)
+  {
     Mso::PromiseGroup<int> p1;
     TestCheck(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheckCrash(p1.EmplaceValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_TryEmplaceValue_Completes) {
+  TEST_METHOD(PromiseGroup_TryEmplaceValue_Completes)
+  {
     Mso::PromiseGroup<int> p1;
     TestCheck(p1.TryEmplaceValue(5));
     TestCheck(Mso::GetIFuture(p1)->IsDone());
@@ -426,7 +473,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(!Mso::GetIFuture(p1)->IsFailed());
   }
 
-  TEST_METHOD(PromiseGroup_TryEmplaceValue_Observe) {
+  TEST_METHOD(PromiseGroup_TryEmplaceValue_Observe)
+  {
     Mso::PromiseGroup<int> p1;
     auto future = p1.AddFuture().Then([&](int value) noexcept { TestCheck(value == 5); });
 
@@ -434,11 +482,12 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_TryEmplaceValue_pair) {
+  TEST_METHOD(PromiseGroup_TryEmplaceValue_pair)
+  {
     Mso::PromiseGroup<std::pair<int, double>> p1;
     TestCheck(p1.TryEmplaceValue(1, 2.3));
 
-    auto future1 = p1.AddFuture().Then([&](const std::pair<int, double> &value) noexcept {
+    auto future1 = p1.AddFuture().Then([&](const std::pair<int, double>& value) noexcept {
       TestCheckEqual(1, value.first);
       TestCheckEqual(2.3, value.second);
     });
@@ -446,76 +495,85 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     Mso::FutureWait(future1);
   }
 
-  TEST_METHOD(PromiseGroup_TryEmplaceValue_Vector_init) {
+  TEST_METHOD(PromiseGroup_TryEmplaceValue_Vector_init)
+  {
     Mso::PromiseGroup<std::vector<int>> p1;
     TestCheck(p1.TryEmplaceValue({1, 2, 3}));
 
     auto future1 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
     auto future2 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
     auto future3 =
-        p1.AddFuture().Then([&](const std::vector<int> &value) noexcept { TestCheckEqual(3, value.size()); });
+        p1.AddFuture().Then([&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
 
     Mso::FutureWait(future1);
     Mso::FutureWait(future2);
     Mso::FutureWait(future3);
   }
 
-  TEST_METHOD(PromiseGroup_TryEmplaceValue_NoArgs) {
+  TEST_METHOD(PromiseGroup_TryEmplaceValue_NoArgs)
+  {
     Mso::PromiseGroup<EmplacedType> p1;
     auto future =
-        p1.AddFuture().Then([&](const EmplacedType &value) noexcept { ValidateEmplacedType(value, 1, 2, 3); });
+        p1.AddFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 1, 2, 3); });
 
     TestCheck(p1.TryEmplaceValue());
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_TryEmplaceValue_OneArg) {
+  TEST_METHOD(PromiseGroup_TryEmplaceValue_OneArg)
+  {
     Mso::PromiseGroup<EmplacedType> p1;
     auto future =
-        p1.AddFuture().Then([&](const EmplacedType &value) noexcept { ValidateEmplacedType(value, 5, 2, 3); });
+        p1.AddFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 2, 3); });
 
     TestCheck(p1.TryEmplaceValue(5));
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_TryEmplaceValue_TwoArgs) {
+  TEST_METHOD(PromiseGroup_TryEmplaceValue_TwoArgs)
+  {
     Mso::PromiseGroup<EmplacedType> p1;
     auto future =
-        p1.AddFuture().Then([&](const EmplacedType &value) noexcept { ValidateEmplacedType(value, 5, 6, 3); });
+        p1.AddFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 3); });
 
     TestCheck(p1.TryEmplaceValue(5, 6));
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_TryEmplaceValue_ThreeArgs) {
+  TEST_METHOD(PromiseGroup_TryEmplaceValue_ThreeArgs)
+  {
     Mso::PromiseGroup<EmplacedType> p1;
     auto future =
-        p1.AddFuture().Then([&](const EmplacedType &value) noexcept { ValidateEmplacedType(value, 5, 6, 7); });
+        p1.AddFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 7); });
 
     TestCheck(p1.TryEmplaceValue(5, 6, 7));
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroup_TryEmplaceValue_Empty) {
+  TEST_METHOD(PromiseGroup_TryEmplaceValue_Empty)
+  {
     Mso::PromiseGroup<int> p1(nullptr);
     TestCheckCrash(p1.TryEmplaceValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_TryEmplaceValue_AlreadySet) {
+  TEST_METHOD(PromiseGroup_TryEmplaceValue_AlreadySet)
+  {
     Mso::PromiseGroup<int> p1;
     TestCheck(p1.TryEmplaceValue(5));
     TestCheck(!p1.TryEmplaceValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_TryEmplaceValue_AlreadyAbandoned) {
+  TEST_METHOD(PromiseGroup_TryEmplaceValue_AlreadyAbandoned)
+  {
     Mso::PromiseGroup<int> p1;
     TestCheck(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheck(!p1.TryEmplaceValue(5));
   }
 
-  TEST_METHOD(PromiseGroup_TrySetError) {
+  TEST_METHOD(PromiseGroup_TrySetError)
+  {
     Mso::PromiseGroup<int> p1;
     TestCheck(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheck(Mso::GetIFuture(p1)->IsDone());
@@ -523,28 +581,32 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::GetIFuture(p1)->IsFailed());
   }
 
-  TEST_METHOD(PromiseGroup_TrySetError_AlreadySet) {
+  TEST_METHOD(PromiseGroup_TrySetError_AlreadySet)
+  {
     Mso::PromiseGroup<int> p1;
     p1.SetValue(5);
     TestCheck(!p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheck(!Mso::GetIFuture(p1)->IsFailed());
   }
 
-  TEST_METHOD(PromiseGroup_TrySetError_AlreadyAbandoned) {
+  TEST_METHOD(PromiseGroup_TrySetError_AlreadyAbandoned)
+  {
     Mso::PromiseGroup<int> p1;
     TestCheck(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheck(!p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheck(Mso::GetIFuture(p1)->IsFailed());
   }
 
-  TEST_METHOD(PromiseGroup_TrySetError_Empty) {
+  TEST_METHOD(PromiseGroup_TrySetError_Empty)
+  {
     TEST_DISABLE_MEMORY_LEAK_DETECTION();
 
     Mso::PromiseGroup<int> p1(nullptr);
     TestCheckCrash(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
   }
 
-  TEST_METHOD(PromiseGroup_operator_Equal) {
+  TEST_METHOD(PromiseGroup_operator_Equal)
+  {
     Mso::PromiseGroup<int> p1;
     Mso::PromiseGroup<int> p2(p1); // copy
     Mso::PromiseGroup<int> p3;
@@ -561,31 +623,36 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(nullptr != p1);
   }
 
-  TEST_METHOD(PromiseGroupVoid_ctor_Default) {
+  TEST_METHOD(PromiseGroupVoid_ctor_Default)
+  {
     Mso::PromiseGroup<void> p1;
     TestCheck(p1);
   }
 
-  TEST_METHOD(PromiseGroupVoid_ctor_nullptr) {
+  TEST_METHOD(PromiseGroupVoid_ctor_nullptr)
+  {
     Mso::PromiseGroup<void> p1(nullptr);
     TestCheck(!p1);
   }
 
-  TEST_METHOD(PromiseGroupVoid_ctor_state) {
+  TEST_METHOD(PromiseGroupVoid_ctor_state)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::PromiseGroup<void> p2(Mso::CntPtr<Mso::Futures::IFuture>(Mso::GetIFuture(p1)));
     TestCheck(p1);
     TestCheck(p1 == p2);
   }
 
-  TEST_METHOD(PromiseGroupVoid_ctor_copy) {
+  TEST_METHOD(PromiseGroupVoid_ctor_copy)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::PromiseGroup<void> p2(p1);
     TestCheck(p1);
     TestCheck(p1 == p2);
   }
 
-  TEST_METHOD(PromiseGroupVoid_ctor_move) {
+  TEST_METHOD(PromiseGroupVoid_ctor_move)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::PromiseGroup<void> p2(p1); // copy of p1
     Mso::PromiseGroup<void> p3(std::move(p1));
@@ -594,13 +661,15 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p3 == p2);
   }
 
-  TEST_METHOD(PromiseGroupVoid_Assign_nullptr) {
+  TEST_METHOD(PromiseGroupVoid_Assign_nullptr)
+  {
     Mso::PromiseGroup<void> p1;
     p1 = nullptr;
     TestCheck(!p1);
   }
 
-  TEST_METHOD(PromiseGroupVoid_Assign_copy) {
+  TEST_METHOD(PromiseGroupVoid_Assign_copy)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::PromiseGroup<void> p2;
     TestCheck(p1 != p2);
@@ -611,7 +680,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p1 != p3);
   }
 
-  TEST_METHOD(PromiseGroupVoid_Assign_move) {
+  TEST_METHOD(PromiseGroupVoid_Assign_move)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::PromiseGroup<void> p2;
     Mso::PromiseGroup<void> p3(p1); // copy of p1
@@ -623,7 +693,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p1 == p4);
   }
 
-  TEST_METHOD(PromiseGroupVoid_Assign_EmptyInit) {
+  TEST_METHOD(PromiseGroupVoid_Assign_EmptyInit)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::PromiseGroup<void> p2(p1); // copy of p1
     p1 = {}; // Assigns new non-empty Promise
@@ -632,22 +703,27 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p1 != p2);
   }
 
-  TEST_METHOD(PromiseGroupVoid_dtor_Unfulfilled) {
+  TEST_METHOD(PromiseGroupVoid_dtor_Unfulfilled)
+  {
     Mso::PromiseGroup<void> p1;
     // This Promise is unfulfilled but no one observes it. We let it to be destroyed without any side effects.
   }
 
-  TEST_METHOD(PromiseGroupVoid_dtor_Unfulfilled_Observed) {
+  TEST_METHOD(PromiseGroupVoid_dtor_Unfulfilled_Observed)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::Future<void> f1 = p1.AddFuture().Then([]() noexcept {});
 
     // Move p1 to the local variable p2 which should destroy the promise group when goes out of scope.
-    { Mso::PromiseGroup<void> p2(std::move(p1)); }
+    {
+      Mso::PromiseGroup<void> p2(std::move(p1));
+    }
 
     TestCheck(Mso::FutureWaitIsFailed(f1));
   }
 
-  TEST_METHOD(PromiseGroupVoid_Swap) {
+  TEST_METHOD(PromiseGroupVoid_Swap)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::PromiseGroup<void> p2;
     Mso::PromiseGroup<void> p3(p1); // copy of p1
@@ -657,7 +733,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p2 == p3);
   }
 
-  TEST_METHOD(PromiseGroupVoid_std_swap) {
+  TEST_METHOD(PromiseGroupVoid_std_swap)
+  {
     using std::swap; // The typical pattern how to call the swap method.
     Mso::PromiseGroup<void> p1;
     Mso::PromiseGroup<void> p2;
@@ -668,27 +745,31 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(p2 == p3);
   }
 
-  TEST_METHOD(PromiseGroupVoid_GetIFuture) {
+  TEST_METHOD(PromiseGroupVoid_GetIFuture)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::PromiseGroup<void> p2(nullptr);
     TestCheck(Mso::GetIFuture(p1) != nullptr);
     TestCheck(Mso::GetIFuture(p2) == nullptr);
   }
 
-  TEST_METHOD(PromiseGroupVoid_operator_bool) {
+  TEST_METHOD(PromiseGroupVoid_operator_bool)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::PromiseGroup<void> p2(nullptr);
     TestCheck(p1);
     TestCheck(!p2);
   }
 
-  TEST_METHOD(PromiseGroupVoid_AddFuture) {
+  TEST_METHOD(PromiseGroupVoid_AddFuture)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::Future<void> f1 = p1.AddFuture();
     TestCheck(f1);
   }
 
-  TEST_METHOD(PromiseGroupVoid_AddFuture_three) {
+  TEST_METHOD(PromiseGroupVoid_AddFuture_three)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::Future<void> f1 = p1.AddFuture();
     Mso::Future<void> f2 = p1.AddFuture();
@@ -698,7 +779,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(f3);
   }
 
-  TEST_METHOD(PromiseGroupVoid_SetValue_Completes) {
+  TEST_METHOD(PromiseGroupVoid_SetValue_Completes)
+  {
     Mso::PromiseGroup<void> p1;
     p1.SetValue();
     TestCheck(Mso::GetIFuture(p1)->IsDone());
@@ -706,7 +788,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(!Mso::GetIFuture(p1)->IsFailed());
   }
 
-  TEST_METHOD(PromiseGroupVoid_SetValue_Observe) {
+  TEST_METHOD(PromiseGroupVoid_SetValue_Observe)
+  {
     Mso::PromiseGroup<void> p1;
     auto future = p1.AddFuture().Then([&]() noexcept {});
 
@@ -714,7 +797,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroupVoid_SetValue_Observe_three) {
+  TEST_METHOD(PromiseGroupVoid_SetValue_Observe_three)
+  {
     Mso::PromiseGroup<void> p1;
     auto future1 = p1.AddFuture().Then([&]() noexcept {});
     auto future2 = p1.AddFuture().Then([&]() noexcept {});
@@ -726,24 +810,28 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     Mso::FutureWait(future3);
   }
 
-  TEST_METHOD(PromiseGroupVoid_SetValue_Empty) {
+  TEST_METHOD(PromiseGroupVoid_SetValue_Empty)
+  {
     Mso::PromiseGroup<void> p1(nullptr);
     TestCheckCrash(p1.SetValue());
   }
 
-  TEST_METHOD(PromiseGroupVoid_SetValue_AlreadySet) {
+  TEST_METHOD(PromiseGroupVoid_SetValue_AlreadySet)
+  {
     Mso::PromiseGroup<void> p1;
     p1.SetValue();
     TestCheckCrash(p1.SetValue());
   }
 
-  TEST_METHOD(PromiseGroupVoid_SetValue_AlreadyFailed) {
+  TEST_METHOD(PromiseGroupVoid_SetValue_AlreadyFailed)
+  {
     Mso::PromiseGroup<void> p1;
     TestCheck(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheckCrash(p1.SetValue());
   }
 
-  TEST_METHOD(PromiseGroupVoid_TrySetValue) {
+  TEST_METHOD(PromiseGroupVoid_TrySetValue)
+  {
     Mso::PromiseGroup<void> p1;
     TestCheck(p1.TrySetValue());
     TestCheck(Mso::GetIFuture(p1)->IsDone());
@@ -751,7 +839,8 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(!Mso::GetIFuture(p1)->IsFailed());
   }
 
-  TEST_METHOD(PromiseGroupVoid_TrySetValue_Observe) {
+  TEST_METHOD(PromiseGroupVoid_TrySetValue_Observe)
+  {
     Mso::PromiseGroup<void> p1;
     auto future = p1.AddFuture().Then([&]() noexcept {});
 
@@ -759,24 +848,28 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     Mso::FutureWait(future);
   }
 
-  TEST_METHOD(PromiseGroupVoid_TrySetValue_Empty) {
+  TEST_METHOD(PromiseGroupVoid_TrySetValue_Empty)
+  {
     Mso::PromiseGroup<void> p1(nullptr);
     TestCheckCrash(p1.TrySetValue());
   }
 
-  TEST_METHOD(PromiseGroupVoid_TrySetValue_AlreadySet) {
+  TEST_METHOD(PromiseGroupVoid_TrySetValue_AlreadySet)
+  {
     Mso::PromiseGroup<void> p1;
     TestCheck(p1.TrySetValue());
     TestCheck(!p1.TrySetValue());
   }
 
-  TEST_METHOD(PromiseGroupVoid_TrySetValue_AlreadyAbandoned) {
+  TEST_METHOD(PromiseGroupVoid_TrySetValue_AlreadyAbandoned)
+  {
     Mso::PromiseGroup<void> p1;
     TestCheck(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheck(!p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
   }
 
-  TEST_METHOD(PromiseGroupVoid_TrySetError) {
+  TEST_METHOD(PromiseGroupVoid_TrySetError)
+  {
     Mso::PromiseGroup<void> p1;
     TestCheck(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheck(Mso::GetIFuture(p1)->IsDone());
@@ -784,28 +877,32 @@ TEST_CLASS_EX (PromiseGroupTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::GetIFuture(p1)->IsFailed());
   }
 
-  TEST_METHOD(PromiseGroupVoid_TrySetError_AlreadySet) {
+  TEST_METHOD(PromiseGroupVoid_TrySetError_AlreadySet)
+  {
     Mso::PromiseGroup<void> p1;
     p1.SetValue();
     TestCheck(!p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheck(!Mso::GetIFuture(p1)->IsFailed());
   }
 
-  TEST_METHOD(PromiseGroupVoid_TrySetError_AlreadyAbandoned) {
+  TEST_METHOD(PromiseGroupVoid_TrySetError_AlreadyAbandoned)
+  {
     Mso::PromiseGroup<void> p1;
     TestCheck(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheck(!p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
     TestCheck(Mso::GetIFuture(p1)->IsFailed());
   }
 
-  TEST_METHOD(PromiseGroupVoid_TrySetError_Empty) {
+  TEST_METHOD(PromiseGroupVoid_TrySetError_Empty)
+  {
     TEST_DISABLE_MEMORY_LEAK_DETECTION();
 
     Mso::PromiseGroup<void> p1(nullptr);
     TestCheckCrash(p1.TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true)));
   }
 
-  TEST_METHOD(PromiseGroupVoid_operator_Equal) {
+  TEST_METHOD(PromiseGroupVoid_operator_Equal)
+  {
     Mso::PromiseGroup<void> p1;
     Mso::PromiseGroup<void> p2(p1); // copy
     Mso::PromiseGroup<void> p3;

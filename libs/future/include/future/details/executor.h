@@ -15,10 +15,11 @@ namespace Mso::Futures {
 //! DefaultTag is used to disambiguate between two overload functions.
 //! Function that receives integer parameter has higher priority than a
 //! function that receives DefaultTag because it requires an extra conversion step.
-using DefaultTag = void *;
+using DefaultTag = void*;
 
 //! Argument kinds accepted by callbacks
-enum class CallbackArgKind {
+enum class CallbackArgKind
+{
   Value,
   ValueRef,
   Maybe,
@@ -45,17 +46,19 @@ using CallbackInvalidArgType = std::integral_constant<CallbackArgKind, CallbackA
 
 //! Default validator for an argument type passed to a PostFuture() callback.
 template <class T>
-struct DefaultPostArgValidator {
+struct DefaultPostArgValidator
+{
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, int) -> decltype(callback(), CallbackVoidArgType());
+  static auto CheckArgs0(TCallback&& callback, int) -> decltype(callback(), CallbackVoidArgType());
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, void *) -> CallbackInvalidArgType;
+  static auto CheckArgs0(TCallback&& callback, void*) -> CallbackInvalidArgType;
 
   template <class TCallback>
   static auto CheckArgs() -> decltype(CheckArgs0(std::declval<TCallback>(), 0));
 
   template <class TCallback>
-  constexpr static CallbackArgKind GetArgKind() noexcept {
+  constexpr static CallbackArgKind GetArgKind() noexcept
+  {
     static_assert(
         decltype(CheckArgs<TCallback>())::value != CallbackArgKind::Invalid, "Callback must not have parameters.");
     return decltype(CheckArgs<TCallback>())::value;
@@ -64,29 +67,31 @@ struct DefaultPostArgValidator {
 
 //! Default validator for an argument type passed to a .Then() callback.
 template <class T>
-struct DefaultThenArgValidator {
+struct DefaultThenArgValidator
+{
   // Since value is implicitly convertible to Maybe, we check for Maybe argument first with a higher priority.
   // Otherwise, callback accepting Maybe would report that it accepts just a value.
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, int, int, int, int)
-      -> decltype(callback(std::declval<Mso::Maybe<T> &>()), CallbackMaybeRefArgType());
+  static auto CheckArgs0(TCallback&& callback, int, int, int, int)
+      -> decltype(callback(std::declval<Mso::Maybe<T>&>()), CallbackMaybeRefArgType());
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, int, int, int, void *)
-      -> decltype(callback(std::declval<Mso::Maybe<T> &&>()), CallbackMaybeArgType());
+  static auto CheckArgs0(TCallback&& callback, int, int, int, void*)
+      -> decltype(callback(std::declval<Mso::Maybe<T>&&>()), CallbackMaybeArgType());
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, int, int, void *, void *)
-      -> decltype(callback(std::declval<T &>()), CallbackValueRefArgType());
+  static auto CheckArgs0(TCallback&& callback, int, int, void*, void*)
+      -> decltype(callback(std::declval<T&>()), CallbackValueRefArgType());
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, int, void *, void *, void *)
-      -> decltype(callback(std::declval<T &&>()), CallbackValueArgType());
+  static auto CheckArgs0(TCallback&& callback, int, void*, void*, void*)
+      -> decltype(callback(std::declval<T&&>()), CallbackValueArgType());
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, void *, void *, void *, void *) -> CallbackInvalidArgType;
+  static auto CheckArgs0(TCallback&& callback, void*, void*, void*, void*) -> CallbackInvalidArgType;
 
   template <class TCallback>
   static auto CheckArgs() -> decltype(CheckArgs0(std::declval<TCallback>(), 0, 0, 0, 0));
 
   template <class TCallback>
-  constexpr static const CallbackArgKind GetArgKind() noexcept {
+  constexpr static const CallbackArgKind GetArgKind() noexcept
+  {
     static_assert(
         decltype(CheckArgs<TCallback>())::value != CallbackArgKind::Invalid,
         "Callback valid parameters: T&&, const T&, T, Maybe<T>&&, or Maybe<T>&.");
@@ -96,23 +101,25 @@ struct DefaultThenArgValidator {
 
 //! Default validator for a void argument type passed to a .Then() callback.
 template <>
-struct DefaultThenArgValidator<void> {
+struct DefaultThenArgValidator<void>
+{
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, int, int, int) -> decltype(callback(), CallbackVoidArgType());
+  static auto CheckArgs0(TCallback&& callback, int, int, int) -> decltype(callback(), CallbackVoidArgType());
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, int, int, void *)
-      -> decltype(callback(std::declval<Mso::Maybe<void> &>()), CallbackMaybeVoidRefArgType());
+  static auto CheckArgs0(TCallback&& callback, int, int, void*)
+      -> decltype(callback(std::declval<Mso::Maybe<void>&>()), CallbackMaybeVoidRefArgType());
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, int, void *, void *)
-      -> decltype(callback(std::declval<Mso::Maybe<void> &&>()), CallbackMaybeVoidArgType());
+  static auto CheckArgs0(TCallback&& callback, int, void*, void*)
+      -> decltype(callback(std::declval<Mso::Maybe<void>&&>()), CallbackMaybeVoidArgType());
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, void *, void *, void *) -> CallbackInvalidArgType;
+  static auto CheckArgs0(TCallback&& callback, void*, void*, void*) -> CallbackInvalidArgType;
 
   template <class TCallback>
   static auto CheckArgs() -> decltype(CheckArgs0(std::declval<TCallback>(), 0, 0, 0));
 
   template <class TCallback>
-  constexpr static CallbackArgKind GetArgKind() noexcept {
+  constexpr static CallbackArgKind GetArgKind() noexcept
+  {
     static_assert(
         decltype(CheckArgs<TCallback>())::value != CallbackArgKind::Invalid,
         "Callback valid parameters: no parameter, Mso::Maybe<void>&&, or Maybe<void>&.");
@@ -122,18 +129,20 @@ struct DefaultThenArgValidator<void> {
 
 //! Default validator for an argument type passed to a .Catch() callback.
 template <class T>
-struct DefaultCatchArgValidator {
+struct DefaultCatchArgValidator
+{
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, int)
-      -> decltype(callback(std::declval<ErrorCode &&>()), CallbackErrorCodeArgType());
+  static auto CheckArgs0(TCallback&& callback, int)
+      -> decltype(callback(std::declval<ErrorCode&&>()), CallbackErrorCodeArgType());
   template <class TCallback>
-  static auto CheckArgs0(TCallback &&callback, void *) -> CallbackInvalidArgType;
+  static auto CheckArgs0(TCallback&& callback, void*) -> CallbackInvalidArgType;
 
   template <class TCallback>
   static auto CheckArgs() -> decltype(CheckArgs0(std::declval<TCallback>(), 0));
 
   template <class TCallback>
-  constexpr static CallbackArgKind GetArgKind() noexcept {
+  constexpr static CallbackArgKind GetArgKind() noexcept
+  {
     static_assert(
         decltype(CheckArgs<TCallback>())::value != CallbackArgKind::Invalid,
         "Callback must accept 'ErrorCode&&' parameter.");
@@ -143,28 +152,29 @@ struct DefaultCatchArgValidator {
 
 //! Traits for executors.
 template <class TExecutor>
-struct ExecutorTraits {
+struct ExecutorTraits
+{
   template <class TExec, class T>
   static auto GetFutureType(int) -> typename TExec::template FutureType<T>;
   template <class TExec, class T>
-  static auto GetFutureType(void *) -> Mso::Future<T>;
+  static auto GetFutureType(void*) -> Mso::Future<T>;
 
   template <class TExec, class T>
   static auto GetPostArgValidator(int) -> typename TExec::template PostArgValidator<T>;
   template <class TExec, class T>
-  static auto GetPostArgValidator(void *) -> DefaultPostArgValidator<T>;
+  static auto GetPostArgValidator(void*) -> DefaultPostArgValidator<T>;
 
   template <class TExec, class T>
   static auto GetThenArgValidator(int) -> typename TExec::template ThenArgValidator<T>;
   template <class TExec, class T>
-  static auto GetThenArgValidator(void *) -> DefaultThenArgValidator<T>;
+  static auto GetThenArgValidator(void*) -> DefaultThenArgValidator<T>;
 
   template <class TExec, class T>
   static auto GetCatchArgValidator(int) -> typename TExec::template CatchArgValidator<T>;
   template <class TExec, class T>
-  static auto GetCatchArgValidator(void *) -> DefaultCatchArgValidator<T>;
+  static auto GetCatchArgValidator(void*) -> DefaultCatchArgValidator<T>;
 
- public:
+public:
   template <class T>
   using FutureType = decltype(GetFutureType<TExecutor, T>(0));
   template <class T>
@@ -175,17 +185,20 @@ struct ExecutorTraits {
   using CatchArgValidator = decltype(GetCatchArgValidator<TExecutor, T>(0));
 
   template <class TCallback, class T>
-  constexpr static CallbackArgKind GetPostArgKind() noexcept {
+  constexpr static CallbackArgKind GetPostArgKind() noexcept
+  {
     return PostArgValidator<T>::template GetArgKind<TCallback>();
   }
 
   template <class TCallback, class T>
-  constexpr static CallbackArgKind GetThenArgKind() noexcept {
+  constexpr static CallbackArgKind GetThenArgKind() noexcept
+  {
     return ThenArgValidator<T>::template GetArgKind<TCallback>();
   }
 
   template <class TCallback, class T>
-  constexpr static CallbackArgKind GetCatchArgKind() noexcept {
+  constexpr static CallbackArgKind GetCatchArgKind() noexcept
+  {
     return CatchArgValidator<T>::template GetArgKind<TCallback>();
   }
 };
@@ -195,9 +208,11 @@ struct ExecutorTraits {
 namespace Mso::Executors {
 namespace Internal {
 
-struct ExecutorInvoker {
+struct ExecutorInvoker
+{
   template <class TCallback, class... TArgs>
-  auto Invoke(TCallback &&callback, TArgs &&... args) noexcept -> decltype(callback(std::forward<TArgs>(args)...)) {
+  auto Invoke(TCallback&& callback, TArgs&&... args) noexcept -> decltype(callback(std::forward<TArgs>(args)...))
+  {
     UNREFERENCED_OACR(this);
     static_assert(noexcept(callback(std::forward<TArgs>(args)...)), "Callback must not throw.");
     return callback(std::forward<TArgs>(args)...);
@@ -205,46 +220,51 @@ struct ExecutorInvoker {
 };
 
 template <class TBaseExecutor>
-struct ThrowingExecutor : TBaseExecutor {
+struct ThrowingExecutor : TBaseExecutor
+{
   using TBaseExecutor::TBaseExecutor;
 
   template <class TCallback, class... TArgs>
-  auto Invoke(TCallback &&callback, TArgs &&... args) noexcept {
+  auto Invoke(TCallback&& callback, TArgs&&... args) noexcept
+  {
     using TResult = decltype(callback(std::forward<TArgs>(args)...));
     constexpr const bool isNoExcept = noexcept(callback(std::forward<TArgs>(args)...));
     return Mso::Futures::MaybeInvoker<TResult, isNoExcept>::Invoke(
         std::forward<TCallback>(callback), std::forward<TArgs>(args)...);
   }
 
- private:
+private:
   TBaseExecutor m_base;
 };
 
 } // namespace Internal
 
-struct Executor : Internal::ExecutorInvoker {
+struct Executor : Internal::ExecutorInvoker
+{
   using Throwing = Internal::ThrowingExecutor<Executor>;
 
   Executor() noexcept = default;
-  LIBLET_PUBLICAPI Executor(DispatchQueue const &queue) noexcept;
-  LIBLET_PUBLICAPI Executor(DispatchQueue &&queue) noexcept;
+  LIBLET_PUBLICAPI Executor(DispatchQueue const& queue) noexcept;
+  LIBLET_PUBLICAPI Executor(DispatchQueue&& queue) noexcept;
 
-  LIBLET_PUBLICAPI void Post(DispatchTask &&task) noexcept;
+  LIBLET_PUBLICAPI void Post(DispatchTask&& task) noexcept;
 
- protected:
+protected:
   DispatchQueue m_queue{nullptr};
 };
 
-struct Concurrent : Internal::ExecutorInvoker {
+struct Concurrent : Internal::ExecutorInvoker
+{
   using Throwing = Internal::ThrowingExecutor<Concurrent>;
 
-  LIBLET_PUBLICAPI void Post(DispatchTask &&task) noexcept;
+  LIBLET_PUBLICAPI void Post(DispatchTask&& task) noexcept;
 };
 
-struct Inline : Internal::ExecutorInvoker {
+struct Inline : Internal::ExecutorInvoker
+{
   using Throwing = Internal::ThrowingExecutor<Inline>;
 
-  LIBLET_PUBLICAPI void Post(DispatchTask &&Task) noexcept;
+  LIBLET_PUBLICAPI void Post(DispatchTask&& Task) noexcept;
 };
 
 } // namespace Mso::Executors
@@ -256,18 +276,18 @@ namespace Mso::Futures {
 //! to override the default functions.
 //! Custom GetExecutorType should return the executor type instead of T.
 template <class T>
-T GetExecutorType(_In_ T *executor, DefaultTag);
+T GetExecutorType(_In_ T* executor, DefaultTag);
 template <class T>
-T GetExecutorType(_In_ T &executor, DefaultTag);
+T GetExecutorType(_In_ T& executor, DefaultTag);
 template <class T>
-T GetExecutorType(const T &executor, DefaultTag);
+T GetExecutorType(const T& executor, DefaultTag);
 
 //! GetExecutorType overloads for Mso::CntPtr/TCntRef. They are good for any type, and must not be
 //! repeated for other types or executors.
 template <class T>
-auto GetExecutorType(Mso::CntPtr<T> &executor, int) -> decltype(GetExecutorType((T *)nullptr, 0));
+auto GetExecutorType(Mso::CntPtr<T>& executor, int) -> decltype(GetExecutorType((T*)nullptr, 0));
 template <class T>
-auto GetExecutorType(const Mso::CntPtr<T> &executor, int) -> decltype(GetExecutorType((T *)nullptr, 0));
+auto GetExecutorType(const Mso::CntPtr<T>& executor, int) -> decltype(GetExecutorType((T*)nullptr, 0));
 
 } // namespace Mso::Futures
 
@@ -279,11 +299,11 @@ namespace Mso {
 //! namespace as the type T.
 //! Since the Mso::CntPtr is defined in Mso:: namespace, we do not have them here.
 //! They are defined above in Mso:: namespace are good for any Mso::CntPtr<T> type.
-template <typename T, std::enable_if_t<std::is_convertible_v<T *, Mso::DispatchQueue *>, int> = 1>
-Mso::Executors::Executor GetExecutorType(_In_ T &queue, int) noexcept;
+template <typename T, std::enable_if_t<std::is_convertible_v<T*, Mso::DispatchQueue*>, int> = 1>
+Mso::Executors::Executor GetExecutorType(_In_ T& queue, int) noexcept;
 
-template <typename T, std::enable_if_t<std::is_convertible_v<T *, Mso::DispatchQueue *>, int> = 1>
-Mso::Executors::Executor GetExecutorType(const T &queue, int) noexcept;
+template <typename T, std::enable_if_t<std::is_convertible_v<T*, Mso::DispatchQueue*>, int> = 1>
+Mso::Executors::Executor GetExecutorType(const T& queue, int) noexcept;
 
 } // namespace Mso
 

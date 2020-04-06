@@ -9,38 +9,45 @@
 
 namespace FutureTests {
 
-struct DestroyCheck : Mso::RefCountedObjectNoVTable<DestroyCheck> {
-  DestroyCheck(bool &isDestroyed) noexcept : m_isDestroyed(isDestroyed) {}
+struct DestroyCheck : Mso::RefCountedObjectNoVTable<DestroyCheck>
+{
+  DestroyCheck(bool& isDestroyed) noexcept : m_isDestroyed(isDestroyed) {}
 
-  ~DestroyCheck() noexcept {
+  ~DestroyCheck() noexcept
+  {
     m_isDestroyed = true;
   }
 
- private:
-  bool &m_isDestroyed;
+private:
+  bool& m_isDestroyed;
 };
 
-TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
-  static Mso::CancellationToken GetEmptyCancellationToken() noexcept {
+TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection)
+{
+  static Mso::CancellationToken GetEmptyCancellationToken() noexcept
+  {
     Mso::CancellationTokenSource tokenSource;
     Mso::CancellationToken token = tokenSource.GetToken();
     token.Clear();
     return token;
   }
 
-  TEST_METHOD(CancellationTokenSource_ctor_Default) {
+  TEST_METHOD(CancellationTokenSource_ctor_Default)
+  {
     Mso::CancellationTokenSource t1;
     TestCheck(t1);
   }
 
-  TEST_METHOD(CancellationTokenSource_ctor_copy) {
+  TEST_METHOD(CancellationTokenSource_ctor_copy)
+  {
     Mso::CancellationTokenSource t1;
     Mso::CancellationTokenSource t2(t1);
     TestCheck(t1);
     TestCheck(t1 == t2);
   }
 
-  TEST_METHOD(CancellationTokenSource_ctor_move) {
+  TEST_METHOD(CancellationTokenSource_ctor_move)
+  {
     Mso::CancellationTokenSource t1;
     Mso::CancellationTokenSource t2(t1); // copy of t1
     Mso::CancellationTokenSource t3(std::move(t1));
@@ -49,7 +56,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(t3 == t2);
   }
 
-  TEST_METHOD(CancellationTokenSource_Assign_copy) {
+  TEST_METHOD(CancellationTokenSource_Assign_copy)
+  {
     Mso::CancellationTokenSource t1;
     Mso::CancellationTokenSource t2;
     TestCheck(t1 != t2);
@@ -60,7 +68,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(t1 != t3);
   }
 
-  TEST_METHOD(CancellationTokenSource_Assign_move) {
+  TEST_METHOD(CancellationTokenSource_Assign_move)
+  {
     Mso::CancellationTokenSource t1;
     Mso::CancellationTokenSource t2;
     Mso::CancellationTokenSource t3(t1); // copy of t1
@@ -72,7 +81,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(t1 == t4);
   }
 
-  TEST_METHOD(CancellationTokenSource_Swap) {
+  TEST_METHOD(CancellationTokenSource_Swap)
+  {
     Mso::CancellationTokenSource t1;
     Mso::CancellationTokenSource t2;
     Mso::CancellationTokenSource t3(t1); // copy of t1
@@ -82,7 +92,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(t2 == t3);
   }
 
-  TEST_METHOD(CancellationTokenSource_std_swap) {
+  TEST_METHOD(CancellationTokenSource_std_swap)
+  {
     using std::swap; // The typical pattern how to call the swap method.
     Mso::CancellationTokenSource t1;
     Mso::CancellationTokenSource t2;
@@ -94,7 +105,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(t2 == t3);
   }
 
-  TEST_METHOD(CancellationTokenSource_GetIFuture) {
+  TEST_METHOD(CancellationTokenSource_GetIFuture)
+  {
     Mso::CancellationTokenSource t1;
     Mso::CancellationTokenSource t2;
     t2.Clear();
@@ -102,14 +114,16 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::GetIFuture(t2) == nullptr);
   }
 
-  TEST_METHOD(CancellationTokenSource_Clear) {
+  TEST_METHOD(CancellationTokenSource_Clear)
+  {
     Mso::CancellationTokenSource t1;
     TestCheck(Mso::GetIFuture(t1) != nullptr);
     t1.Clear();
     TestCheck(Mso::GetIFuture(t1) == nullptr);
   }
 
-  TEST_METHOD(CancellationTokenSource_operator_bool) {
+  TEST_METHOD(CancellationTokenSource_operator_bool)
+  {
     Mso::CancellationTokenSource t1;
     Mso::CancellationTokenSource t2;
     t2.Clear();
@@ -117,7 +131,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(!(bool)t2);
   }
 
-  TEST_METHOD(CancellationTokenSource_operator_Equal) {
+  TEST_METHOD(CancellationTokenSource_operator_Equal)
+  {
     Mso::CancellationTokenSource t1;
     Mso::CancellationTokenSource t2(t1); // copy
     Mso::CancellationTokenSource t3;
@@ -135,19 +150,22 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(nullptr != t1);
   }
 
-  TEST_METHOD(CancellationTokenSource_GetToken) {
+  TEST_METHOD(CancellationTokenSource_GetToken)
+  {
     Mso::CancellationTokenSource ts1;
     Mso::CancellationToken t1 = ts1.GetToken();
     TestCheck(t1);
   }
 
-  TEST_METHOD(CancellationTokenSource_GetToken_Empty) {
+  TEST_METHOD(CancellationTokenSource_GetToken_Empty)
+  {
     Mso::CancellationTokenSource ts1;
     ts1.Clear();
     TestCheckCrash(ts1.GetToken());
   }
 
-  TEST_METHOD(CancellationTokenSource_Cancel) {
+  TEST_METHOD(CancellationTokenSource_Cancel)
+  {
     Mso::CancellationTokenSource ts1;
     ts1.Cancel();
     Mso::CancellationToken t1 = ts1.GetToken();
@@ -156,13 +174,15 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::GetIFuture(t1)->IsSucceeded());
   }
 
-  TEST_METHOD(CancellationTokenSource_Cancel_Empty) {
+  TEST_METHOD(CancellationTokenSource_Cancel_Empty)
+  {
     Mso::CancellationTokenSource ts1;
     ts1.Clear();
     TestCheckCrash(ts1.Cancel());
   }
 
-  TEST_METHOD(CancellationTokenSource_Abandon) {
+  TEST_METHOD(CancellationTokenSource_Abandon)
+  {
     Mso::CancellationTokenSource ts1;
     ts1.Abandon();
     Mso::CancellationToken t1 = ts1.GetToken();
@@ -171,13 +191,15 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::GetIFuture(t1)->IsSucceeded());
   }
 
-  TEST_METHOD(CancellationTokenSource_Abandon_Empty) {
+  TEST_METHOD(CancellationTokenSource_Abandon_Empty)
+  {
     Mso::CancellationTokenSource ts1;
     ts1.Clear();
     TestCheckCrash(ts1.Abandon());
   }
 
-  TEST_METHOD(CancellationTokenSource_dtor) {
+  TEST_METHOD(CancellationTokenSource_dtor)
+  {
     // When CancellationTokenSource is destroyed, we complete the cancellation
     // token with value false.
     Mso::CancellationToken t1(GetEmptyCancellationToken());
@@ -189,17 +211,20 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::GetIFuture(t1)->IsSucceeded());
   }
 
-  TEST_METHOD(CancellationToken_ctor_default) {
+  TEST_METHOD(CancellationToken_ctor_default)
+  {
     Mso::CancellationToken t1;
     TestCheck(!t1);
   }
 
-  TEST_METHOD(CancellationToken_ctor_nullptr) {
+  TEST_METHOD(CancellationToken_ctor_nullptr)
+  {
     Mso::CancellationToken t1{nullptr};
     TestCheck(!t1);
   }
 
-  TEST_METHOD(CancellationToken_ctor_copy) {
+  TEST_METHOD(CancellationToken_ctor_copy)
+  {
     Mso::CancellationTokenSource ts1;
     Mso::CancellationToken t1 = ts1.GetToken();
     Mso::CancellationToken t2(t1);
@@ -207,7 +232,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(t1 == t2);
   }
 
-  TEST_METHOD(CancellationToken_ctor_move) {
+  TEST_METHOD(CancellationToken_ctor_move)
+  {
     Mso::CancellationTokenSource ts1;
     Mso::CancellationToken t1 = ts1.GetToken();
     Mso::CancellationToken t2(t1); // copy of t1
@@ -217,7 +243,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(t3 == t2);
   }
 
-  TEST_METHOD(CancellationToken_Assign_copy) {
+  TEST_METHOD(CancellationToken_Assign_copy)
+  {
     Mso::CancellationTokenSource ts1;
     Mso::CancellationToken t1 = ts1.GetToken();
     Mso::CancellationTokenSource ts2;
@@ -230,7 +257,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(t1 != t3);
   }
 
-  TEST_METHOD(CancellationToken_Assign_move) {
+  TEST_METHOD(CancellationToken_Assign_move)
+  {
     Mso::CancellationTokenSource ts1;
     Mso::CancellationToken t1 = ts1.GetToken();
     Mso::CancellationTokenSource ts2;
@@ -244,7 +272,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(t1 == t4);
   }
 
-  TEST_METHOD(CancellationToken_Swap) {
+  TEST_METHOD(CancellationToken_Swap)
+  {
     Mso::CancellationTokenSource ts1;
     Mso::CancellationToken t1 = ts1.GetToken();
     Mso::CancellationTokenSource ts2;
@@ -256,7 +285,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(t2 == t3);
   }
 
-  TEST_METHOD(CancellationToken_std_swap) {
+  TEST_METHOD(CancellationToken_std_swap)
+  {
     using std::swap; // The typical pattern how to call the swap method.
     Mso::CancellationTokenSource ts1;
     Mso::CancellationToken t1 = ts1.GetToken();
@@ -270,7 +300,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(t2 == t3);
   }
 
-  TEST_METHOD(CancellationToken_GetIFuture) {
+  TEST_METHOD(CancellationToken_GetIFuture)
+  {
     Mso::CancellationTokenSource ts1;
     Mso::CancellationToken t1 = ts1.GetToken();
     Mso::CancellationToken t2(GetEmptyCancellationToken());
@@ -278,7 +309,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::GetIFuture(t2) == nullptr);
   }
 
-  TEST_METHOD(CancellationToken_Clear) {
+  TEST_METHOD(CancellationToken_Clear)
+  {
     Mso::CancellationTokenSource ts1;
     Mso::CancellationToken t1 = ts1.GetToken();
     TestCheck(Mso::GetIFuture(t1) != nullptr);
@@ -286,7 +318,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::GetIFuture(t1) == nullptr);
   }
 
-  TEST_METHOD(CancellationToken_operator_bool) {
+  TEST_METHOD(CancellationToken_operator_bool)
+  {
     Mso::CancellationTokenSource ts1;
     Mso::CancellationToken t1 = ts1.GetToken();
     Mso::CancellationToken t2(GetEmptyCancellationToken());
@@ -294,7 +327,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(!(bool)t2);
   }
 
-  TEST_METHOD(CancellationToken_operator_Equal) {
+  TEST_METHOD(CancellationToken_operator_Equal)
+  {
     Mso::CancellationTokenSource ts1;
     Mso::CancellationToken t1 = ts1.GetToken();
     Mso::CancellationToken t2(t1); // copy
@@ -313,7 +347,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(nullptr != t1);
   }
 
-  TEST_METHOD(CancellationToken_WhenChanged_Cancel) {
+  TEST_METHOD(CancellationToken_WhenChanged_Cancel)
+  {
     Mso::CancellationTokenSource ts1;
     bool isExecuted = false;
     bool isLambdaDestroyed = false;
@@ -329,7 +364,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(isLambdaDestroyed);
   }
 
-  TEST_METHOD(CancellationToken_WhenChanged_Abandon) {
+  TEST_METHOD(CancellationToken_WhenChanged_Abandon)
+  {
     Mso::CancellationTokenSource ts1;
     bool isExecuted = false;
     bool isLambdaDestroyed = false;
@@ -345,7 +381,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(isLambdaDestroyed);
   }
 
-  TEST_METHOD(CancellationToken_WhenChanged_dtor) {
+  TEST_METHOD(CancellationToken_WhenChanged_dtor)
+  {
     bool isExecuted = false;
     bool isLambdaDestroyed = false;
     Mso::CancellationToken t1(GetEmptyCancellationToken()); // To show that CancellationToken is a
@@ -363,7 +400,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(isLambdaDestroyed);
   }
 
-  TEST_METHOD(CancellationToken_WhenCanceled_Cancel) {
+  TEST_METHOD(CancellationToken_WhenCanceled_Cancel)
+  {
     Mso::CancellationTokenSource ts1;
     bool isExecuted = false;
     bool isLambdaDestroyed = false;
@@ -376,7 +414,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(isLambdaDestroyed);
   }
 
-  TEST_METHOD(CancellationToken_WhenCanceled_Abandon) {
+  TEST_METHOD(CancellationToken_WhenCanceled_Abandon)
+  {
     Mso::CancellationTokenSource ts1;
     bool isExecuted = false;
     bool isLambdaDestroyed = false;
@@ -389,7 +428,8 @@ TEST_CLASS_EX (CancellationTokenTest, LibletAwareMemLeakDetection) {
     TestCheck(isLambdaDestroyed);
   }
 
-  TEST_METHOD(CancellationToken_WhenCanceled_dtor) {
+  TEST_METHOD(CancellationToken_WhenCanceled_dtor)
+  {
     bool isExecuted = false;
     bool isLambdaDestroyed = false;
     Mso::CancellationToken t1(GetEmptyCancellationToken()); // To show that CancellationToken is a

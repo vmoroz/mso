@@ -14,50 +14,65 @@ namespace Mso {
 //=============================================================================
 
 template <class T>
-Future<T>::Future() noexcept {}
+Future<T>::Future() noexcept
+{
+}
 
 template <class T>
-Future<T>::Future(std::nullptr_t) noexcept {}
+Future<T>::Future(std::nullptr_t) noexcept
+{
+}
 
 template <class T>
-Future<T>::Future(Mso::CntPtr<Mso::Futures::IFuture> &&state) noexcept : m_state(std::move(state)) {}
+Future<T>::Future(Mso::CntPtr<Mso::Futures::IFuture>&& state) noexcept : m_state(std::move(state))
+{
+}
 
 template <class T>
-Future<T>::Future(const Future &other) noexcept : m_state(other.m_state) {}
+Future<T>::Future(const Future& other) noexcept : m_state(other.m_state)
+{
+}
 
 template <class T>
-Future<T>::Future(Future &&other) noexcept : m_state(std::move(other.m_state)) {}
+Future<T>::Future(Future&& other) noexcept : m_state(std::move(other.m_state))
+{
+}
 
 template <class T>
-Future<T> &Future<T>::operator=(const Future &other) noexcept {
+Future<T>& Future<T>::operator=(const Future& other) noexcept
+{
   m_state = other.m_state;
   return *this;
 }
 
 template <class T>
-Future<T> &Future<T>::operator=(Future &&other) noexcept {
+Future<T>& Future<T>::operator=(Future&& other) noexcept
+{
   m_state = std::move(other.m_state);
   return *this;
 }
 
 template <class T>
-void Future<T>::Swap(Future &other) noexcept {
+void Future<T>::Swap(Future& other) noexcept
+{
   using std::swap;
   swap(m_state, other.m_state);
 }
 
 template <class T>
-Future<T>::operator bool() const noexcept {
+Future<T>::operator bool() const noexcept
+{
   return !m_state.IsEmpty();
 }
 
 template <class T>
 template <class TExecutor, class TCallback>
-auto Future<T>::Then(TCallback &&callback) const noexcept {
+auto Future<T>::Then(TCallback&& callback) const noexcept
+{
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x012ca3dc /* tag_blkp2 */);
 
   using Mso::Futures::GetExecutorType;
-  using ExecutorType = decltype(GetExecutorType(static_cast<TExecutor *>(nullptr), 0));
+  using ExecutorType = decltype(GetExecutorType(static_cast<TExecutor*>(nullptr), 0));
   using ExecutorTraits = Mso::Futures::ExecutorTraits<ExecutorType>;
   using CallbackType = std::decay_t<TCallback>;
 
@@ -67,7 +82,7 @@ auto Future<T>::Then(TCallback &&callback) const noexcept {
   using ValueType = typename ResultTraits::ValueType;
   using TaskType = Mso::Futures::FutureTask<ExecutorType, CallbackType>;
 
-  constexpr const auto &futureTraits = Mso::Futures::FutureTraitsProvider<
+  constexpr const auto& futureTraits = Mso::Futures::FutureTraitsProvider<
       /*Options:    */ Mso::Futures::FutureOptions::DestroyTaskAfterInvoke,
       /*ResultType: */ ValueType,
       /*TaskType:   */ TaskType,
@@ -87,7 +102,8 @@ auto Future<T>::Then(TCallback &&callback) const noexcept {
 
 template <class T>
 template <class TExecutor, class TCallback>
-auto Future<T>::Then(TExecutor &&executor, TCallback &&callback) const noexcept {
+auto Future<T>::Then(TExecutor&& executor, TCallback&& callback) const noexcept
+{
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x013d5106 /* tag_bpveg */);
 
   using Mso::Futures::GetExecutorType;
@@ -101,7 +117,7 @@ auto Future<T>::Then(TExecutor &&executor, TCallback &&callback) const noexcept 
   using ValueType = typename ResultTraits::ValueType;
   using TaskType = Mso::Futures::FutureTask<ExecutorType, CallbackType>;
 
-  constexpr const auto &futureTraits = Mso::Futures::FutureTraitsProvider<
+  constexpr const auto& futureTraits = Mso::Futures::FutureTraitsProvider<
       /*Options:    */ Mso::Futures::FutureOptions::DestroyTaskAfterInvoke,
       /*ResultType: */ ValueType,
       /*TaskType:   */ TaskType,
@@ -121,11 +137,12 @@ auto Future<T>::Then(TExecutor &&executor, TCallback &&callback) const noexcept 
 
 template <class T>
 template <class TExecutor, class TCallback>
-Mso::Future<T> Future<T>::Catch(TCallback &&callback) const noexcept {
+Mso::Future<T> Future<T>::Catch(TCallback&& callback) const noexcept
+{
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x01605692 /* tag_byf0s */);
 
   using Mso::Futures::GetExecutorType;
-  using ExecutorType = decltype(GetExecutorType(static_cast<TExecutor *>(nullptr), 0));
+  using ExecutorType = decltype(GetExecutorType(static_cast<TExecutor*>(nullptr), 0));
   using ExecutorTraits = Mso::Futures::ExecutorTraits<ExecutorType>;
   using CallbackType = std::decay_t<TCallback>;
 
@@ -137,7 +154,7 @@ Mso::Future<T> Future<T>::Catch(TCallback &&callback) const noexcept {
       std::is_same<T, ValueType>::value, "Catch callback must result with the same value type as the T in Future<T>.");
   using TaskType = Mso::Futures::FutureTask<ExecutorType, CallbackType>;
 
-  constexpr const auto &futureTraits = Mso::Futures::FutureTraitsProvider<
+  constexpr const auto& futureTraits = Mso::Futures::FutureTraitsProvider<
       /*Options:    */ Mso::Futures::FutureOptions::DestroyTaskAfterInvoke,
       /*ResultType: */ ValueType,
       /*TaskType:   */ TaskType,
@@ -157,7 +174,8 @@ Mso::Future<T> Future<T>::Catch(TCallback &&callback) const noexcept {
 
 template <class T>
 template <class TExecutor, class TCallback>
-Mso::Future<T> Future<T>::Catch(TExecutor &&executor, TCallback &&callback) const noexcept {
+Mso::Future<T> Future<T>::Catch(TExecutor&& executor, TCallback&& callback) const noexcept
+{
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x01605693 /* tag_byf0t */);
 
   using Mso::Futures::GetExecutorType;
@@ -173,7 +191,7 @@ Mso::Future<T> Future<T>::Catch(TExecutor &&executor, TCallback &&callback) cons
       std::is_same<T, ValueType>::value, "Catch callback must result with the same value type as the T in Future<T>.");
   using TaskType = Mso::Futures::FutureTask<ExecutorType, CallbackType>;
 
-  constexpr const auto &futureTraits = Mso::Futures::FutureTraitsProvider<
+  constexpr const auto& futureTraits = Mso::Futures::FutureTraitsProvider<
       /*Options:    */ Mso::Futures::FutureOptions::DestroyTaskAfterInvoke,
       /*ResultType: */ ValueType,
       /*TaskType:   */ TaskType,
@@ -192,10 +210,11 @@ Mso::Future<T> Future<T>::Catch(TExecutor &&executor, TCallback &&callback) cons
 }
 
 template <class T>
-SharedFuture<T> Future<T>::Share() const noexcept {
+SharedFuture<T> Future<T>::Share() const noexcept
+{
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x012ca3df /* tag_blkp5 */);
 
-  constexpr const auto &futureTraits = Mso::Futures::FutureTraitsProvider<
+  constexpr const auto& futureTraits = Mso::Futures::FutureTraitsProvider<
       /*Options:    */ Mso::Futures::FutureOptions::IsShared | Mso::Futures::FutureOptions::UseParentValue,
       /*ResultType: */ void,
       /*TaskType:   */ void,
@@ -213,34 +232,50 @@ SharedFuture<T> Future<T>::Share() const noexcept {
 //=============================================================================
 
 template <class T>
-Future<Mso::Maybe<T>>::Future() noexcept : Super() {}
+Future<Mso::Maybe<T>>::Future() noexcept : Super()
+{
+}
 
 template <class T>
-Future<Mso::Maybe<T>>::Future(std::nullptr_t) noexcept : Super() {}
+Future<Mso::Maybe<T>>::Future(std::nullptr_t) noexcept : Super()
+{
+}
 
 template <class T>
-Future<Mso::Maybe<T>>::Future(const Mso::Future<T> &other) noexcept : Super(other) {}
+Future<Mso::Maybe<T>>::Future(const Mso::Future<T>& other) noexcept : Super(other)
+{
+}
 
 template <class T>
-Future<Mso::Maybe<T>>::Future(Mso::Future<T> &&other) noexcept : Super(std::move(other)) {}
+Future<Mso::Maybe<T>>::Future(Mso::Future<T>&& other) noexcept : Super(std::move(other))
+{
+}
 
 template <class T>
-Future<Mso::Maybe<T>>::Future(Mso::CntPtr<Mso::Futures::IFuture> &&state) noexcept : Super(std::move(state)) {}
+Future<Mso::Maybe<T>>::Future(Mso::CntPtr<Mso::Futures::IFuture>&& state) noexcept : Super(std::move(state))
+{
+}
 
 template <class T>
-Future<Mso::Maybe<T>>::Future(const Future<Mso::Maybe<T>> &other) noexcept : Super(other) {}
+Future<Mso::Maybe<T>>::Future(const Future<Mso::Maybe<T>>& other) noexcept : Super(other)
+{
+}
 
 template <class T>
-Future<Mso::Maybe<T>>::Future(Future<Mso::Maybe<T>> &&other) noexcept : Super(std::move(other)) {}
+Future<Mso::Maybe<T>>::Future(Future<Mso::Maybe<T>>&& other) noexcept : Super(std::move(other))
+{
+}
 
 template <class T>
-Future<Mso::Maybe<T>> &Future<Mso::Maybe<T>>::operator=(const Future<Mso::Maybe<T>> &other) noexcept {
+Future<Mso::Maybe<T>>& Future<Mso::Maybe<T>>::operator=(const Future<Mso::Maybe<T>>& other) noexcept
+{
   Super::operator=(other);
   return *this;
 }
 
 template <class T>
-Future<Mso::Maybe<T>> &Future<Mso::Maybe<T>>::operator=(Future<Mso::Maybe<T>> &&other) noexcept {
+Future<Mso::Maybe<T>>& Future<Mso::Maybe<T>>::operator=(Future<Mso::Maybe<T>>&& other) noexcept
+{
   Super::operator=(std::move(other));
   return *this;
 }
@@ -250,32 +285,38 @@ Future<Mso::Maybe<T>> &Future<Mso::Maybe<T>>::operator=(Future<Mso::Maybe<T>> &&
 //=============================================================================
 
 template <class T>
-bool operator==(const Future<T> &left, const Future<T> &right) noexcept {
+bool operator==(const Future<T>& left, const Future<T>& right) noexcept
+{
   return GetIFuture(left) == GetIFuture(right);
 }
 
 template <class T>
-bool operator!=(const Future<T> &left, const Future<T> &right) noexcept {
+bool operator!=(const Future<T>& left, const Future<T>& right) noexcept
+{
   return GetIFuture(left) != GetIFuture(right);
 }
 
 template <class T>
-bool operator==(const Future<T> &left, std::nullptr_t) noexcept {
+bool operator==(const Future<T>& left, std::nullptr_t) noexcept
+{
   return GetIFuture(left) == nullptr;
 }
 
 template <class T>
-bool operator!=(const Future<T> &left, std::nullptr_t) noexcept {
+bool operator!=(const Future<T>& left, std::nullptr_t) noexcept
+{
   return GetIFuture(left) != nullptr;
 }
 
 template <class T>
-bool operator==(std::nullptr_t, const Future<T> &right) noexcept {
+bool operator==(std::nullptr_t, const Future<T>& right) noexcept
+{
   return GetIFuture(right) == nullptr;
 }
 
 template <class T>
-bool operator!=(std::nullptr_t, const Future<T> &right) noexcept {
+bool operator!=(std::nullptr_t, const Future<T>& right) noexcept
+{
   return GetIFuture(right) != nullptr;
 }
 

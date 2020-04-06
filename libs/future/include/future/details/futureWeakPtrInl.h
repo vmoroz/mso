@@ -10,58 +10,74 @@
 namespace Mso {
 
 template <class T>
-WeakPtr<Future<T>>::WeakPtr() noexcept : Super() {}
+WeakPtr<Future<T>>::WeakPtr() noexcept : Super()
+{
+}
 
 template <class T>
-WeakPtr<Future<T>>::WeakPtr(std::nullptr_t) noexcept : Super() {}
+WeakPtr<Future<T>>::WeakPtr(std::nullptr_t) noexcept : Super()
+{
+}
 
 template <class T>
-WeakPtr<Future<T>>::WeakPtr(const Future<T> &future) noexcept : Super(GetIFuture(future)) {}
+WeakPtr<Future<T>>::WeakPtr(const Future<T>& future) noexcept : Super(GetIFuture(future))
+{
+}
 
 template <class T>
-WeakPtr<Future<T>>::WeakPtr(const WeakPtr &from) noexcept : Super(from.m_ptr) {}
+WeakPtr<Future<T>>::WeakPtr(const WeakPtr& from) noexcept : Super(from.m_ptr)
+{
+}
 
 template <class T>
-WeakPtr<Future<T>>::WeakPtr(WeakPtr &&from) noexcept : Super(from.m_ptr, /*shouldAddWeakRef*/ false) {
+WeakPtr<Future<T>>::WeakPtr(WeakPtr&& from) noexcept : Super(from.m_ptr, /*shouldAddWeakRef*/ false)
+{
   from.m_ptr = nullptr;
 }
 
 template <class T>
-WeakPtr<Future<T>> &WeakPtr<Future<T>>::operator=(std::nullptr_t) noexcept {
+WeakPtr<Future<T>>& WeakPtr<Future<T>>::operator=(std::nullptr_t) noexcept
+{
   Reset();
   return *this;
 }
 
 template <class T>
-WeakPtr<Future<T>> &WeakPtr<Future<T>>::operator=(const Mso::Future<T> &future) noexcept {
+WeakPtr<Future<T>>& WeakPtr<Future<T>>::operator=(const Mso::Future<T>& future) noexcept
+{
   Assign(GetIFuture(future));
   return *this;
 }
 
 template <class T>
-WeakPtr<Future<T>> &WeakPtr<Future<T>>::operator=(const WeakPtr &from) noexcept {
+WeakPtr<Future<T>>& WeakPtr<Future<T>>::operator=(const WeakPtr& from) noexcept
+{
   Assign(from.m_ptr);
   return *this;
 }
 
 template <class T>
-WeakPtr<Future<T>> &WeakPtr<Future<T>>::operator=(WeakPtr &&from) noexcept {
+WeakPtr<Future<T>>& WeakPtr<Future<T>>::operator=(WeakPtr&& from) noexcept
+{
   Attach(std::move(from));
   return *this;
 }
 
 template <class T>
-Mso::Future<T> WeakPtr<Future<T>>::GetFuture() const noexcept {
+Mso::Future<T> WeakPtr<Future<T>>::GetFuture() const noexcept
+{
   Mso::Future<T> future;
-  if (IncrementRefCountIfNotZero(m_ptr)) {
-    future = Mso::Future<T>{Mso::CntPtr{static_cast<Mso::Futures::IFuture *>(m_ptr), AttachTag}};
+  if (IncrementRefCountIfNotZero(m_ptr))
+  {
+    future = Mso::Future<T>{Mso::CntPtr{static_cast<Mso::Futures::IFuture*>(m_ptr), AttachTag}};
   }
 
   return future;
 }
 
 template <class T>
-void WeakPtr<Future<T>>::Swap(WeakPtr &other) noexcept {
+void WeakPtr<Future<T>>::Swap(WeakPtr& other) noexcept
+{
   using std::swap;
   swap(m_ptr, other.m_ptr);
 }

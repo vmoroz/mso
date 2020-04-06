@@ -9,14 +9,17 @@
 
 namespace FutureTests {
 
-TEST_CLASS_EX (ArrayViewTest, LibletAwareMemLeakDetection) {
-  TEST_METHOD(ArrayView_ctor_Default) {
+TEST_CLASS_EX (ArrayViewTest, LibletAwareMemLeakDetection)
+{
+  TEST_METHOD(ArrayView_ctor_Default)
+  {
     Mso::Async::ArrayView<int> a1;
     TestCheckEqual(nullptr, a1.Data());
     TestCheckEqual(0, a1.Size());
   }
 
-  TEST_METHOD(ArrayView_ctor_Array) {
+  TEST_METHOD(ArrayView_ctor_Array)
+  {
     int xs[] = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs);
     TestCheckEqual(3, a1.Size());
@@ -25,7 +28,8 @@ TEST_CLASS_EX (ArrayViewTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(3, a1[2]);
   }
 
-  TEST_METHOD(ArrayView_ctor_initializer_list) {
+  TEST_METHOD(ArrayView_ctor_initializer_list)
+  {
     // We use lambda to avoid ArrayView use temporary objects.
     [](Mso::Async::ArrayView<int> a1) {
       TestCheckEqual(3, a1.Size());
@@ -35,7 +39,8 @@ TEST_CLASS_EX (ArrayViewTest, LibletAwareMemLeakDetection) {
     }({1, 2, 3});
   }
 
-  TEST_METHOD(ArrayView_ctor_vector) {
+  TEST_METHOD(ArrayView_ctor_vector)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     TestCheckEqual(3, a1.Size());
@@ -44,7 +49,8 @@ TEST_CLASS_EX (ArrayViewTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(3, a1[2]);
   }
 
-  TEST_METHOD(ArrayView_ctor_copy) {
+  TEST_METHOD(ArrayView_ctor_copy)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     Mso::Async::ArrayView<int> a2(a1);
@@ -54,7 +60,8 @@ TEST_CLASS_EX (ArrayViewTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(3, a2[2]);
   }
 
-  TEST_METHOD(ArrayView_assignment_copy) {
+  TEST_METHOD(ArrayView_assignment_copy)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     Mso::Async::ArrayView<int> a2;
@@ -65,67 +72,78 @@ TEST_CLASS_EX (ArrayViewTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(3, a2[2]);
   }
 
-  TEST_METHOD(ArrayView_Data_Size) {
+  TEST_METHOD(ArrayView_Data_Size)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     TestCheckEqual(xs.data(), a1.Data());
     TestCheckEqual(3, a1.Size());
   }
 
-  TEST_METHOD(ArrayView_ConstData_Size) {
+  TEST_METHOD(ArrayView_ConstData_Size)
+  {
     std::vector<int> xs = {1, 2, 3};
     const auto a1 = Mso::Async::ArrayView<int>(xs.data(), xs.size());
     TestCheckEqual(xs.data(), a1.Data());
     TestCheckEqual(3, a1.Size());
   }
 
-  TEST_METHOD(ArrayView_VoidData) {
+  TEST_METHOD(ArrayView_VoidData)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     TestCheckEqual(xs.data(), a1.VoidData());
   }
 
-  TEST_METHOD(ArrayView_VoidDataChecked) {
+  TEST_METHOD(ArrayView_VoidDataChecked)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     TestCheckEqual(xs.data(), a1.VoidDataChecked(3));
   }
 
-  TEST_METHOD(ArrayView_VoidDataChecked_Fail) {
+  TEST_METHOD(ArrayView_VoidDataChecked_Fail)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     TestCheckCrash(a1.VoidDataChecked(2));
   }
 
-  TEST_METHOD(ArrayView_VoidDataChecked_Fail2) {
+  TEST_METHOD(ArrayView_VoidDataChecked_Fail2)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     TestCheckCrash(a1.VoidDataChecked(4));
   }
 
-  TEST_METHOD(ArrayView_VoidDataCheckedMin) {
+  TEST_METHOD(ArrayView_VoidDataCheckedMin)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     TestCheckEqual(xs.data(), a1.VoidDataCheckedMin(3));
   }
 
-  TEST_METHOD(ArrayView_VoidDataCheckedMin2) {
+  TEST_METHOD(ArrayView_VoidDataCheckedMin2)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     TestCheckEqual(xs.data(), a1.VoidDataCheckedMin(2));
   }
 
-  TEST_METHOD(ArrayView_VoidDataCheckedMin_Fail) {
+  TEST_METHOD(ArrayView_VoidDataCheckedMin_Fail)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     TestCheckCrash(a1.VoidDataCheckedMin(4));
   }
 
-  TEST_METHOD(ArrayView_begin_end) {
+  TEST_METHOD(ArrayView_begin_end)
+  {
     std::vector<int> xs = {1, 2, 3};
     Mso::Async::ArrayView<int> a1(xs.data(), xs.size());
     int val = 10;
-    for (auto &a : a1) {
+    for (auto& a : a1)
+    {
       a = ++val;
     }
     TestCheckEqual(11, a1[0]);
@@ -133,16 +151,19 @@ TEST_CLASS_EX (ArrayViewTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(13, a1[2]);
   }
 
-  TEST_METHOD(ArrayView_const_begin_end) {
+  TEST_METHOD(ArrayView_const_begin_end)
+  {
     std::vector<int> xs = {1, 2, 3};
     const auto a1 = Mso::Async::ArrayView<int>(xs.data(), xs.size());
     int index = 0;
-    for (const auto &a : a1) {
+    for (const auto& a : a1)
+    {
       TestCheckEqual(++index, a);
     }
   }
 
-  TEST_METHOD(ArrayView_op_subscript) {
+  TEST_METHOD(ArrayView_op_subscript)
+  {
     std::vector<int> xs = {1, 2, 3};
     auto a1 = Mso::Async::ArrayView<int>(xs.data(), xs.size());
     TestCheckEqual(1, a1[0]);
@@ -150,7 +171,8 @@ TEST_CLASS_EX (ArrayViewTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(3, a1[2]);
   }
 
-  TEST_METHOD(ArrayView_const_op_subscript) {
+  TEST_METHOD(ArrayView_const_op_subscript)
+  {
     std::vector<int> xs = {1, 2, 3};
     const auto a1 = Mso::Async::ArrayView<int>(xs.data(), xs.size());
     TestCheckEqual(1, a1[0]);
@@ -158,15 +180,18 @@ TEST_CLASS_EX (ArrayViewTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(3, a1[2]);
   }
 
-  TEST_METHOD(ArrayView_op_bool) {
+  TEST_METHOD(ArrayView_op_bool)
+  {
     Mso::Async::ArrayView<int> a1;
-    if (a1) {
+    if (a1)
+    {
       TestCheckFail();
     }
 
     std::vector<int> xs = {1, 2, 3};
     const auto a2 = Mso::Async::ArrayView<int>(xs.data(), xs.size());
-    if (!a2) {
+    if (!a2)
+    {
       TestCheckFail();
     }
   }

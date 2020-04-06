@@ -11,10 +11,12 @@
 
 namespace FutureTests {
 
-TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
+TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection)
+{
   // MemoryLeakDetectionHook::TrackPerTest m_trackLeakPerTest;
 
-  TEST_METHOD(WhenAll_Init_Three) {
+  TEST_METHOD(WhenAll_Init_Three)
+  {
     auto f1 = Mso::PostFuture([]() noexcept { return 1; });
     auto f2 = Mso::PostFuture([]() noexcept { return 3; });
     auto f3 = Mso::PostFuture([]() noexcept { return 5; });
@@ -26,7 +28,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(9, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Init_Empty) {
+  TEST_METHOD(WhenAll_Init_Empty)
+  {
     auto fr = Mso::WhenAll<int>({}).Then([](Mso::Async::ArrayView<int> result) noexcept {
       TestCheckEqual(0, result.Size());
       return 42;
@@ -35,7 +38,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(42, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Init_Three_Error) {
+  TEST_METHOD(WhenAll_Init_Three_Error)
+  {
     auto f1 = Mso::PostFuture([]() noexcept { return 1; });
     auto f2 = Mso::MakeFailedFuture<int>(Mso::CancellationErrorProvider().MakeErrorCode(true));
     auto f3 = Mso::PostFuture([]() noexcept { return 5; });
@@ -47,7 +51,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::CancellationErrorProvider().IsOwnedErrorCode(Mso::FutureWaitAndGetError(fr)));
   }
 
-  TEST_METHOD(WhenAll_Init_Two_Double) {
+  TEST_METHOD(WhenAll_Init_Two_Double)
+  {
     auto f1 = Mso::PostFuture([]() noexcept { return 1.0; });
     auto f2 = Mso::PostFuture([]() noexcept { return 3.0; });
 
@@ -61,7 +66,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(4.0, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Init_Three_Double) {
+  TEST_METHOD(WhenAll_Init_Three_Double)
+  {
     auto f1 = Mso::PostFuture([]() noexcept { return 1.0; });
     auto f2 = Mso::PostFuture([]() noexcept { return 3.0; });
     auto f3 = Mso::PostFuture([]() noexcept { return 5.0; });
@@ -77,7 +83,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(9.0, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Array_Three) {
+  TEST_METHOD(WhenAll_Array_Three)
+  {
     Mso::Future<int> futures[] = {
         Mso::PostFuture([]() noexcept { return 1; }),
         Mso::PostFuture([]() noexcept { return 3; }),
@@ -89,7 +96,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(9, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Array_Three_Error) {
+  TEST_METHOD(WhenAll_Array_Three_Error)
+  {
     Mso::Future<int> futures[] = {
         Mso::PostFuture([]() noexcept { return 1; }),
         Mso::MakeFailedFuture<int>(Mso::CancellationErrorProvider().MakeErrorCode(true)),
@@ -101,7 +109,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::CancellationErrorProvider().IsOwnedErrorCode(Mso::FutureWaitAndGetError(fr)));
   }
 
-  TEST_METHOD(WhenAll_Vector_Three) {
+  TEST_METHOD(WhenAll_Vector_Three)
+  {
     auto futures = std::vector<Mso::Future<int>>{
         Mso::PostFuture([]() noexcept { return 1; }),
         Mso::PostFuture([]() noexcept { return 3; }),
@@ -113,7 +122,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(9, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Vector_Empty) {
+  TEST_METHOD(WhenAll_Vector_Empty)
+  {
     auto fr = Mso::WhenAll(std::vector<Mso::Future<int>>()).Then([](Mso::Async::ArrayView<int> r) noexcept {
       TestCheckEqual(0, r.Size());
       return 42;
@@ -122,7 +132,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(42, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Vector_Three_Error) {
+  TEST_METHOD(WhenAll_Vector_Three_Error)
+  {
     auto futures = std::vector<Mso::Future<int>>{
         Mso::PostFuture([]() noexcept { return 1; }),
         Mso::MakeFailedFuture<int>(Mso::CancellationErrorProvider().MakeErrorCode(true)),
@@ -134,7 +145,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::CancellationErrorProvider().IsOwnedErrorCode(Mso::FutureWaitAndGetError(fr)));
   }
 
-  TEST_METHOD(WhenAll_Init_Void_Three) {
+  TEST_METHOD(WhenAll_Init_Void_Three)
+  {
     int r1 = 0;
     int r2 = 0;
     int r3 = 0;
@@ -147,13 +159,15 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(9, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Init_Void_Empty) {
+  TEST_METHOD(WhenAll_Init_Void_Empty)
+  {
     auto fr = Mso::WhenAll({}).Then([&]() noexcept { return 42; });
 
     TestCheckEqual(42, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Init_Void_Three_Error) {
+  TEST_METHOD(WhenAll_Init_Void_Three_Error)
+  {
     int r1 = 0;
     int r2 = 0;
     int r3 = 0;
@@ -166,7 +180,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::CancellationErrorProvider().IsOwnedErrorCode(Mso::FutureWaitAndGetError(fr)));
   }
 
-  TEST_METHOD(WhenAll_Array_Void_Three) {
+  TEST_METHOD(WhenAll_Array_Void_Three)
+  {
     int r1 = 0;
     int r2 = 0;
     int r3 = 0;
@@ -181,7 +196,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(9, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Array_Void_Three_Error) {
+  TEST_METHOD(WhenAll_Array_Void_Three_Error)
+  {
     int r1 = 0;
     int r2 = 0;
     int r3 = 0;
@@ -196,7 +212,8 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::CancellationErrorProvider().IsOwnedErrorCode(Mso::FutureWaitAndGetError(fr)));
   }
 
-  TEST_METHOD(WhenAll_Vector_Void_Three) {
+  TEST_METHOD(WhenAll_Vector_Void_Three)
+  {
     int r1 = 0;
     int r2 = 0;
     int r3 = 0;
@@ -211,13 +228,15 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(9, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Vector_Void_Empty) {
+  TEST_METHOD(WhenAll_Vector_Void_Empty)
+  {
     auto fr = Mso::WhenAll(std::vector<Mso::Future<void>>()).Then([&]() noexcept { return 42; });
 
     TestCheckEqual(42, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Vector_Void_Three_Error) {
+  TEST_METHOD(WhenAll_Vector_Void_Three_Error)
+  {
     int r1 = 0;
     int r2 = 0;
     int r3 = 0;
@@ -232,12 +251,13 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheck(Mso::CancellationErrorProvider().IsOwnedErrorCode(Mso::FutureWaitAndGetError(fr)));
   }
 
-  TEST_METHOD(WhenAll_Tuple_Three) {
+  TEST_METHOD(WhenAll_Tuple_Three)
+  {
     auto f1 = Mso::PostFuture([]() noexcept { return 47; });
-    auto f2 = Mso::PostFuture([]() noexcept->std::string { return "82"; });
-    auto f3 = Mso::PostFuture([]() noexcept->double { return 32.5; });
+    auto f2 = Mso::PostFuture([]() noexcept -> std::string { return "82"; });
+    auto f3 = Mso::PostFuture([]() noexcept -> double { return 32.5; });
 
-    auto fr = Mso::WhenAll(f1, f2, f3).Then([](std::tuple<int, std::string, double> && result) noexcept {
+    auto fr = Mso::WhenAll(f1, f2, f3).Then([](std::tuple<int, std::string, double>&& result) noexcept {
       TestCheck(std::get<0>(result) == 47);
       TestCheck(std::stoi(std::get<1>(result)) == 82);
       TestCheck(int(std::get<2>(result)) == 32);
@@ -247,15 +267,16 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection) {
     TestCheckEqual(161, Mso::FutureWaitAndGetValue(fr));
   }
 
-  TEST_METHOD(WhenAll_Tuple_Two_Error) {
+  TEST_METHOD(WhenAll_Tuple_Two_Error)
+  {
     Mso::ManualResetEvent complete;
     auto f1 = Mso::MakeFailedFuture<int>(Mso::CancellationErrorProvider().MakeErrorCode(true));
-    auto f2 = Mso::PostFuture([&]() noexcept->std::string {
+    auto f2 = Mso::PostFuture([&]() noexcept -> std::string {
       complete.Wait();
       return "82";
     });
 
-    auto fr = Mso::WhenAll(f1, f2).Then([](const std::tuple<int, std::string> &&) noexcept {});
+    auto fr = Mso::WhenAll(f1, f2).Then([](const std::tuple<int, std::string>&&) noexcept {});
     TestCheck(Mso::CancellationErrorProvider().IsOwnedErrorCode(Mso::FutureWaitAndGetError(fr)));
 
     complete.Set();

@@ -9,10 +9,12 @@
 
 namespace FutureTests {
 
-TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
+TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection)
+{
   // MemoryLeakDetectionHook::TrackPerTest m_trackLeakPerTest;
 
-  TEST_METHOD(FutureWeakPtr_IsEmpty) {
+  TEST_METHOD(FutureWeakPtr_IsEmpty)
+  {
     Mso::WeakPtr<Mso::Future<int>> weakPtr1;
     TestCheck(weakPtr1.IsEmpty());
 
@@ -22,7 +24,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(!weakPtr2.IsEmpty());
   }
 
-  TEST_METHOD(FutureWeakPtr_IsExpired) {
+  TEST_METHOD(FutureWeakPtr_IsExpired)
+  {
     Mso::WeakPtr<Mso::Future<int>> weakPtr1;
     TestCheck(weakPtr1.IsExpired());
 
@@ -39,7 +42,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(weakPtr3.IsExpired());
   }
 
-  TEST_METHOD(FutureWeakPtr_Reset) {
+  TEST_METHOD(FutureWeakPtr_Reset)
+  {
     auto f1 = Mso::MakeCompletedFuture(5);
 
     Mso::WeakPtr<Mso::Future<int>> weakPtr(f1);
@@ -51,7 +55,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(weakPtr.IsExpired());
   }
 
-  TEST_METHOD(FutureWeakPtr_GetFuture) {
+  TEST_METHOD(FutureWeakPtr_GetFuture)
+  {
     auto f1 = Mso::MakeCompletedFuture(5);
 
     Mso::WeakPtr<Mso::Future<int>> weakPtr = f1;
@@ -63,7 +68,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(future == f1);
   }
 
-  TEST_METHOD(FutureWeakPtr_ctor_Default) {
+  TEST_METHOD(FutureWeakPtr_ctor_Default)
+  {
     Mso::WeakPtr<Mso::Future<int>> weakPtr;
     TestCheck(weakPtr.IsEmpty());
 
@@ -71,7 +77,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(GetIFuture(future) == nullptr);
   }
 
-  TEST_METHOD(FutureWeakPtr_ctor_nullptr) {
+  TEST_METHOD(FutureWeakPtr_ctor_nullptr)
+  {
     Mso::WeakPtr<Mso::Future<int>> weakPtr(nullptr);
     TestCheck(weakPtr.IsEmpty());
 
@@ -79,7 +86,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(GetIFuture(future) == nullptr);
   }
 
-  TEST_METHOD(FutureWeakPtr_ctor_future) {
+  TEST_METHOD(FutureWeakPtr_ctor_future)
+  {
     auto f1 = Mso::MakeCompletedFuture(5);
 
     Mso::WeakPtr<Mso::Future<int>> weakPtr(f1);
@@ -91,7 +99,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(future == f1);
   }
 
-  TEST_METHOD(FutureWeakPtr_ctor_copy) {
+  TEST_METHOD(FutureWeakPtr_ctor_copy)
+  {
     auto f1 = Mso::MakeCompletedFuture(5);
 
     Mso::WeakPtr<Mso::Future<int>> weakPtr1(f1);
@@ -112,7 +121,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(GetIFuture(future1) == GetIFuture(future2));
   }
 
-  TEST_METHOD(FutureWeakPtr_ctor_move) {
+  TEST_METHOD(FutureWeakPtr_ctor_move)
+  {
     auto f1 = Mso::MakeCompletedFuture(5);
 
     Mso::WeakPtr<Mso::Future<int>> weakPtr1(f1);
@@ -133,7 +143,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(GetIFuture(future1) != GetIFuture(future2));
   }
 
-  TEST_METHOD(FutureWeakPtr_assignment_nullptr) {
+  TEST_METHOD(FutureWeakPtr_assignment_nullptr)
+  {
     Mso::WeakPtr<Mso::Future<int>> weakPtr;
     weakPtr = nullptr;
     TestCheck(weakPtr.IsEmpty());
@@ -142,7 +153,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(GetIFuture(future) == nullptr);
   }
 
-  TEST_METHOD(FutureWeakPtr_assignment_future) {
+  TEST_METHOD(FutureWeakPtr_assignment_future)
+  {
     auto f1 = Mso::MakeCompletedFuture(5);
 
     Mso::WeakPtr<Mso::Future<int>> weakPtr;
@@ -155,7 +167,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(future == f1);
   }
 
-  TEST_METHOD(FutureWeakPtr_assignment_copy) {
+  TEST_METHOD(FutureWeakPtr_assignment_copy)
+  {
     auto f1 = Mso::MakeCompletedFuture(5);
 
     Mso::WeakPtr<Mso::Future<int>> weakPtr1(f1);
@@ -177,7 +190,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(GetIFuture(future1) == GetIFuture(future2));
   }
 
-  TEST_METHOD(FutureWeakPtr_assignment_move) {
+  TEST_METHOD(FutureWeakPtr_assignment_move)
+  {
     auto f1 = Mso::MakeCompletedFuture(5);
 
     Mso::WeakPtr<Mso::Future<int>> weakPtr1(f1);
@@ -199,7 +213,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(GetIFuture(future1) != GetIFuture(future2));
   }
 
-  TEST_METHOD(FutureWeakPtr_Swap) {
+  TEST_METHOD(FutureWeakPtr_Swap)
+  {
     auto f1 = Mso::MakeCompletedFuture(5);
 
     Mso::WeakPtr<Mso::Future<int>> weakPtr1(f1);
@@ -236,7 +251,8 @@ TEST_CLASS_EX (FutureWeakPtrTest, LibletAwareMemLeakDetection) {
     TestCheck(future4 == f1);
   }
 
-  TEST_METHOD(FutureWeakPtr_std_swap) {
+  TEST_METHOD(FutureWeakPtr_std_swap)
+  {
     auto f1 = Mso::MakeCompletedFuture(5);
 
     Mso::WeakPtr<Mso::Future<int>> weakPtr1(f1);

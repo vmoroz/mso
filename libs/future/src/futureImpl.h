@@ -130,7 +130,8 @@ namespace Futures {
 //  ╚═════════════════════╝
 //
 
-enum class FutureState {
+enum class FutureState
+{
   Pending, // Future execution is not started.
   Posting, // Future execution is being started.
   Posted, // Future execution is scheduled for asynchronous execution.
@@ -155,25 +156,26 @@ class FutureImpl;
 //
 // To get the FutureState, we apply the StateMask to the Value.
 // To get the continuation address, we apply the ContinuationMask to the Value.
-struct FuturePackedData {
+struct FuturePackedData
+{
   FutureState GetState() const noexcept;
-  FutureImpl *GetContinuation() noexcept;
+  FutureImpl* GetContinuation() noexcept;
   bool IsDone() const noexcept;
   bool IsSucceded() const noexcept;
   bool IsFailed() const noexcept;
 
   static FuturePackedData Make(FutureState state) noexcept;
-  static FuturePackedData Make(FutureState state, const FutureImpl *continuation) noexcept;
+  static FuturePackedData Make(FutureState state, const FutureImpl* continuation) noexcept;
 
-  static void VerifyAlignment(const FutureImpl *continuation) noexcept;
+  static void VerifyAlignment(const FutureImpl* continuation) noexcept;
 
   constexpr static const uintptr_t StateMask = 0b0111; // Last three bits.
   constexpr static const uintptr_t ContinuationMask = ~StateMask; // All bits except the last three.
 
   // A fake pointer to indicate that the continuation was already invoked. Must be aligned by 8.
-  static const FutureImpl *const ContinuationInvoked;
+  static const FutureImpl* const ContinuationInvoked;
 
- public:
+public:
   uintptr_t Value;
 };
 
@@ -181,67 +183,69 @@ struct FuturePackedData {
 // This class has a different lifetime comparing with FutureImpl because we want to react
 // to situations when Executor did not call Invoke or OnCancel. In such case we cancel the Future.
 // The FutureCallback also ensures that only one Invoke or OnCancel method is called and it is called only once.
-struct FutureCallback final : QueryCastList<QueryCastHidden<IVoidFunctor>, ICancellationListener> {
+struct FutureCallback final : QueryCastList<QueryCastHidden<IVoidFunctor>, ICancellationListener>
+{
   FutureCallback() noexcept;
   virtual ~FutureCallback() noexcept;
 
-  FutureCallback(const FutureCallback &) = delete;
-  FutureCallback &operator=(const FutureCallback &) = delete;
+  FutureCallback(const FutureCallback&) = delete;
+  FutureCallback& operator=(const FutureCallback&) = delete;
 
-  static FutureImpl *GetFutureImpl(_In_ FutureCallback *callback) noexcept;
+  static FutureImpl* GetFutureImpl(_In_ FutureCallback* callback) noexcept;
 
- public: // IVoidFunctor
+public: // IVoidFunctor
   void Invoke() noexcept override;
 
- public: // ICancellationListener
+public: // ICancellationListener
   void OnCancel() noexcept override;
 
- public: // IUnknown
-  HRESULT __stdcall QueryInterface(GUID const &riid, _COM_Outptr_ void **ppvObject) noexcept override;
+public: // IUnknown
+  HRESULT __stdcall QueryInterface(GUID const& riid, _COM_Outptr_ void** ppvObject) noexcept override;
   ULONG __stdcall AddRef() noexcept override;
   ULONG __stdcall Release() noexcept override;
 
- private:
+private:
   mutable std::atomic<uint32_t> m_refCount{1};
   mutable std::atomic<bool> m_isCalled{false};
 };
 
 MSO_CLASS_GUID(FutureImpl, "0788AA1F-A6C3-4CA2-81CF-AC94A91FA16A")
-class FutureImpl final : public Mso::QueryCastList<Mso::QueryCastDerived<FutureImpl>, Mso::QueryCastHidden<IFuture>> {
- public:
-  FutureImpl(const FutureTraits &traits, size_t taskSize) noexcept;
+class FutureImpl final : public Mso::QueryCastList<Mso::QueryCastDerived<FutureImpl>, Mso::QueryCastHidden<IFuture>>
+{
+public:
+  FutureImpl(const FutureTraits& traits, size_t taskSize) noexcept;
   virtual ~FutureImpl() noexcept;
 
-  FutureImpl(const FutureImpl &) = delete;
-  FutureImpl &operator=(const FutureImpl &) = delete;
+  FutureImpl(const FutureImpl&) = delete;
+  FutureImpl& operator=(const FutureImpl&) = delete;
 
   void Invoke() noexcept;
 
   // IFuture
-  const FutureTraits &GetTraits() const noexcept override;
+  const FutureTraits& GetTraits() const noexcept override;
   ByteArrayView GetTask() noexcept override;
   ByteArrayView GetValue() noexcept override;
-  const ErrorCode &GetError() const noexcept override;
+  const ErrorCode& GetError() const noexcept override;
 
-  void AddContinuation(Mso::CntPtr<IFuture> &&continuation) noexcept override;
+  void AddContinuation(Mso::CntPtr<IFuture>&& continuation) noexcept override;
 
   _Success_(
-      return ) bool TryStartSetValue(_Out_ ByteArrayView &valueBuffer, bool crashIfFailed = false) noexcept override;
+      return ) bool TryStartSetValue(_Out_ ByteArrayView& valueBuffer, bool crashIfFailed = false) noexcept override;
   void Post() noexcept override;
   void StartAwaiting() noexcept override;
   bool TrySetSuccess(bool crashIfFailed = false) noexcept override;
-  bool TrySetError(ErrorCode &&futureError, bool crashIfFailed = false) noexcept override;
+  bool TrySetError(ErrorCode&& futureError, bool crashIfFailed = false) noexcept override;
 
   bool IsDone() const noexcept override;
   bool IsSucceeded() const noexcept override;
   bool IsFailed() const noexcept override;
 
   // IUnknown
-  STDMETHOD(QueryInterface)(const GUID &riid, _Outptr_ void **ppvObject) noexcept override;
+  STDMETHOD(QueryInterface)(const GUID& riid, _Outptr_ void** ppvObject) noexcept override;
   STDMETHOD_(ULONG, AddRef)() noexcept override;
   STDMETHOD_(ULONG, Release)() noexcept override;
 
- private:
+private:
   bool TryStartSetError(bool crashIfFailed) noexcept;
   bool TrySetInvoking(bool crashIfFailed = false) noexcept;
   void SetFailed() noexcept;
@@ -250,20 +254,20 @@ class FutureImpl final : public Mso::QueryCastList<Mso::QueryCastDerived<FutureI
   ByteArrayView GetCallback() noexcept;
   ByteArrayView GetValueInternal() noexcept;
 
-  bool TryPostInternal(FutureImpl *parent, Mso::CntPtr<FutureImpl> &next, bool crashIfFailed = false) noexcept;
-  void PostContinuation(Mso::CntPtr<FutureImpl> &&continuation) noexcept;
+  bool TryPostInternal(FutureImpl* parent, Mso::CntPtr<FutureImpl>& next, bool crashIfFailed = false) noexcept;
+  void PostContinuation(Mso::CntPtr<FutureImpl>&& continuation) noexcept;
 
   void DestroyTask(bool isAfterInvoke) noexcept;
 
   bool IsSynchronousCall() const noexcept;
-  static bool UnexpectedState(FutureState state, bool crashIfFailed, const char *errorMessage, uint32_t tag) noexcept;
+  static bool UnexpectedState(FutureState state, bool crashIfFailed, const char* errorMessage, uint32_t tag) noexcept;
   bool IsVoidValue() const noexcept;
   bool HasContinuation() const noexcept;
 
   friend FutureCallback;
 
- private:
-  const FutureTraits &m_traits;
+private:
+  const FutureTraits& m_traits;
 
   // We pack in the same atomic value the state and a continuation.
   std::atomic<FuturePackedData> m_stateAndContinuation{{0}};
@@ -281,8 +285,9 @@ class FutureImpl final : public Mso::QueryCastList<Mso::QueryCastDerived<FutureI
 
 // Future ref count component that supports weak ref count
 // It is initialized in memory right before the FutureImpl instance.
-class FutureWeakRef {
- public:
+class FutureWeakRef
+{
+public:
   void AddRef() const noexcept;
 
   bool Release() const noexcept;
@@ -295,13 +300,13 @@ class FutureWeakRef {
 
   bool IncrementRefCountIfNotZero() noexcept;
 
- private:
+private:
   mutable std::atomic<uint32_t> m_refCount{1};
   mutable std::atomic<uint32_t> m_weakRefCount{1}; // Controls FutureWeakRef lifetime.
 };
 
 } // namespace Futures
 
-Mso::Futures::FutureWeakRef *GetFutureWeakRef(const void *ptr) noexcept;
+Mso::Futures::FutureWeakRef* GetFutureWeakRef(const void* ptr) noexcept;
 
 } // namespace Mso

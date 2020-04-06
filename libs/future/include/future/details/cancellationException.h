@@ -11,16 +11,18 @@
 
 namespace Mso::Async {
 
-struct CancellationException : std::exception {
-  explicit CancellationException(_In_z_ const char *message) noexcept : m_message(message) {}
+struct CancellationException : std::exception
+{
+  explicit CancellationException(_In_z_ const char* message) noexcept : m_message(message) {}
 
   CancellationException() noexcept {}
 
-  const char *what() const noexcept override {
+  const char* what() const noexcept override
+  {
     return m_message.c_str();
   }
 
- private:
+private:
   std::string m_message;
 };
 

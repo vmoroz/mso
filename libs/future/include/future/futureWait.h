@@ -14,8 +14,8 @@ intentionally, to avoid accidental use or misuse; these functions are intended t
 where a blocking Wait is required.
 */
 
-#include "eventWaitHandle/eventWaitHandle.h"
-#include "future/Future.h"
+#include <eventWaitHandle/eventWaitHandle.h>
+#include "future.h"
 
 namespace Mso {
 

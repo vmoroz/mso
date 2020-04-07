@@ -15,6 +15,11 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection)
 {
   // MemoryLeakDetectionHook::TrackPerTest m_trackLeakPerTest;
 
+  ~WhenAllTest() noexcept
+  {
+    Mso::UnitTest_UninitConcurrentQueue();
+  }
+
   TEST_METHOD(WhenAll_Init_Three)
   {
     auto f1 = Mso::PostFuture([]() noexcept { return 1; });
@@ -147,106 +152,130 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection)
 
   TEST_METHOD(WhenAll_Init_Void_Three)
   {
-    int r1 = 0;
-    int r2 = 0;
-    int r3 = 0;
-    auto f1 = Mso::PostFuture([&]() noexcept { r1 = 1; });
-    auto f2 = Mso::PostFuture([&]() noexcept { r2 = 3; });
-    auto f3 = Mso::PostFuture([&]() noexcept { r3 = 5; });
+    struct State
+    {
+      int r1{0};
+      int r2{0};
+      int r3{0};
+    };
+    auto state = std::make_shared<State>();
+    auto f1 = Mso::PostFuture([state]() noexcept { state->r1 = 1; });
+    auto f2 = Mso::PostFuture([state]() noexcept { state->r2 = 3; });
+    auto f3 = Mso::PostFuture([state]() noexcept { state->r3 = 5; });
 
-    auto fr = Mso::WhenAll({f1, f2, f3}).Then([&]() noexcept { return r1 + r2 + r3; });
+    auto fr = Mso::WhenAll({f1, f2, f3}).Then([state]() noexcept { return state->r1 + state->r2 + state->r3; });
 
     TestCheckEqual(9, Mso::FutureWaitAndGetValue(fr));
   }
 
   TEST_METHOD(WhenAll_Init_Void_Empty)
   {
-    auto fr = Mso::WhenAll({}).Then([&]() noexcept { return 42; });
+    auto fr = Mso::WhenAll({}).Then([]() noexcept { return 42; });
 
     TestCheckEqual(42, Mso::FutureWaitAndGetValue(fr));
   }
 
   TEST_METHOD(WhenAll_Init_Void_Three_Error)
   {
-    int r1 = 0;
-    int r2 = 0;
-    int r3 = 0;
-    auto f1 = Mso::PostFuture([&]() noexcept { r1 = 1; });
+    struct State
+    {
+      int r1{0};
+      int r2{0};
+      int r3{0};
+    };
+    auto state = std::make_shared<State>();
+    auto f1 = Mso::PostFuture([state]() noexcept { state->r1 = 1; });
     auto f2 = Mso::MakeFailedFuture<void>(Mso::CancellationErrorProvider().MakeErrorCode(true));
-    auto f3 = Mso::PostFuture([&]() noexcept { r3 = 5; });
+    auto f3 = Mso::PostFuture([state]() noexcept { state->r3 = 5; });
 
-    auto fr = Mso::WhenAll({f1, f2, f3}).Then([&]() noexcept { return r1 + r2 + r3; });
+    auto fr = Mso::WhenAll({f1, f2, f3}).Then([state]() noexcept { return state->r1 + state->r2 + state->r3; });
 
     TestCheck(Mso::CancellationErrorProvider().IsOwnedErrorCode(Mso::FutureWaitAndGetError(fr)));
   }
 
   TEST_METHOD(WhenAll_Array_Void_Three)
   {
-    int r1 = 0;
-    int r2 = 0;
-    int r3 = 0;
+    struct State
+    {
+      int r1{0};
+      int r2{0};
+      int r3{0};
+    };
+    auto state = std::make_shared<State>();
     Mso::Future<void> futures[] = {
-        Mso::PostFuture([&]() noexcept { r1 = 1; }),
-        Mso::PostFuture([&]() noexcept { r2 = 3; }),
-        Mso::PostFuture([&]() noexcept { r3 = 5; }),
+        Mso::PostFuture([state]() noexcept { state->r1 = 1; }),
+        Mso::PostFuture([state]() noexcept { state->r2 = 3; }),
+        Mso::PostFuture([state]() noexcept { state->r3 = 5; }),
     };
 
-    auto fr = Mso::WhenAll(futures).Then([&]() noexcept { return r1 + r2 + r3; });
+    auto fr = Mso::WhenAll(futures).Then([state]() noexcept { return state->r1 + state->r2 + state->r3; });
 
     TestCheckEqual(9, Mso::FutureWaitAndGetValue(fr));
   }
 
   TEST_METHOD(WhenAll_Array_Void_Three_Error)
   {
-    int r1 = 0;
-    int r2 = 0;
-    int r3 = 0;
+    struct State
+    {
+      int r1{0};
+      int r2{0};
+      int r3{0};
+    };
+    auto state = std::make_shared<State>();
     Mso::Future<void> futures[] = {
-        Mso::PostFuture([&]() noexcept { r1 = 1; }),
+        Mso::PostFuture([state]() noexcept { state->r1 = 1; }),
         Mso::MakeFailedFuture<void>(Mso::CancellationErrorProvider().MakeErrorCode(true)),
-        Mso::PostFuture([&]() noexcept { r3 = 5; }),
+        Mso::PostFuture([state]() noexcept { state->r3 = 5; }),
     };
 
-    auto fr = Mso::WhenAll(futures).Then([&]() noexcept { return r1 + r2 + r3; });
+    auto fr = Mso::WhenAll(futures).Then([state]() noexcept { return state->r1 + state->r2 + state->r3; });
 
     TestCheck(Mso::CancellationErrorProvider().IsOwnedErrorCode(Mso::FutureWaitAndGetError(fr)));
   }
 
   TEST_METHOD(WhenAll_Vector_Void_Three)
   {
-    int r1 = 0;
-    int r2 = 0;
-    int r3 = 0;
+    struct State
+    {
+      int r1{0};
+      int r2{0};
+      int r3{0};
+    };
+    auto state = std::make_shared<State>();
     auto futures = std::vector<Mso::Future<void>>{
-        Mso::PostFuture([&]() noexcept { r1 = 1; }),
-        Mso::PostFuture([&]() noexcept { r2 = 3; }),
-        Mso::PostFuture([&]() noexcept { r3 = 5; }),
+        Mso::PostFuture([state]() noexcept { state->r1 = 1; }),
+        Mso::PostFuture([state]() noexcept { state->r2 = 3; }),
+        Mso::PostFuture([state]() noexcept { state->r3 = 5; }),
     };
 
-    auto fr = Mso::WhenAll(futures).Then([&]() noexcept { return r1 + r2 + r3; });
+    auto fr = Mso::WhenAll(futures).Then([state]() noexcept { return state->r1 + state->r2 + state->r3; });
 
     TestCheckEqual(9, Mso::FutureWaitAndGetValue(fr));
   }
 
   TEST_METHOD(WhenAll_Vector_Void_Empty)
   {
-    auto fr = Mso::WhenAll(std::vector<Mso::Future<void>>()).Then([&]() noexcept { return 42; });
+    auto fr = Mso::WhenAll(std::vector<Mso::Future<void>>()).Then([]() noexcept { return 42; });
 
     TestCheckEqual(42, Mso::FutureWaitAndGetValue(fr));
   }
 
   TEST_METHOD(WhenAll_Vector_Void_Three_Error)
   {
-    int r1 = 0;
-    int r2 = 0;
-    int r3 = 0;
+    struct State
+    {
+      int r1{0};
+      int r2{0};
+      int r3{0};
+    };
+    auto state = std::make_shared<State>();
     auto futures = std::vector<Mso::Future<void>>{
-        Mso::PostFuture([&]() noexcept { r1 = 1; }),
+        Mso::PostFuture([state]() noexcept { state->r1 = 1; }),
         Mso::MakeFailedFuture<void>(Mso::CancellationErrorProvider().MakeErrorCode(true)),
-        Mso::PostFuture([&]() noexcept { r3 = 5; }),
+        Mso::PostFuture([state]() noexcept { state->r3 = 5; }),
     };
 
-    auto fr = Mso::WhenAll(futures).Then([&]() noexcept { return r1 + r2 + r3; });
+    auto fr = Mso::WhenAll(futures).Then([state]() noexcept { return state->r1 + state->r2 + state->r3; });
 
     TestCheck(Mso::CancellationErrorProvider().IsOwnedErrorCode(Mso::FutureWaitAndGetError(fr)));
   }
@@ -271,7 +300,7 @@ TEST_CLASS_EX (WhenAllTest, LibletAwareMemLeakDetection)
   {
     Mso::ManualResetEvent complete;
     auto f1 = Mso::MakeFailedFuture<int>(Mso::CancellationErrorProvider().MakeErrorCode(true));
-    auto f2 = Mso::PostFuture([&]() noexcept -> std::string {
+    auto f2 = Mso::PostFuture([complete]() noexcept -> std::string {
       complete.Wait();
       return "82";
     });

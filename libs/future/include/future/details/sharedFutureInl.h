@@ -55,7 +55,8 @@ SharedFuture<T>& SharedFuture<T>::operator=(SharedFuture&& other) noexcept
 template <class T>
 void SharedFuture<T>::Swap(SharedFuture& other) noexcept
 {
-  m_state.Swap(other.m_state);
+  using std::swap;
+  swap(m_state, other.m_state);
 }
 
 template <class T>

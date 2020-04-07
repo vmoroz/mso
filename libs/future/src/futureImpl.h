@@ -200,9 +200,9 @@ public: // ICancellationListener
   void OnCancel() noexcept override;
 
 public: // IUnknown
-  HRESULT __stdcall QueryInterface(GUID const& riid, _COM_Outptr_ void** ppvObject) noexcept override;
-  ULONG __stdcall AddRef() noexcept override;
-  ULONG __stdcall Release() noexcept override;
+  HRESULT STDMETHODCALLTYPE QueryInterface(GUID const& riid, _COM_Outptr_ void** ppvObject) noexcept override;
+  ULONG STDMETHODCALLTYPE AddRef() noexcept override;
+  ULONG STDMETHODCALLTYPE Release() noexcept override;
 
 private:
   mutable std::atomic<uint32_t> m_refCount{1};

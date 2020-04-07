@@ -1111,12 +1111,12 @@ void FutureCallback::OnCancel() noexcept
   GetFutureImpl(this)->TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true));
 }
 
-HRESULT __stdcall FutureCallback::QueryInterface(GUID const& riid, _COM_Outptr_ void** ppvObject) noexcept
+HRESULT STDMETHODCALLTYPE FutureCallback::QueryInterface(GUID const& riid, _COM_Outptr_ void** ppvObject) noexcept
 {
   return ::Mso::Details::QueryInterfaceHelper<FutureCallback>::QueryInterface(this, riid, ppvObject);
 }
 
-ULONG __stdcall FutureCallback::AddRef() noexcept
+ULONG STDMETHODCALLTYPE FutureCallback::AddRef() noexcept
 {
   if (++m_refCount == 1)
   {
@@ -1126,7 +1126,7 @@ ULONG __stdcall FutureCallback::AddRef() noexcept
   return 1; // Return an invalid counter to avoid other code depending on it.
 }
 
-ULONG __stdcall FutureCallback::Release() noexcept
+ULONG STDMETHODCALLTYPE FutureCallback::Release() noexcept
 {
   const uint32_t refCount = --m_refCount;
   Debug(VerifyElseCrashSzTag(

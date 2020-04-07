@@ -182,7 +182,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_SetValue_Observe)
   {
     Mso::Promise<int> p1;
-    auto future = p1.AsFuture().Then([&](int value) noexcept { TestCheck(value == 5); });
+    auto future = p1.AsFuture().Then([](int value) noexcept { TestCheck(value == 5); });
 
     p1.SetValue(5);
     Mso::FutureWait(future);
@@ -198,7 +198,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
     vec.push_back(4);
 
     auto future = p1.AsFuture().Then(
-        Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
+        Mso::Executors::Inline{}, [](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
 
     Mso::FutureWait(future);
     TestCheckEqual(4, vec.size());
@@ -215,7 +215,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_SetValue_ObserveMoved)
   {
     Mso::Promise<std::unique_ptr<int>> p1;
-    auto future = p1.AsFuture().Then([&](std::unique_ptr<int>&& value) noexcept {
+    auto future = p1.AsFuture().Then([](std::unique_ptr<int>&& value) noexcept {
       std::unique_ptr<int> v = std::move(value); // We can move value because only one continuation is allowed.
       TestCheck(*v == 5);
     });
@@ -227,7 +227,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_SetValue_ObserveMoved_Vector)
   {
     Mso::Promise<std::vector<std::unique_ptr<int>>> p1;
-    auto future = p1.AsFuture().Then([&](std::vector<std::unique_ptr<int>>&& value) noexcept {
+    auto future = p1.AsFuture().Then([](std::vector<std::unique_ptr<int>>&& value) noexcept {
       std::vector<std::unique_ptr<int>> v =
           std::move(value); // We can move value because only one continuation is allowed.
       TestCheck(*v[0] == 5);
@@ -271,7 +271,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_TrySetValue_Observe)
   {
     Mso::Promise<int> p1;
-    auto future = p1.AsFuture().Then([&](int value) noexcept { TestCheck(value == 5); });
+    auto future = p1.AsFuture().Then([](int value) noexcept { TestCheck(value == 5); });
 
     TestCheck(p1.TrySetValue(5));
     Mso::FutureWait(future);
@@ -287,7 +287,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
     vec.push_back(4);
 
     auto future = p1.AsFuture().Then(
-        Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
+        Mso::Executors::Inline{}, [](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
 
     Mso::FutureWait(future);
     TestCheckEqual(4, vec.size());
@@ -304,7 +304,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_TrySetValue_ObserveMoved)
   {
     Mso::Promise<std::unique_ptr<int>> p1;
-    auto future = p1.AsFuture().Then([&](std::unique_ptr<int>&& value) noexcept {
+    auto future = p1.AsFuture().Then([](std::unique_ptr<int>&& value) noexcept {
       std::unique_ptr<int> v = std::move(value); // We can move value because only one continuation is allowed.
       TestCheck(*v == 5);
     });
@@ -316,7 +316,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_TrySetValue_ObserveMoved_Vector)
   {
     Mso::Promise<std::vector<std::unique_ptr<int>>> p1;
-    auto future = p1.AsFuture().Then([&](std::vector<std::unique_ptr<int>>&& value) noexcept {
+    auto future = p1.AsFuture().Then([](std::vector<std::unique_ptr<int>>&& value) noexcept {
       std::vector<std::unique_ptr<int>> v =
           std::move(value); // We can move value because only one continuation is allowed.
       TestCheck(*v[0] == 5);
@@ -360,7 +360,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_EmplaceValue_Observe)
   {
     Mso::Promise<int> p1;
-    auto future = p1.AsFuture().Then([&](int value) noexcept { TestCheck(value == 5); });
+    auto future = p1.AsFuture().Then([](int value) noexcept { TestCheck(value == 5); });
 
     p1.EmplaceValue(5);
     Mso::FutureWait(future);
@@ -377,7 +377,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_EmplaceValue_ObserveMoved)
   {
     Mso::Promise<std::unique_ptr<int>> p1;
-    auto future = p1.AsFuture().Then([&](std::unique_ptr<int>&& value) noexcept {
+    auto future = p1.AsFuture().Then([](std::unique_ptr<int>&& value) noexcept {
       std::unique_ptr<int> v = std::move(value); // We can move value because only one continuation is allowed.
       TestCheck(*v == 5);
     });
@@ -389,7 +389,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_EmplaceValue_NoArgs)
   {
     Mso::Promise<EmplacedType> p1;
-    auto future = p1.AsFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 1, 2, 3); });
+    auto future = p1.AsFuture().Then([](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 1, 2, 3); });
 
     p1.EmplaceValue();
     Mso::FutureWait(future);
@@ -398,7 +398,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_EmplaceValue_OneArg)
   {
     Mso::Promise<EmplacedType> p1;
-    auto future = p1.AsFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 2, 3); });
+    auto future = p1.AsFuture().Then([](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 2, 3); });
 
     p1.EmplaceValue(5);
     Mso::FutureWait(future);
@@ -407,7 +407,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_EmplaceValue_TwoArgs)
   {
     Mso::Promise<EmplacedType> p1;
-    auto future = p1.AsFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 3); });
+    auto future = p1.AsFuture().Then([](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 3); });
 
     p1.EmplaceValue(5, 6);
     Mso::FutureWait(future);
@@ -416,7 +416,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_EmplaceValue_ThreeArgs)
   {
     Mso::Promise<EmplacedType> p1;
-    auto future = p1.AsFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 7); });
+    auto future = p1.AsFuture().Then([](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 7); });
 
     p1.EmplaceValue(5, 6, 7);
     Mso::FutureWait(future);
@@ -454,7 +454,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_TryEmplaceValue_Observe)
   {
     Mso::Promise<int> p1;
-    auto future = p1.AsFuture().Then([&](int value) noexcept { TestCheck(value == 5); });
+    auto future = p1.AsFuture().Then([](int value) noexcept { TestCheck(value == 5); });
 
     TestCheck(p1.TryEmplaceValue(5));
     Mso::FutureWait(future);
@@ -471,7 +471,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_TryEmplaceValue_ObserveMoved)
   {
     Mso::Promise<std::unique_ptr<int>> p1;
-    auto future = p1.AsFuture().Then([&](std::unique_ptr<int>&& value) noexcept {
+    auto future = p1.AsFuture().Then([](std::unique_ptr<int>&& value) noexcept {
       std::unique_ptr<int> v = std::move(value); // We can move value because only one continuation is allowed.
       TestCheck(*v == 5);
     });
@@ -483,7 +483,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_TryEmplaceValue_NoArgs)
   {
     Mso::Promise<EmplacedType> p1;
-    auto future = p1.AsFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 1, 2, 3); });
+    auto future = p1.AsFuture().Then([](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 1, 2, 3); });
 
     TestCheck(p1.TryEmplaceValue());
     Mso::FutureWait(future);
@@ -492,7 +492,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_TryEmplaceValue_OneArg)
   {
     Mso::Promise<EmplacedType> p1;
-    auto future = p1.AsFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 2, 3); });
+    auto future = p1.AsFuture().Then([](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 2, 3); });
 
     TestCheck(p1.TryEmplaceValue(5));
     Mso::FutureWait(future);
@@ -501,7 +501,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_TryEmplaceValue_TwoArgs)
   {
     Mso::Promise<EmplacedType> p1;
-    auto future = p1.AsFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 3); });
+    auto future = p1.AsFuture().Then([](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 3); });
 
     TestCheck(p1.TryEmplaceValue(5, 6));
     Mso::FutureWait(future);
@@ -510,7 +510,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(Promise_TryEmplaceValue_ThreeArgs)
   {
     Mso::Promise<EmplacedType> p1;
-    auto future = p1.AsFuture().Then([&](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 7); });
+    auto future = p1.AsFuture().Then([](const EmplacedType& value) noexcept { ValidateEmplacedType(value, 5, 6, 7); });
 
     TestCheck(p1.TryEmplaceValue(5, 6, 7));
     Mso::FutureWait(future);
@@ -730,7 +730,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(PromiseVoid_SetValue_Observe)
   {
     Mso::Promise<void> p1;
-    auto future = p1.AsFuture().Then([&]() noexcept {});
+    auto future = p1.AsFuture().Then([]() noexcept {});
 
     p1.SetValue();
     Mso::FutureWait(future);
@@ -768,7 +768,7 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
   TEST_METHOD(PromiseVoid_TrySetValue_Observe)
   {
     Mso::Promise<void> p1;
-    auto future = p1.AsFuture().Then([&]() noexcept {});
+    auto future = p1.AsFuture().Then([]() noexcept {});
 
     TestCheck(p1.TrySetValue());
     Mso::FutureWait(future);

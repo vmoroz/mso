@@ -12,7 +12,7 @@ namespace Mso {
 
 struct CancellationTokenSourceTask
 {
-  CancellationToken CancellationToken;
+  CancellationToken Token;
 };
 
 struct CancellationTokenTask
@@ -109,8 +109,7 @@ LIBLET_PUBLICAPI CancellationTokenSource::operator bool() const noexcept
 LIBLET_PUBLICAPI const CancellationToken& CancellationTokenSource::GetToken() const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x0130f546 /* tag_bmpvg */);
-  return reinterpret_cast<CancellationTokenSourceTask*>(Mso::GetIFuture(*this)->GetTask().VoidData())
-      ->CancellationToken;
+  return reinterpret_cast<CancellationTokenSourceTask*>(Mso::GetIFuture(*this)->GetTask().VoidData())->Token;
 }
 
 LIBLET_PUBLICAPI void CancellationTokenSource::Cancel() const noexcept

@@ -28,6 +28,11 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
 {
   // MemoryLeakDetectionHook::TrackPerTest m_trackLeakPerTest;
 
+  ~FutureTestEx() noexcept
+  {
+    Mso::UnitTest_UninitConcurrentQueue();
+  }
+
   static Mso::Future<std::vector<int>> CreateVectorFuture() noexcept
   {
     Mso::Promise<std::vector<int>> p1;
@@ -218,7 +223,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateVectorFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -230,7 +235,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateVectorFuture().Then(Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -242,7 +247,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateVectorFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -257,7 +262,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
         CreateVectorFuture().Then(Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>&& value) noexcept {
           invoked = true;
           TestCheck(value.IsValue());
-          TestCheckEqual(3, value.GetValue().size());
+          TestCheckEqual(3u, value.GetValue().size());
         });
 
     Mso::FutureWait(future);
@@ -271,7 +276,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
         CreateVectorFuture().Then(Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>& value) noexcept {
           invoked = true;
           TestCheck(value.IsValue());
-          TestCheckEqual(3, value.TakeValue().size());
+          TestCheckEqual(3u, value.TakeValue().size());
         });
 
     Mso::FutureWait(future);
@@ -316,7 +321,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateErrorVectorFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -328,7 +333,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateErrorVectorFuture().Then(Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -340,7 +345,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateErrorVectorFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -416,7 +421,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateVectorFuture().Then([&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -428,7 +433,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateVectorFuture().Then([&](const std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -440,7 +445,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateVectorFuture().Then([&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -454,7 +459,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future = CreateVectorFuture().Then([&](Mso::Maybe<std::vector<int>>&& value) noexcept {
       invoked = true;
       TestCheck(value.IsValue());
-      TestCheckEqual(3, value.GetValue().size());
+      TestCheckEqual(3u, value.GetValue().size());
     });
 
     Mso::FutureWait(future);
@@ -467,7 +472,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future = CreateVectorFuture().Then([&](Mso::Maybe<std::vector<int>>& value) noexcept {
       invoked = true;
       TestCheck(value.IsValue());
-      TestCheckEqual(3, value.TakeValue().size());
+      TestCheckEqual(3u, value.TakeValue().size());
     });
 
     Mso::FutureWait(future);
@@ -512,7 +517,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateErrorVectorFuture().Then([&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -524,7 +529,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateErrorVectorFuture().Then([&](const std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -536,7 +541,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateErrorVectorFuture().Then([&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -725,7 +730,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                           })
                       .Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(3, value.size());
+                        TestCheckEqual(3u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -754,7 +759,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                           })
                       .Then(Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(3, value.size());
+                        TestCheckEqual(3u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -783,7 +788,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                           })
                       .Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(3, value.size());
+                        TestCheckEqual(3u, value.size());
                         value[2] = 5; // to avoid OACR error about non-const parameter.
                       });
 
@@ -815,7 +820,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then(Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>&& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(3, value.GetValue().size());
+                        TestCheckEqual(3u, value.GetValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -846,7 +851,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then(Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(3, value.TakeValue().size());
+                        TestCheckEqual(3u, value.TakeValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -944,7 +949,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                           })
                       .Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -973,7 +978,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                           })
                       .Then(Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -1002,7 +1007,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                           })
                       .Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                         value[1] = 5; // to avoid OACR error about non-const parameter.
                       });
 
@@ -1034,7 +1039,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then(Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>&& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(2, value.GetValue().size());
+                        TestCheckEqual(2u, value.GetValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -1065,7 +1070,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then(Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(2, value.TakeValue().size());
+                        TestCheckEqual(2u, value.TakeValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -1391,7 +1396,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                           })
                       .Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -1420,7 +1425,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                           })
                       .Then(Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -1449,7 +1454,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                           })
                       .Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                         value[1] = 5; // to avoid OACR error about non-const parameter.
                       });
 
@@ -1481,7 +1486,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then(Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>&& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(2, value.GetValue().size());
+                        TestCheckEqual(2u, value.GetValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -1512,7 +1517,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then(Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(2, value.TakeValue().size());
+                        TestCheckEqual(2u, value.TakeValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -1846,7 +1851,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       })
                       .Then([&](std::vector<int>&& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(3, value.size());
+                        TestCheckEqual(3u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -1871,7 +1876,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       })
                       .Then([&](const std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(3, value.size());
+                        TestCheckEqual(3u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -1896,7 +1901,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       })
                       .Then([&](std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(3, value.size());
+                        TestCheckEqual(3u, value.size());
                         value[2] = 5; // to avoid OACR error about non-const parameter.
                       });
 
@@ -1924,7 +1929,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then([&](Mso::Maybe<std::vector<int>>&& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(3, value.GetValue().size());
+                        TestCheckEqual(3u, value.GetValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -1951,7 +1956,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then([&](Mso::Maybe<std::vector<int>>& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(3, value.TakeValue().size());
+                        TestCheckEqual(3u, value.TakeValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -2038,7 +2043,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       })
                       .Then([&](std::vector<int>&& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -2063,7 +2068,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       })
                       .Then([&](const std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -2088,7 +2093,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       })
                       .Then([&](std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                         value[1] = 5; // to avoid OACR error about non-const parameter.
                       });
 
@@ -2116,7 +2121,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then([&](Mso::Maybe<std::vector<int>>&& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(2, value.GetValue().size());
+                        TestCheckEqual(2u, value.GetValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -2143,7 +2148,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then([&](Mso::Maybe<std::vector<int>>& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(2, value.TakeValue().size());
+                        TestCheckEqual(2u, value.TakeValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -2426,7 +2431,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       })
                       .Then([&](std::vector<int>&& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -2451,7 +2456,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       })
                       .Then([&](const std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                       });
 
     Mso::FutureWait(future);
@@ -2476,7 +2481,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       })
                       .Then([&](std::vector<int>& value) noexcept {
                         isInvoked[2] = true;
-                        TestCheckEqual(2, value.size());
+                        TestCheckEqual(2u, value.size());
                         value[1] = 5; // to avoid OACR error about non-const parameter.
                       });
 
@@ -2504,7 +2509,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then([&](Mso::Maybe<std::vector<int>>&& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(2, value.GetValue().size());
+                        TestCheckEqual(2u, value.GetValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -2531,7 +2536,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
                       .Then([&](Mso::Maybe<std::vector<int>>& value) noexcept {
                         isInvoked[2] = true;
                         TestCheck(value.IsValue());
-                        TestCheckEqual(2, value.TakeValue().size());
+                        TestCheckEqual(2u, value.TakeValue().size());
                       });
 
     Mso::FutureWait(future);
@@ -2812,7 +2817,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -2825,7 +2830,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -2837,7 +2842,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -2852,7 +2857,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
         CreateVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>&& value) noexcept {
           invoked = true;
           TestCheck(value.IsValue());
-          TestCheckEqual(3, value.GetValue().size());
+          TestCheckEqual(3u, value.GetValue().size());
         });
 
     Mso::FutureWait(future);
@@ -2866,7 +2871,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
         CreateVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>& value) noexcept {
           invoked = true;
           TestCheck(value.IsValue());
-          TestCheckEqual(3, value.TakeValue().size());
+          TestCheckEqual(3u, value.TakeValue().size());
         });
 
     Mso::FutureWait(future);
@@ -2912,7 +2917,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateErrorVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -2925,7 +2930,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateErrorVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -2937,7 +2942,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateErrorVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -3014,7 +3019,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateFailingVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -3027,7 +3032,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateFailingVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -3040,7 +3045,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateFailingVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
           value[2] = 5; // to avoid OACR error about non-const parameter.
         });
 
@@ -3119,7 +3124,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateMaybeVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -3132,7 +3137,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateMaybeVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -3144,7 +3149,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -3159,7 +3164,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
         Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>&& value) noexcept {
           invoked = true;
           TestCheck(value.IsValue());
-          TestCheckEqual(3, value.GetValue().size());
+          TestCheckEqual(3u, value.GetValue().size());
         });
 
     Mso::FutureWait(future);
@@ -3173,7 +3178,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
         Mso::Executors::Inline{}, [&](Mso::Maybe<std::vector<int>>& value) noexcept {
           invoked = true;
           TestCheck(value.IsValue());
-          TestCheckEqual(3, value.TakeValue().size());
+          TestCheckEqual(3u, value.TakeValue().size());
         });
 
     Mso::FutureWait(future);
@@ -3220,7 +3225,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateMaybeErrorVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -3233,7 +3238,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future = CreateMaybeErrorVectorFutureFuture().Then(
         Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -3246,7 +3251,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateMaybeErrorVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
           value[2] = 5; // to avoid OACR error about non-const parameter.
         });
 
@@ -3325,7 +3330,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateMaybeErrorVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -3338,7 +3343,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future = CreateMaybeErrorVectorFutureFuture().Then(
         Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -3351,7 +3356,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateMaybeErrorVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
           value[2] = 5; // to avoid OACR error about non-const parameter.
         });
 
@@ -3430,7 +3435,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateMaybeFailingVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>&& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -3443,7 +3448,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future = CreateMaybeFailingVectorFutureFuture().Then(
         Mso::Executors::Inline{}, [&](const std::vector<int>& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
         });
 
     Mso::FutureWait(future);
@@ -3456,7 +3461,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future =
         CreateMaybeFailingVectorFutureFuture().Then(Mso::Executors::Inline{}, [&](std::vector<int>& value) noexcept {
           invoked = true;
-          TestCheckEqual(3, value.size());
+          TestCheckEqual(3u, value.size());
           value[2] = 5; // to avoid OACR error about non-const parameter.
         });
 
@@ -3535,7 +3540,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateVectorFutureFuture().Then([&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -3547,7 +3552,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateVectorFutureFuture().Then([&](const std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -3559,7 +3564,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateVectorFutureFuture().Then([&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -3573,7 +3578,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future = CreateVectorFutureFuture().Then([&](Mso::Maybe<std::vector<int>>&& value) noexcept {
       invoked = true;
       TestCheck(value.IsValue());
-      TestCheckEqual(3, value.GetValue().size());
+      TestCheckEqual(3u, value.GetValue().size());
     });
 
     Mso::FutureWait(future);
@@ -3586,7 +3591,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future = CreateVectorFutureFuture().Then([&](Mso::Maybe<std::vector<int>>& value) noexcept {
       invoked = true;
       TestCheck(value.IsValue());
-      TestCheckEqual(3, value.TakeValue().size());
+      TestCheckEqual(3u, value.TakeValue().size());
     });
 
     Mso::FutureWait(future);
@@ -3631,7 +3636,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateErrorVectorFutureFuture().Then([&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -3643,7 +3648,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateErrorVectorFutureFuture().Then([&](const std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -3655,7 +3660,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateErrorVectorFutureFuture().Then([&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -3729,7 +3734,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateFailingVectorFutureFuture().Then([&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -3741,7 +3746,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateFailingVectorFutureFuture().Then([&](const std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -3753,7 +3758,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateFailingVectorFutureFuture().Then([&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -3827,7 +3832,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeVectorFutureFuture().Then([&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -3839,7 +3844,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeVectorFutureFuture().Then([&](const std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -3851,7 +3856,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeVectorFutureFuture().Then([&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -3865,7 +3870,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future = CreateMaybeVectorFutureFuture().Then([&](Mso::Maybe<std::vector<int>>&& value) noexcept {
       invoked = true;
       TestCheck(value.IsValue());
-      TestCheckEqual(3, value.GetValue().size());
+      TestCheckEqual(3u, value.GetValue().size());
     });
 
     Mso::FutureWait(future);
@@ -3878,7 +3883,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     auto future = CreateMaybeVectorFutureFuture().Then([&](Mso::Maybe<std::vector<int>>& value) noexcept {
       invoked = true;
       TestCheck(value.IsValue());
-      TestCheckEqual(3, value.TakeValue().size());
+      TestCheckEqual(3u, value.TakeValue().size());
     });
 
     Mso::FutureWait(future);
@@ -3923,7 +3928,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeErrorVectorFutureFuture().Then([&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -3935,7 +3940,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeErrorVectorFutureFuture().Then([&](const std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -3947,7 +3952,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeErrorVectorFutureFuture().Then([&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -4021,7 +4026,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeErrorVectorFutureFuture().Then([&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -4033,7 +4038,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeErrorVectorFutureFuture().Then([&](const std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -4045,7 +4050,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeErrorVectorFutureFuture().Then([&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 
@@ -4119,7 +4124,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeFailingVectorFutureFuture().Then([&](std::vector<int>&& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -4131,7 +4136,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeFailingVectorFutureFuture().Then([&](const std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
     });
 
     Mso::FutureWait(future);
@@ -4143,7 +4148,7 @@ TEST_CLASS_EX (FutureTestEx, LibletAwareMemLeakDetection)
     bool invoked{false};
     auto future = CreateMaybeFailingVectorFutureFuture().Then([&](std::vector<int>& value) noexcept {
       invoked = true;
-      TestCheckEqual(3, value.size());
+      TestCheckEqual(3u, value.size());
       value[2] = 5; // to avoid OACR error about non-const parameter.
     });
 

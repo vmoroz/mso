@@ -13,6 +13,11 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
 {
   // MemoryLeakDetectionHook::TrackPerTest m_trackLeakPerTest;
 
+  ~PromiseTest() noexcept
+  {
+    Mso::UnitTest_UninitConcurrentQueue();
+  }
+
   TEST_METHOD(Promise_ctor_Default)
   {
     Mso::Promise<int> p1;
@@ -198,10 +203,10 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
     vec.push_back(4);
 
     auto future = p1.AsFuture().Then(
-        Mso::Executors::Inline{}, [](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
+        Mso::Executors::Inline{}, [](const std::vector<int>& value) noexcept { TestCheckEqual(3u, value.size()); });
 
     Mso::FutureWait(future);
-    TestCheckEqual(4, vec.size());
+    TestCheckEqual(4u, vec.size());
   }
 
   TEST_METHOD(Promise_SetValue_Moves)
@@ -287,10 +292,10 @@ TEST_CLASS_EX (PromiseTest, LibletAwareMemLeakDetection)
     vec.push_back(4);
 
     auto future = p1.AsFuture().Then(
-        Mso::Executors::Inline{}, [](const std::vector<int>& value) noexcept { TestCheckEqual(3, value.size()); });
+        Mso::Executors::Inline{}, [](const std::vector<int>& value) noexcept { TestCheckEqual(3u, value.size()); });
 
     Mso::FutureWait(future);
-    TestCheckEqual(4, vec.size());
+    TestCheckEqual(4u, vec.size());
   }
 
   TEST_METHOD(Promise_TrySetValue_Moves)

@@ -6,6 +6,7 @@
 #include "dispatchQueue/dispatchQueue.h"
 #include "future/details/ifuture.h"
 #include "object/unknownObject.h"
+#include <optional>
 
 namespace Mso {
 namespace Futures {
@@ -142,6 +143,18 @@ enum class FutureState
   Failed, // Future is failed and it has an error code.
 };
 
+enum class ExpectedStates
+{
+  Pending = 1 << (int)FutureState::Pending,
+  Posting = 1 << (int)FutureState::Posting,
+  Posted = 1 << (int)FutureState::Posted,
+  Invoking = 1 << (int)FutureState::Invoking,
+  Awaiting = 1 << (int)FutureState::Awaiting,
+  SettingResult = 1 << (int)FutureState::SettingResult,
+  Succeeded = 1 << (int)FutureState::Succeeded,
+  Failed = 1 << (int)FutureState::Failed,
+};
+
 class FutureImpl;
 
 // FutureData packs FutureState and a pointer to continuation into one atomic variable.
@@ -246,6 +259,8 @@ public:
   STDMETHOD_(ULONG, Release)() noexcept override;
 
 private:
+  static bool IsExpectedState(FutureState state, ExpectedStates expectedStates) noexcept;
+  std::optional<FutureState> TrySetState(FutureState newState, ExpectedStates expectedStates) noexcept;
   bool TryStartSetError(bool crashIfFailed) noexcept;
   bool TrySetInvoking(bool crashIfFailed = false) noexcept;
   void SetFailed() noexcept;

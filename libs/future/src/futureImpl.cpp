@@ -489,6 +489,46 @@ bool FutureImpl::TrySetInvoking(bool crashIfFailed) noexcept
   }
 }
 
+std::optional<FutureState> FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates) noexcept {
+  int iterationCount = 0;
+  FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
+  for (;;)
+  {
+    FutureState state = currentData.GetState();
+    if (!IsExpectedState(state, expectedStates))
+    {
+      return state;
+    }
+
+    FuturePackedData newData = FuturePackedData::Make(newState, currentData.GetContinuation());
+    if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
+    {
+      return std::nullopt;
+    }
+
+    // If we cannot get to the expected state after some iterations, then
+    // first try to yield the thread, and then put the thread to the sleeping state with the increasing interval.
+    ++iterationCount;
+    if (iterationCount > 50)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    else if (iterationCount > 20)
+    {
+      std::this_thread::sleep_for(std::chrono::microseconds(1));
+    }
+    else if (iterationCount > 10)
+    {
+      std::this_thread::yield();
+    }
+  }
+}
+
+/*static*/ bool FutureImpl::IsExpectedState(FutureState state, ExpectedStates expectedStates) noexcept
+{
+  return ((1 << (int)state) & (int)expectedStates) != 0;
+}
+
 _Use_decl_annotations_ bool FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, bool crashIfFailed) noexcept
 {
   // We can set value only if it is not of void type. We can move to SettingResult state to set value only from thse
@@ -918,26 +958,13 @@ bool FutureImpl::TryPostInternal(FutureImpl* parent, Mso::CntPtr<FutureImpl>& ne
     // Otherwise, the situation is unexpected and we crash.
 
     // We can only start post if we were able to move to FutureState::Posting from FutureState::Pending
-    FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
-    for (;;)
+    if (auto unexpectedState = TrySetState(FutureState::Posting, ExpectedStates::Pending))
     {
-      FutureState state = currentData.GetState();
-      // The only valid state to proceed is FutureState::Pending.
-      if (state != FutureState::Pending)
-      {
-        VerifyElseCrashSzTag(
-            m_link == nullptr, "State must be FutureState::Pending if m_link is not null", 0x016055df /* tag_byfx5 */);
-        next = nullptr;
-        return UnexpectedState(
-            state, crashIfFailed, "Post expects Pending state", MsoReserveTag(0x016055e0 /* tag_byfx6 */));
-      }
-
-      // Move to FutureState::Posting state.
-      FuturePackedData newData = FuturePackedData::Make(FutureState::Posting, currentData.GetContinuation());
-      if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
-      {
-        break;
-      }
+      VerifyElseCrashSzTag(
+          m_link == nullptr, "State must be FutureState::Pending if m_link is not null", 0x016055df /* tag_byfx5 */);
+      next = nullptr;
+      return UnexpectedState(
+          *unexpectedState, crashIfFailed, "Post expects Pending state", MsoReserveTag(0x016055e0 /* tag_byfx6 */));
     }
 
     CurrentFutureImpl current{*this}; // For synchronous call checks.

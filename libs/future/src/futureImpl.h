@@ -145,15 +145,20 @@ enum class FutureState
 
 enum class ExpectedStates
 {
-  Pending = 1 << (int)FutureState::Pending,
-  Posting = 1 << (int)FutureState::Posting,
-  Posted = 1 << (int)FutureState::Posted,
-  Invoking = 1 << (int)FutureState::Invoking,
-  Awaiting = 1 << (int)FutureState::Awaiting,
-  SettingResult = 1 << (int)FutureState::SettingResult,
-  Succeeded = 1 << (int)FutureState::Succeeded,
-  Failed = 1 << (int)FutureState::Failed,
+  Pending = 1 << static_cast<int>(FutureState::Pending),
+  Posting = 1 << static_cast<int>(FutureState::Posting),
+  Posted = 1 << static_cast<int>(FutureState::Posted),
+  Invoking = 1 << static_cast<int>(FutureState::Invoking),
+  Awaiting = 1 << static_cast<int>(FutureState::Awaiting),
+  SettingResult = 1 << static_cast<int>(FutureState::SettingResult),
+  Succeeded = 1 << static_cast<int>(FutureState::Succeeded),
+  Failed = 1 << static_cast<int>(FutureState::Failed),
 };
+
+constexpr ExpectedStates operator|(ExpectedStates left, ExpectedStates right) noexcept
+{
+  return static_cast<ExpectedStates>(static_cast<int>(left) | static_cast<int>(right));
+}
 
 class FutureImpl;
 

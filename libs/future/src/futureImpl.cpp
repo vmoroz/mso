@@ -489,7 +489,9 @@ bool FutureImpl::TrySetInvoking(bool crashIfFailed) noexcept
   }
 }
 
-std::optional<FutureState> FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates) noexcept {
+// Returns std::nullopt when succeeded, or the current state when failed.
+std::optional<FutureState> FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates) noexcept
+{
   int iterationCount = 0;
   FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
   for (;;)
@@ -503,13 +505,18 @@ std::optional<FutureState> FutureImpl::TrySetState(FutureState newState, Expecte
     FuturePackedData newData = FuturePackedData::Make(newState, currentData.GetContinuation());
     if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
     {
-      return std::nullopt;
+      return std::nullopt; // To indicate success.
     }
 
     // If we cannot get to the expected state after some iterations, then
     // first try to yield the thread, and then put the thread to the sleeping state with the increasing interval.
+    // We fail after waiting for 10 seconds.
     ++iterationCount;
-    if (iterationCount > 50)
+    if (iterationCount > 10'000) // 10 seconds since we wait 1ms each cycle most of times.
+    {
+      return state;
+    }
+    else if (iterationCount > 50)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
@@ -531,9 +538,9 @@ std::optional<FutureState> FutureImpl::TrySetState(FutureState newState, Expecte
 
 _Use_decl_annotations_ bool FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, bool crashIfFailed) noexcept
 {
-  // We can set value only if it is not of void type. We can move to SettingResult state to set value only from thse
-  // states:
-  // 1. Pending - if there is no TaskInvoke callback.
+  // We can set value only if it is not of void type.
+  // We can move to SettingResult state to set value only from these states:
+  // 1. Pending - if there is no TaskInvoke callback or if it is a MultiPost future.
   // 2. Invoking - if the value set synchronously.
   // 3. Awaiting.
 
@@ -543,52 +550,46 @@ _Use_decl_annotations_ bool FutureImpl::TryStartSetValue(ByteArrayView& valueBuf
     return false;
   }
 
-  FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
-  for (;;)
+  ExpectedStates expectedStates{};
+  if (IsSet(m_traits.Options, FutureOptions::IsMultiPost) || !m_traits.TaskInvoke)
   {
-    FutureState state = currentData.GetState();
-    switch (state)
+    // We can set value from the Pending state for the MultiPost futures or when no Task needs to be invoked first.
+    expectedStates = expectedStates | ExpectedStates::Pending;
+  }
+  if (IsSynchronousCall())
+  {
+    // We can set value from the code being invoked synchronously.
+    expectedStates = expectedStates | ExpectedStates::Invoking;
+  }
+  expectedStates = expectedStates | ExpectedStates::Awaiting;
+
+  if (auto unexpectedState = TrySetState(FutureState::SettingResult, expectedStates))
+  {
+    switch (*unexpectedState)
     {
       case FutureState::Pending:
-        // MultiPost future can start setting value from Pending state.
-        if (!IsSet(m_traits.Options, FutureOptions::IsMultiPost))
-        {
-          CheckFutureStateTag(
-              !m_traits.TaskInvoke,
-              state,
-              crashIfFailed,
-              "TaskInvoke must be called before setting value.",
-              MsoReserveTag(0x016055cd /* tag_byfxn */));
-        }
-        break;
-
+        return UnexpectedState(
+            *unexpectedState,
+            crashIfFailed,
+            "TaskInvoke must be called before setting value.",
+            MsoReserveTag(0x016055cd /* tag_byfxn */));
       case FutureState::Invoking:
-        CheckFutureStateTag(
-            IsSynchronousCall(),
-            state,
+        return UnexpectedState(
+            *unexpectedState,
             crashIfFailed,
             "Value can be set from Invoking state only synchronously",
             MsoReserveTag(0x016055ce /* tag_byfxo */));
-        break;
-
-      case FutureState::Awaiting: break;
-
       default:
         return UnexpectedState(
-            state,
+            *unexpectedState,
             crashIfFailed,
             "We cannot move to SettingResult from this state.",
             MsoReserveTag(0x016055cf /* tag_byfxp */));
     }
-
-    // Change to FutureState::SettingResult and keep current continuation.
-    FuturePackedData newData = FuturePackedData::Make(FutureState::SettingResult, currentData.GetContinuation());
-    if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
-    {
-      valueBuffer = GetValueInternal();
-      return true;
-    }
   }
+
+  valueBuffer = GetValueInternal();
+  return true;
 }
 
 bool FutureImpl::IsSynchronousCall() const noexcept

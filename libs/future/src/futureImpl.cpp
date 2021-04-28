@@ -629,20 +629,9 @@ bool FutureImpl::UnexpectedState(FutureState state, bool crashIfFailed, const ch
 
 void FutureImpl::StartAwaiting() noexcept
 {
-  FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
-  for (;;)
+  if (auto unexpectedState = TrySetState(FutureState::Awaiting, ExpectedStates::Invoking))
   {
-    if (currentData.GetState() != FutureState::Invoking)
-    {
-      VerifyElseCrashSzTag(false, "Current state must be FutureState::Invoking", 0x012ca3c4 /* tag_blkpe */);
-    }
-
-    // Set the state FutureState::Awaiting and keep continuations unchanged.
-    FuturePackedData newData = FuturePackedData::Make(FutureState::Awaiting, currentData.GetContinuation());
-    if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
-    {
-      return;
-    }
+    VerifyElseCrashSzTag(false, "Current state must be FutureState::Invoking", 0x012ca3c4 /* tag_blkpe */);
   }
 }
 

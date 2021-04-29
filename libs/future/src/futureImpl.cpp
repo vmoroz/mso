@@ -490,7 +490,8 @@ bool FutureImpl::TrySetInvoking(bool crashIfFailed) noexcept
 }
 
 // Returns std::nullopt when succeeded, or the current state when failed.
-std::optional<FutureState> FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates) noexcept
+std::optional<FutureState>
+FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates, FutureImpl** continuation) noexcept
 {
   int iterationCount = 0;
   FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
@@ -502,9 +503,14 @@ std::optional<FutureState> FutureImpl::TrySetState(FutureState newState, Expecte
       return state;
     }
 
-    FuturePackedData newData = FuturePackedData::Make(newState, currentData.GetContinuation());
+    FutureImpl* currentContinuation = currentData.GetContinuation();
+    FuturePackedData newData = FuturePackedData::Make(newState, currentContinuation);
     if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
     {
+      if (continuation)
+      {
+        *continuation = currentContinuation;
+      }
       return std::nullopt; // To indicate success.
     }
 
@@ -655,33 +661,56 @@ bool FutureImpl::TrySetSuccess(bool crashIfFailed) noexcept
   // 3. Invoking if value type is void and called synchronously.
   // 4. Awaiting if value type is void.
   // 5. SettingResult if value type is not void.
-  FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
-  for (;;)
+
+  ExpectedStates expectedStates = ExpectedStates::SettingResult;
+  if (IsVoidValue()
+      && (IsSet(m_traits.Options, FutureOptions::IsMultiPost)
+          || (!m_traits.TaskInvoke && !IsSet(m_traits.Options, FutureOptions::UseParentValue))))
   {
-    FutureState state = currentData.GetState();
-    switch (state)
+    expectedStates = expectedStates | ExpectedStates::Pending;
+  }
+  if (!m_traits.TaskInvoke && IsSynchronousCall() && IsSet(m_traits.Options, FutureOptions::UseParentValue))
+  {
+    expectedStates = expectedStates | ExpectedStates::Posting;
+  }
+  if (IsSynchronousCall() && IsVoidValue())
+  {
+    expectedStates = expectedStates | ExpectedStates::Invoking;
+  }
+  if (IsVoidValue())
+  {
+    expectedStates = expectedStates | ExpectedStates::Awaiting;
+  }
+
+  FutureImpl* continuation{};
+  if (auto actualState = TrySetState(FutureState::Succeeded, expectedStates, &continuation))
+  {
+    switch (*actualState)
     {
       case FutureState::Pending:
         if (!IsSet(m_traits.Options, FutureOptions::IsMultiPost))
         {
-          CheckFutureStateTag(
-              !m_traits.TaskInvoke,
-              state,
-              crashIfFailed,
-              "Task must be invoked before moving to Succeeded state.",
-              MsoReserveTag(0x016055d0 /* tag_byfxq */));
+          if (m_traits.TaskInvoke)
+          {
+            return UnexpectedState(
+                *actualState,
+                crashIfFailed,
+                "Task must be invoked before moving to Succeeded state.",
+                MsoReserveTag(0x016055d0 /* tag_byfxq */));
+          }
 
-          CheckFutureStateTag(
-              !IsSet(m_traits.Options, FutureOptions::UseParentValue),
-              state,
-              crashIfFailed,
-              "Futures that use parent value must move to Posting state before moving to Succeeded state.",
-              MsoReserveTag(0x016055d1 /* tag_byfxr */));
+          if (IsSet(m_traits.Options, FutureOptions::UseParentValue))
+          {
+            return UnexpectedState(
+                *actualState,
+                crashIfFailed,
+                "Futures that use parent value must move to Posting state before moving to Succeeded state.",
+                MsoReserveTag(0x016055d1 /* tag_byfxr */));
+          }
         }
 
-        CheckFutureStateTag(
-            IsVoidValue(),
-            state,
+        return UnexpectedState(
+            *actualState,
             crashIfFailed,
             "Non-void value must be set before moving to Succeeded state.",
             MsoReserveTag(0x016055d2 /* tag_byfxs */));
@@ -689,90 +718,77 @@ bool FutureImpl::TrySetSuccess(bool crashIfFailed) noexcept
         break;
 
       case FutureState::Posting:
-        CheckFutureStateTag(
-            !m_traits.TaskInvoke,
-            state,
-            crashIfFailed,
-            "Task must be invoked before moving to Succeeded state.",
-            MsoReserveTag(0x016055d3 /* tag_byfxt */));
+        if (m_traits.TaskInvoke)
+        {
+          return UnexpectedState(
+              *actualState,
+              crashIfFailed,
+              "Task must be invoked before moving to Succeeded state.",
+              MsoReserveTag(0x016055d3 /* tag_byfxt */));
+        }
 
-        CheckFutureStateTag(
-            IsSynchronousCall(),
-            state,
-            crashIfFailed,
-            "From Posting state we can move to Succeeded state only synchronously.",
-            MsoReserveTag(0x016055d4 /* tag_byfxu */));
+        if (!IsSynchronousCall())
+        {
+          return UnexpectedState(
+              *actualState,
+              crashIfFailed,
+              "From Posting state we can move to Succeeded state only synchronously.",
+              MsoReserveTag(0x016055d4 /* tag_byfxu */));
+        }
 
-        CheckFutureStateTag(
-            IsSet(m_traits.Options, FutureOptions::UseParentValue),
-            state,
+        return UnexpectedState(
+            *actualState,
             crashIfFailed,
             "We can only move to Succeeded state from Posting state if future uses parent value.",
             MsoReserveTag(0x016055d5 /* tag_byfxv */));
 
-        break;
-
       case FutureState::Invoking:
-        CheckFutureStateTag(
-            IsSynchronousCall(),
-            state,
-            crashIfFailed,
-            "From Invoking state we can move to Succeeded state only synchronously.",
-            MsoReserveTag(0x016055d6 /* tag_byfxw */));
+        if (!IsSynchronousCall())
+        {
+          return UnexpectedState(
+              *actualState,
+              crashIfFailed,
+              "From Invoking state we can move to Succeeded state only synchronously.",
+              MsoReserveTag(0x016055d6 /* tag_byfxw */));
+        }
 
-        CheckFutureStateTag(
-            IsVoidValue(),
-            state,
+        return UnexpectedState(
+            *actualState,
             crashIfFailed,
             "Non-void value must be set before moving to Succeeded state.",
             MsoReserveTag(0x016055d7 /* tag_byfxx */));
 
-        break;
-
       case FutureState::Awaiting:
-        CheckFutureStateTag(
-            IsVoidValue(),
-            state,
+        return UnexpectedState(
+            *actualState,
             crashIfFailed,
             "Non-void value must be set before moving to Succeeded state.",
             MsoReserveTag(0x016055d8 /* tag_byfxy */));
 
-        break;
-
-      case FutureState::SettingResult: break;
-
       default:
         return UnexpectedState(
-            state, crashIfFailed, "Cannot move to Succeeded state.", MsoReserveTag(0x016055d9 /* tag_byfxz */));
-    }
-
-    FutureImpl* continuation = currentData.GetContinuation();
-
-    // Set the FutureState::Succeeded and schedule continuations for invoke.
-    const FutureImpl* newContinuation = continuation != nullptr ? FuturePackedData::ContinuationInvoked : nullptr;
-    FuturePackedData newData = FuturePackedData::Make(FutureState::Succeeded, newContinuation);
-    if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
-    {
-      if (m_link && !IsSet(m_traits.Options, FutureOptions::UseParentValue))
-      {
-        m_link = nullptr;
-      }
-
-      m_error = nullptr;
-
-      // Task execution is completed. It should be destroyed now to avoid keeping captured resources for long time.
-      DestroyTask(/*isAfterInvoke:*/ true);
-
-      VerifyElseCrashSzTag(
-          continuation != FuturePackedData::ContinuationInvoked,
-          "Continuation must not be invoked yet.",
-          0x012ca3c6 /* tag_blkpg */);
-
-      PostContinuation(Mso::CntPtr<FutureImpl>{continuation, AttachTag});
-
-      return true;
+            *actualState, crashIfFailed, "Cannot move to Succeeded state.", MsoReserveTag(0x016055d9 /* tag_byfxz */));
     }
   }
+
+  if (m_link && !IsSet(m_traits.Options, FutureOptions::UseParentValue))
+  {
+    m_link = nullptr;
+  }
+
+  m_error = nullptr;
+
+  // Task execution is completed. It should be destroyed now to avoid keeping captured resources for long time.
+  DestroyTask(/*isAfterInvoke:*/ true);
+
+  VerifyElseCrashSzTag(
+      continuation != FuturePackedData::ContinuationInvoked,
+      "Continuation must not be invoked yet.",
+      0x012ca3c6 /* tag_blkpg */);
+
+  PostContinuation(Mso::CntPtr<FutureImpl>{continuation, AttachTag});
+
+  return true;
 }
 
 bool FutureImpl::TrySetError(ErrorCode&& futureError, bool crashIfFailed) noexcept

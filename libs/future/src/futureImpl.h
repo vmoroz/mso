@@ -265,7 +265,8 @@ public:
 
 private:
   static bool IsExpectedState(FutureState state, ExpectedStates expectedStates) noexcept;
-  std::optional<FutureState> TrySetState(FutureState newState, ExpectedStates expectedStates) noexcept;
+  std::optional<FutureState>
+  TrySetState(FutureState newState, ExpectedStates expectedStates, FutureImpl** continuation = nullptr) noexcept;
   bool TryStartSetError(bool crashIfFailed) noexcept;
   bool TrySetInvoking(bool crashIfFailed = false) noexcept;
   void SetFailed() noexcept;

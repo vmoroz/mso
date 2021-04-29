@@ -437,90 +437,20 @@ void FutureImpl::AddContinuation(Mso::CntPtr<IFuture>&& continuation) noexcept
   }
 }
 
-bool FutureImpl::TrySetInvoking(bool crashIfFailed) noexcept
-{
-  // We can start Invoking either from Posting or from Posted states.
-  // From Posting state we must do it synchronously, while from Posted it can be done asynchronously.
-  // It is possible that asynchronous execution starts before we moved to Posted state.
-  // For that reason we wait if we try from Posting to Invoking state asynchronously.
-
-  bool isSynchronous = CurrentFutureImpl::IsCurrent(*this);
-
-  size_t waitCycles = 10000; // 10 seconds
-
-  FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
-  for (;;)
-  {
-    FutureState state = currentData.GetState();
-    switch (state)
-    {
-      case FutureState::Posting:
-        if (!isSynchronous)
-        {
-          if (--waitCycles == 0)
-          {
-            return UnexpectedState(
-                state, crashIfFailed, "Cannot move to Invoking state", MsoReserveTag(0x016055ca /* tag_byfxk */));
-          }
-
-          std::this_thread::sleep_for(std::chrono::milliseconds(1));
-          currentData = m_stateAndContinuation.load(std::memory_order_acquire);
-          continue;
-        }
-
-        // We can start Invoke if previous state was Posting.
-        break;
-
-      case FutureState::Posted:
-        // We can start Invoke from any thread.
-        break;
-
-      default:
-        return UnexpectedState(
-            state, crashIfFailed, "Cannot move to Invoking state", MsoReserveTag(0x016055cb /* tag_byfxl */));
-    }
-
-    // Set the FutureState::Invoking state and keep current continuation.
-    FuturePackedData newData = FuturePackedData::Make(FutureState::Invoking, currentData.GetContinuation());
-    if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
-    {
-      return true;
-    }
-  }
-}
-
-// Returns std::nullopt when succeeded, or the current state when failed.
-std::optional<FutureState>
-FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates, FutureImpl** continuation) noexcept
+template <typename TLambda>
+static void LoopAndWait(TLambda lambda) noexcept
 {
   int iterationCount = 0;
-  FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
-  for (;;)
+  while (lambda())
   {
-    FutureState state = currentData.GetState();
-    if (!IsExpectedState(state, expectedStates))
-    {
-      return state;
-    }
-
-    FutureImpl* currentContinuation = currentData.GetContinuation();
-    FuturePackedData newData = FuturePackedData::Make(newState, currentContinuation);
-    if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
-    {
-      if (continuation)
-      {
-        *continuation = currentContinuation;
-      }
-      return std::nullopt; // To indicate success.
-    }
-
-    // If we cannot get to the expected state after some iterations, then
+    // We continue iterate until the lambda returns false;
+    // If we cannot get the false result after some iterations, then
     // first try to yield the thread, and then put the thread to the sleeping state with the increasing interval.
-    // We fail after waiting for 10 seconds.
+    // We exit after waiting for 10 seconds.
     ++iterationCount;
     if (iterationCount > 10'000) // 10 seconds since we wait 1ms each cycle most of times.
     {
-      return state;
+      return;
     }
     else if (iterationCount > 50)
     {
@@ -535,6 +465,67 @@ FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates, Fut
       std::this_thread::yield();
     }
   }
+}
+
+bool FutureImpl::TrySetInvoking(bool crashIfFailed) noexcept
+{
+  // We can start Invoking either from Posting or from Posted states.
+  // From Posting state we must do it synchronously, while from Posted it can be done asynchronously.
+  // It is possible that asynchronous execution starts before we moved to Posted state.
+  // For that reason we wait if we try to get from Posting to Invoking state asynchronously.
+
+  bool isSynchronous = CurrentFutureImpl::IsCurrent(*this);
+  ExpectedStates expectedStates = ExpectedStates::Posted;
+  if (isSynchronous)
+  {
+    expectedStates = expectedStates | ExpectedStates::Posting;
+  }
+
+  std::optional<FutureState> actualState;
+  LoopAndWait([&]() noexcept {
+    actualState = TrySetState(FutureState::Invoking, expectedStates);
+    return actualState && *actualState == FutureState::Posting;
+  });
+
+  if (actualState)
+  {
+    return UnexpectedState(
+        *actualState, crashIfFailed, "Cannot move to Invoking state", MsoReserveTag(0x016055cb /* tag_byfxl */));
+  }
+
+  return true;
+}
+
+
+// Returns std::nullopt when succeeded, or the current state when failed.
+std::optional<FutureState>
+FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates, FutureImpl** continuation) noexcept
+{
+  std::optional<FutureState> result;
+  FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
+  LoopAndWait([&]() noexcept {
+    result = currentData.GetState();
+    if (!IsExpectedState(*result, expectedStates))
+    {
+      return false;
+    }
+
+    FutureImpl* currentContinuation = currentData.GetContinuation();
+    FuturePackedData newData = FuturePackedData::Make(newState, currentContinuation);
+    if (m_stateAndContinuation.compare_exchange_weak(/*ref*/ currentData, newData))
+    {
+      if (continuation)
+      {
+        *continuation = currentContinuation;
+      }
+      result = std::nullopt; // To indicate success
+      return false;
+    }
+
+    return true;
+  });
+
+  return result;
 }
 
 /*static*/ bool FutureImpl::IsExpectedState(FutureState state, ExpectedStates expectedStates) noexcept

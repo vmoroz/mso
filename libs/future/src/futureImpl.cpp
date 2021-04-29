@@ -496,7 +496,6 @@ bool FutureImpl::TrySetInvoking(bool crashIfFailed) noexcept
   return true;
 }
 
-
 // Returns std::nullopt when succeeded, or the current state when failed.
 std::optional<FutureState>
 FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates, FutureImpl** continuation) noexcept
@@ -511,7 +510,12 @@ FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates, Fut
     }
 
     FutureImpl* currentContinuation = currentData.GetContinuation();
-    FuturePackedData newData = FuturePackedData::Make(newState, currentContinuation);
+    const FutureImpl* newContinuation = currentContinuation;
+    if (IsExpectedState(newState, ExpectedStates::Failed | ExpectedStates::Succeeded))
+    {
+      newContinuation = newContinuation != nullptr ? FuturePackedData::ContinuationInvoked : nullptr;
+    }
+    FuturePackedData newData = FuturePackedData::Make(newState, newContinuation);
     if (m_stateAndContinuation.compare_exchange_weak(/*ref*/ currentData, newData))
     {
       if (continuation)
@@ -804,8 +808,8 @@ bool FutureImpl::TryStartSetError(bool crashIfFailed) noexcept
   // - Posting - when there is UseCurrentValue flag, or in the TaskPost callback.
   // - Invoking - when TaskInvoke ends up with an error.
   // When error is set asynchronously in Posting state we should wait until Future moves to a different state.
-  // The main reason is that we may scheduled asynchronous invocation and it started before we moved to Posted state.
-  // In the other three states: SettingValue, Succeeded, and Failed, it is too late to set the error.
+  // The main reason is that we may have scheduled asynchronous invocation and it started before we moved to Posted
+  // state. In the other three states: SettingValue, Succeeded, and Failed, it is too late to set the error.
   FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
   for (;;)
   {
@@ -864,39 +868,29 @@ bool FutureImpl::TryStartSetError(bool crashIfFailed) noexcept
 
 void FutureImpl::SetFailed() noexcept
 {
+  // Move to FutureState::Failed state and notify continuations about the failure.
   // We can only move to FutureState::Failed if previous state was FutureState::SettingResult.
-
-  FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
-  for (;;)
+  FutureImpl* continuation{};
+  if (auto actualState = TrySetState(FutureState::Failed, ExpectedStates::SettingResult, &continuation))
   {
-    FutureState state = currentData.GetState();
-    if (state != FutureState::SettingResult)
-    {
-      UnexpectedState(
-          state, /*crashIfFailed:*/ true, "Cannot move to Failed state", MsoReserveTag(0x016055dd /* tag_byfx3 */));
-    }
-
-    // Move to FutureState::Failed state and notify continuations about the failure.
-    FutureImpl* continuation = currentData.GetContinuation();
-    const FutureImpl* newContinuation = continuation != nullptr ? FuturePackedData::ContinuationInvoked : nullptr;
-    FuturePackedData newData = FuturePackedData::Make(FutureState::Failed, newContinuation);
-    if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
-    {
-      m_link = nullptr;
-
-      // Task execution is completed. It should be destroyed now to avoid keeping captured resources for long time.
-      DestroyTask(/*isAfterInvoke:*/ true);
-
-      VerifyElseCrashSzTag(
-          continuation != FuturePackedData::ContinuationInvoked,
-          "Continuation must not be invoked yet.",
-          0x012ca3c9 /* tag_blkpj */);
-
-      PostContinuation(Mso::CntPtr<FutureImpl>{continuation, AttachTag});
-
-      return;
-    }
+    UnexpectedState(
+        *actualState,
+        /*crashIfFailed:*/ true,
+        "Cannot move to Failed state",
+        MsoReserveTag(0x016055dd /* tag_byfx3 */));
   }
+
+  m_link = nullptr;
+
+  // Task execution is completed. It should be destroyed now to avoid keeping captured resources for long time.
+  DestroyTask(/*isAfterInvoke:*/ true);
+
+  VerifyElseCrashSzTag(
+      continuation != FuturePackedData::ContinuationInvoked,
+      "Continuation must not be invoked yet.",
+      0x012ca3c9 /* tag_blkpj */);
+
+  PostContinuation(Mso::CntPtr<FutureImpl>{continuation, AttachTag});
 }
 
 bool FutureImpl::TrySetPosted() noexcept

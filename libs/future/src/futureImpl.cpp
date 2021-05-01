@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation.
+﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
 #include "futureImpl.h"
@@ -537,6 +537,43 @@ FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates, Fut
   return ((1 << (int)state) & (int)expectedStates) != 0;
 }
 
+// The valid state transitions from the futureImpl.h:
+//
+//                          ┌──────────────────────────────────────────────┐
+//                          │                                              │
+//                          │                         ┏━━━━━━━━━━━━┓       │
+//                          │                    ┌───►┃  Awaiting  ┃───┐   │
+//                          │                    │    ┗━━━━━━━━━━━━┛   │   │              ╔═════════════╗
+//                          │                    │                     ▼   ▼         ┌───►║  Succeeded  ║
+//   ┏━━━━━━━━━━━┓    ┏━━━━━━━━━━━┓        ┏━━━━━━━━━━━━┓        ┏━━━━━━━━━━━━━━━┓   │    ╚═════════════╝
+//   ┃  Pending  ┃───►┃  Posting  ┃───────►┃  Invoking  ┃───────►┃ SettingResult ┃───┤
+//   ┗━━━━━━━━━━━┛    ┗━━━━━━━━━━━┛        ┗━━━━━━━━━━━━┛        ┗━━━━━━━━━━━━━━━┛   │    ╔═════════════╗
+//         │                │                    ▲                       ▲           └───►║   Failed    ║
+//         │                │    ┏━━━━━━━━━━┓    │                       │                ╚═════════════╝
+//         │                └───►┃  Posted  ┃────┘                       │
+//         │                     ┗━━━━━━━━━━┛                            │
+//         │                           │                                 │
+//         └───────────────────────────┴─────────────────────────────────┘
+//
+ExpectedStates FutureImpl::GetExtectedStates(FutureState newState) noexcept
+{
+  auto ifLocked = [this](ExpectedStates states) { return IsSynchronousCall() ? states : ExpectedStates::None; };
+
+  switch (newState)
+  {
+    case FutureState::Posting: return ExpectedStates::Pending;
+    case FutureState::Posted: return ifLocked(ExpectedStates::Posting);
+    case FutureState::Invoking: return ifLocked(ExpectedStates::Posting) | ExpectedStates::Posted;
+    case FutureState::Awaiting: return ifLocked(ExpectedStates::Invoking);
+    case FutureState::SettingResult:
+      return ExpectedStates::Pending | ExpectedStates::Posted | ExpectedStates::Awaiting
+          | ifLocked(ExpectedStates::Posting | ExpectedStates::Invoking);
+    case FutureState::Succeeded: return ifLocked(ExpectedStates::SettingResult);
+    case FutureState::Failed: return ifLocked(ExpectedStates::SettingResult);
+    default: return ExpectedStates::None;
+  }
+}
+
 _Use_decl_annotations_ bool FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, bool crashIfFailed) noexcept
 {
   // We can set value only if it is not of void type.
@@ -800,6 +837,23 @@ bool FutureImpl::TrySetError(ErrorCode&& futureError, bool crashIfFailed) noexce
 
 bool FutureImpl::TryStartSetError(bool crashIfFailed) noexcept
 {
+  // TODO:
+  // CheckFutureStateTag(
+  //   m_link == nullptr,
+  //   state,
+  //   crashIfFailed,
+  //   "Error cannot be set from Pending state if future is a part of linked list",
+  //   MsoReserveTag(0x016055da /* tag_byfx0 */));
+
+  // TODO:
+  // case FutureState::Posting:
+  // if (!IsSynchronousCall())
+  //{
+  //  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  //  currentData = m_stateAndContinuation.load(std::memory_order_acquire);
+  //  continue;
+  //}
+
   // We can set error if current states are:
   // - Pending - no execution started yet.
   // - Posted - scheduled for asynchronous invocation
@@ -810,60 +864,22 @@ bool FutureImpl::TryStartSetError(bool crashIfFailed) noexcept
   // When error is set asynchronously in Posting state we should wait until Future moves to a different state.
   // The main reason is that we may have scheduled asynchronous invocation and it started before we moved to Posted
   // state. In the other three states: SettingValue, Succeeded, and Failed, it is too late to set the error.
-  FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
-  for (;;)
+
+  ExpectedStates expectedStates =
+      ExpectedStates::Pending | ExpectedStates::Posted | ExpectedStates::Awaiting | ExpectedStates::Posting;
+
+  if (IsSynchronousCall())
   {
-    FutureState state = currentData.GetState();
-    switch (state)
-    {
-      case FutureState::Pending:
-        CheckFutureStateTag(
-            m_link == nullptr,
-            state,
-            crashIfFailed,
-            "Error cannot be set from Pending state if future is a part of linked list",
-            MsoReserveTag(0x016055da /* tag_byfx0 */));
-        break;
-
-      case FutureState::Posted:
-      case FutureState::Awaiting:
-        // We can set error if we did not start execution yet, or wait for asynchronous execution, or asynchronous
-        // completion.
-        break;
-
-      case FutureState::Posting:
-        if (!IsSynchronousCall())
-        {
-          std::this_thread::sleep_for(std::chrono::milliseconds(1));
-          currentData = m_stateAndContinuation.load(std::memory_order_acquire);
-          continue;
-        }
-
-        break;
-
-      case FutureState::Invoking:
-        CheckFutureStateTag(
-            IsSynchronousCall(),
-            state,
-            crashIfFailed,
-            "Error can be set from Invoking state only synchronously",
-            MsoReserveTag(0x016055db /* tag_byfx1 */));
-        break;
-
-      case FutureState::SettingResult:
-      case FutureState::Succeeded:
-      case FutureState::Failed:
-      default:
-        return UnexpectedState(
-            state, crashIfFailed, "From this state we cannot set error", MsoReserveTag(0x016055dc /* tag_byfx2 */));
-    }
-
-    FuturePackedData newData = FuturePackedData::Make(FutureState::SettingResult, currentData.GetContinuation());
-    if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
-    {
-      return true;
-    }
+    expectedStates = expectedStates | ExpectedStates::Invoking;
   }
+
+  if (auto actualState = TrySetState(FutureState::SettingResult, expectedStates))
+  {
+    return UnexpectedState(
+        *actualState, crashIfFailed, "From this state we cannot set error", MsoReserveTag(0x016055dc /* tag_byfx2 */));
+  }
+
+  return true;
 }
 
 void FutureImpl::SetFailed() noexcept
@@ -895,25 +911,9 @@ void FutureImpl::SetFailed() noexcept
 
 bool FutureImpl::TrySetPosted() noexcept
 {
-  // We can only move to FutureState::Posted if previous state was FutureState::Pending.
+  // We can only move to FutureState::Posted if previous state was FutureState::Posting.
   VerifyElseCrashSzTag(IsSynchronousCall(), "Current future must own the thread", 0x016055de /* tag_byfx4 */);
-
-  FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
-  for (;;)
-  {
-    FutureState state = currentData.GetState();
-    if (state != FutureState::Posting)
-    {
-      return false;
-    }
-
-    // Move to FutureState::Posted state
-    FuturePackedData newData = FuturePackedData::Make(FutureState::Posted, currentData.GetContinuation());
-    if (m_stateAndContinuation.compare_exchange_weak(currentData, newData))
-    {
-      return true;
-    }
-  }
+  return !TrySetState(FutureState::Posted, ExpectedStates::Posting);
 }
 
 bool FutureImpl::IsDone() const noexcept

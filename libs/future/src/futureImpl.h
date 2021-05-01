@@ -12,110 +12,111 @@ namespace Mso {
 namespace Futures {
 
 // The FutureState must be limited to 8 states to ensure that it can be fit into three bits.
+// The three bits become available because we require that all continuation pointers are aligned by 8 bytes.
 // It allows us to store FutureState along with a continuation pointer in the same atomic variable.
-// This way we can avoid using locks. It also requires that all continuation pointers are aligned by 8 bytes.
+// This way we can avoid using mutexes and do the synchronization using only atomic operations.
 //
 // - FutureState::Pending is the initial state of a Future.
 // - FutureState::Posting is when the Future starts processing.
 // - FutureState::Posted is when the Future is posted for asynchronous invocation.
 // - FutureState::Invoking is set before we start to invoke a task. It helps us ensure that task is invoked only once.
 // - FutureState::Awaiting is used when task invocation completed, but we have to wait for the returned future to
-// complete.
+//   complete.
 // - FutureState::SettingResult is set before we start setting the return value or error code.
-// - FutureState::Succeeded is a final state indicating that Future is completed successfully and its value is set.
-// - FutureState::Failed is a final state indicating that the execution of the Future is failed and we have an error
-// code.
+// - FutureState::Succeeded is the final state indicating that Future is completed successfully and its value is set.
+// - FutureState::Failed is the final state indicating that the execution of the Future is failed and we have an error
+//   code.
 //
 // These are the valid transitions:
 //
-//         ┌────────────────┬───────────────────┬──────────────┬─────────────────────────────────┐
-//         │                │                   │              │                                 │
-//         │                │                   │       ┏━━━━━━━━━━━━┓                           │
-//         │                │                   │  ┌───►┃  Awaiting  ┃───┐                       ▼
-//         │                │                   │  │    ┗━━━━━━━━━━━━┛   │                ╔═════════════╗
-//         │                │                   │  │                     ▼           ┌───►║  Succeeded  ║
+//                          ┌──────────────────────────────────────────────┐
+//                          │                                              │
+//                          │                         ┏━━━━━━━━━━━━┓       │
+//                          │                    ┌───►┃  Awaiting  ┃───┐   │
+//                          │                    │    ┗━━━━━━━━━━━━┛   │   │              ╔═════════════╗
+//                          │                    │                     ▼   ▼         ┌───►║  Succeeded  ║
 //   ┏━━━━━━━━━━━┓    ┏━━━━━━━━━━━┓        ┏━━━━━━━━━━━━┓        ┏━━━━━━━━━━━━━━━┓   │    ╚═════════════╝
 //   ┃  Pending  ┃───►┃  Posting  ┃───────►┃  Invoking  ┃───────►┃ SettingResult ┃───┤
 //   ┗━━━━━━━━━━━┛    ┗━━━━━━━━━━━┛        ┗━━━━━━━━━━━━┛        ┗━━━━━━━━━━━━━━━┛   │    ╔═════════════╗
-//         │              │   │                   ▲                      ▲           └───►║   Failed    ║
-//         │              │   │    ┏━━━━━━━━━━┓   │                      │                ╚═════════════╝
-//         │              │   └───►┃  Posted  ┃───┘                      │
-//         │              │        ┗━━━━━━━━━━┛                          │
-//         │              │             │                                │
-//         └──────────────┴─────────────┴────────────────────────────────┘
+//         │                │                    ▲                       ▲           └───►║   Failed    ║
+//         │                │    ┏━━━━━━━━━━┓    │                       │                ╚═════════════╝
+//         │                └───►┃  Posted  ┃────┘                       │
+//         │                     ┗━━━━━━━━━━┛                            │
+//         │                           │                                 │
+//         └───────────────────────────┴─────────────────────────────────┘
 //
 // "Pending" can move to:
-// - 'Succeeded'     - when there is no task to invoke, and value type is void.
-// - 'SettingResult' - when there is no task to invoke and we set a value, or when we want to set error code before
-// processing starts.
-// - 'Posting'       - when we have a task to invoke, or we have FutureOptions::UseParentValue (we need to set a link
-// back to parent). "Posting" can move to:
-// - 'Succeeded'     - when there is no task to invoke, and we have FutureOptions::UseParentValue.
+// - 'Posting'       - when we have a task to invoke, or we have FutureOptions::UseParentValue where we need to
+//                     set a link back to the parent).
+// - 'SettingResult' - when there is no task to invoke or when we want to set error code before processing starts.
+// "Posting" can move to:
 // - 'Invoking'      - when associated task is about to be invoked synchronously in the same thread.
 // - 'Posted'        - when task is scheduled for asynchronous execution.
-// - 'SettingResult' - when post task callback decides to set an error before scheduling task invocation.
+// - 'SettingResult' - when there is no task to invoke or we get an error while posting the task.
 // "Posted" can move to:
 // - 'Invoking'      - when associated task is about to be invoked as a part of asynchronous execution.
 // - 'SettingResult' - when task is canceled before the invocation started.
 // "Invoking" can move to:
-// - 'Succeeded'     - when succeeded and value type is void.
 // - 'Awaiting'      - when task is invoked but we have to wait for returned future to provide result.
 // - 'SettingResult' - when task is invoked and we start setting result value or error code.
 // "Awaiting" can move to:
-// - 'Succeeded'     - when succeeded and value type is void.
-// - 'SettingResult' - when task is invoked and we start setting result value or error code.
+// - 'SettingResult' - when returned future is completed we start setting result value or error code.
 // "SettingResult" can move to:
 // - 'Succeeded'     - when future is succeeded and result value is set.
 // - 'Failed'        - when future is failed and error code is set.
 //
-// Promise moves to the FutureState::SettingResult state before we start to set value or error code, and then move to
-// FutureState::Succeeded or FutureState::Failed states. Promise<void> moves to FutureState::Succeeded state directly on
-// success.
+// The three states: 'Posting', 'Invoking', and 'SettingResult' assume that we are changing other Future variables.
+// Getting to these states is similar to acquiring a lock. We set a pointer to the current future in a current
+// thread's TLS variable. When we move to a different state we 'release' the lock and clean the TLS variable.
+// We can only move to a different state from these three 'locking' states in the same thread where we 'acquired' them.
+//
+// Promise moves to the FutureState::SettingResult state before we start to set value or error code, and then moves to
+// the FutureState::Succeeded or FutureState::Failed states.
 //
 // Future first moves to FutureState::Posting. If the task must be invoked asynchronously, then it moves
 // to FutureState::Post state. After that it moves to the FutureState::Invoking state before task invocation starts.
 // It moves to FutureState::SettingResult after the callback finished execution and it needs to set the result value or
 // error code. In case when Future's lambda returns another future, which must be completed before returning result, it
 // moves to the FutureState::Awaiting state. When the returned future is completed, it moves to
-// FutureState::SettingResult state to set value or error code. In case of success, Future<void> moves directly to
-// FutureState::Succeeded, bypassing the FutureState::SettingResult. Future accepts setting failure from another thread
-// while waiting for work to complete: FutureState::Pending, FutureState::Posted, FutureState::Awaiting. In all other
-// states failure can be set only synchronously. Future gets to failed state when it is canceled, invoked task returns
-// an error code, or previous future failed and our future did not handle the error, and this error just propagated to
-// our future.
+// FutureState::SettingResult state to set value or error code. A Future accepts setting failure from another thread
+// while it is not in a 'locking' state: FutureState::Pending, FutureState::Posted, FutureState::Awaiting. In the
+// 'locking' states failure can be set only from the thread that locked the Future. Future gets to failed state when it
+// is canceled, invoked task returns an error code, or previous future failed and our future did not handle the error,
+// and this error just propagated to our future.
 //
-// Promise or Future value can only be initialized after the state is set to FutureState::SettingResult and then to
-// FutureState::Succeeded. Otherwise, we consider the value storage to be uninitialized and
-// do not call value destructor.
+// Promise or Future return value can only be initialized after the state is set to FutureState::SettingResult and then
+// to FutureState::Succeeded. Otherwise, we consider the value storage to be uninitialized and do not call the value
+// destructor.
 //
 // For the failures we also first move to FutureState::SettingResult state, set the ErrorCode, and then move to the
 // FutureState::Failed state.
 //
-// Valid transitions for MultiPost mode used for WhenAll and WhenAny:
+// Valid transitions for MultiPost mode used for WhenAll and WhenAny are:
 //
 //                                             ╔═════════════╗
-//         ┌──────────────────────────────┬───►║  Succeeded  ║
+//                                        ┌───►║  Succeeded  ║
 //   ┏━━━━━━━━━━━┓    ┏━━━━━━━━━━━━━━━┓   │    ╚═════════════╝
 //   ┃  Pending  ┃───►┃ SettingResult ┃───┤
 //   ┗━━━━━━━━━━━┛    ┗━━━━━━━━━━━━━━━┛   │    ╔═════════════╗
 //                                        └───►║   Failed    ║
 //                                             ╚═════════════╝
 //
-// In MultiPost mode we only do inline invocations. TaskPost callback must be null.
-// We also do not have any intermediate states. Different input future are going to provide their results,
-// and then at some point we make a decision to set Success or Failure.
+// In MultiPost mode we do only inline invocations. The TaskPost callback must be null.
+// The input future are going to provide their results, and then at some point we make a decision to set Success or
+// Failure.
 //
 //
-// Memory allocation for Future data:
+// The Future uses a single memory allocation for its multiple parts.
+// The memory allocation for Future data looks as the following:
 //
 //  ╔═════════════════════╗
 //  ║                     ║
-//  ║    FutureWeakRef    ║  - contains strong and weak ref counters
-//  ║                     ║
+//  ║    FutureWeakRef    ║  - contains strong and weak ref counters. It is in the 'negative' offset from
+//  ║                     ║    the Future pointer.
 //  ╟─────────────────────╢
 //  ║                     ║
-//  ║     FutureImpl      ║  - implements the core Future functionality that includes state management
-//  ║                     ║
+//  ║     FutureImpl      ║  - implements the core Future functionality that includes state management. This is the
+//  ║                     ║    section that we return as a pointer to the Future.
 //  ╟─────────────────────╢
 //  ║                     ║
 //  ║   FutureCallback    ║  - implements IVoidFunctor to pass to executor (only present if traits.TaskPost is not null)
@@ -143,8 +144,10 @@ enum class FutureState
   Failed, // Future is failed and it has an error code.
 };
 
+// Used to indicate expected states as bit flags.
 enum class ExpectedStates
 {
+  None = 0,
   Pending = 1 << static_cast<int>(FutureState::Pending),
   Posting = 1 << static_cast<int>(FutureState::Posting),
   Posted = 1 << static_cast<int>(FutureState::Posted),
@@ -267,6 +270,8 @@ private:
   static bool IsExpectedState(FutureState state, ExpectedStates expectedStates) noexcept;
   std::optional<FutureState>
   TrySetState(FutureState newState, ExpectedStates expectedStates, FutureImpl** continuation = nullptr) noexcept;
+  ExpectedStates GetExtectedStates(FutureState newState) noexcept;
+
   bool TryStartSetError(bool crashIfFailed) noexcept;
   bool TrySetInvoking(bool crashIfFailed = false) noexcept;
   void SetFailed() noexcept;

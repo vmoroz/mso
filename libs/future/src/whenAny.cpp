@@ -44,7 +44,7 @@ LIBLET_PUBLICAPI _Callback_ void WhenAnyTaskInvoke<void>::Invoke(
     _In_ IFuture* future,
     _In_ IFuture* /*parentFuture*/) noexcept
 {
-  future->TrySetSuccess(/*crashIfFailed:*/ false);
+  future->TrySetSuccess(nullptr, /*crashIfFailed:*/ false);
 }
 
 LIBLET_PUBLICAPI void

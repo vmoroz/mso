@@ -8,7 +8,7 @@ namespace Mso::Futures {
 LIBLET_PUBLICAPI void
 CopyTaskInvoke<void>::Invoke(const ByteArrayView& /*taskBuffer*/, IFuture* future, IFuture* /*parentFuture*/) noexcept
 {
-  future->TrySetSuccess(/*crashIfFailed:*/ true);
+  future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
 }
 
 LIBLET_PUBLICAPI void
@@ -20,7 +20,7 @@ CopyTaskCatch::Catch(const ByteArrayView& /*taskBuffer*/, IFuture* future, Error
 LIBLET_PUBLICAPI void
 MoveTaskInvoke<void>::Invoke(const ByteArrayView& /*taskBuffer*/, IFuture* future, IFuture* /*parentFuture*/) noexcept
 {
-  future->TrySetSuccess(/*crashIfFailed:*/ true);
+  future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
 }
 
 LIBLET_PUBLICAPI void
@@ -45,17 +45,17 @@ LIBLET_PUBLICAPI void FutureCompletionTaskInvoke<void>::Invoke(
 {
   // Complete the completion future first because a continuation is added to the FutureToComplete
   // and everything should be completed by the time the continuation is called.
-  future->TrySetSuccess();
+  future->TrySetSuccess(nullptr);
 
   auto task = taskBuffer.As<FutureCompletionTask>();
-  task->FutureToComplete->TrySetSuccess();
+  task->FutureToComplete->TrySetSuccess(nullptr);
 }
 
 LIBLET_PUBLICAPI void ResultSetter<Mso::Maybe<void>>::Set(IFuture* future, Mso::Maybe<void>&& value) noexcept
 {
   if (value.IsValue())
   {
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
   else
   {

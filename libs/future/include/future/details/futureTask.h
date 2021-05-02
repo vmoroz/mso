@@ -139,7 +139,7 @@ struct FutureCompletionTaskInvoke
   {
     // Complete the completion future fist because a continuation is added to the FutureToComplete
     // and everything should be completed by the time the continuation is called.
-    future->TrySetSuccess(/*crashIfFailed*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed*/ true);
 
     auto task = taskBuffer.As<FutureCompletionTask>();
     auto inValue = parentFuture->GetValue().As<TValue>();
@@ -179,9 +179,10 @@ struct ResultSetter
   static void Set(IFuture* future, T&& value) noexcept
   {
     ByteArrayView valueBuffer;
-    future->TryStartSetValue(/*ref*/ valueBuffer, /*crashIfFailed:*/ true);
+    void* lockStatus{};
+    future->TryStartSetValue(/*ref*/ valueBuffer, &lockStatus, /*crashIfFailed:*/ true);
     ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(std::move(value));
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(lockStatus, /*crashIfFailed:*/ true);
   }
 };
 
@@ -193,9 +194,10 @@ struct ResultSetter<Mso::Maybe<T>>
     if (value.IsValue())
     {
       ByteArrayView valueBuffer;
-      future->TryStartSetValue(/*ref*/ valueBuffer, /*crashIfFailed:*/ true);
+      void* lockStatus{};
+      future->TryStartSetValue(/*ref*/ valueBuffer, &lockStatus, /*crashIfFailed:*/ true);
       ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(value.TakeValue());
-      future->TrySetSuccess(/*crashIfFailed:*/ true);
+      future->TrySetSuccess(lockStatus, /*crashIfFailed:*/ true);
     }
     else
     {
@@ -400,7 +402,7 @@ struct FutureTaskInvoke<TExecutor, TCallback, TInValue, void, CallbackArgKind::V
     auto task = taskBuffer.As<FutureTask<TExecutor, TCallback>>();
     auto inValue = parentFuture->GetValue().As<TInValue>();
     task->Executor.Invoke(task->Callback, std::move(*inValue));
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 };
 
@@ -412,7 +414,7 @@ struct FutureTaskInvoke<TExecutor, TCallback, TInValue, void, CallbackArgKind::V
     auto task = taskBuffer.As<FutureTask<TExecutor, TCallback>>();
     auto inValue = parentFuture->GetValue().As<TInValue>();
     task->Executor.Invoke(task->Callback, *inValue);
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 };
 
@@ -424,7 +426,7 @@ struct FutureTaskInvoke<TExecutor, TCallback, TInValue, void, CallbackArgKind::M
     auto task = taskBuffer.As<FutureTask<TExecutor, TCallback>>();
     auto inValue = parentFuture->GetValue().As<TInValue>();
     task->Executor.Invoke(task->Callback, Mso::Maybe<TInValue>(std::move(*inValue)));
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 };
 
@@ -437,7 +439,7 @@ struct FutureTaskInvoke<TExecutor, TCallback, TInValue, void, CallbackArgKind::M
     auto inValue = parentFuture->GetValue().As<TInValue>();
     Mso::Maybe<TInValue> maybeValue{std::move(*inValue)};
     task->Executor.Invoke(task->Callback, maybeValue);
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 };
 
@@ -448,7 +450,7 @@ struct FutureTaskInvoke<TExecutor, TCallback, void, void, CallbackArgKind::Void>
   {
     auto task = taskBuffer.As<FutureTask<TExecutor, TCallback>>();
     task->Executor.Invoke(task->Callback);
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 };
 
@@ -459,7 +461,7 @@ struct FutureTaskInvoke<TExecutor, TCallback, void, void, CallbackArgKind::Maybe
   {
     auto task = taskBuffer.As<FutureTask<TExecutor, TCallback>>();
     task->Executor.Invoke(task->Callback, Mso::Maybe<void>());
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 };
 
@@ -471,7 +473,7 @@ struct FutureTaskInvoke<TExecutor, TCallback, void, void, CallbackArgKind::Maybe
     auto task = taskBuffer.As<FutureTask<TExecutor, TCallback>>();
     Mso::Maybe<void> maybeValue;
     task->Executor.Invoke(task->Callback, maybeValue);
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 };
 
@@ -551,7 +553,7 @@ struct FutureTaskCatch<TExecutor, TCallback, TInValue, void, CallbackArgKind::Ma
   {
     auto task = taskBuffer.As<FutureTask<TExecutor, TCallback>>();
     task->Executor.Invoke(task->Callback, Mso::Maybe<TInValue>(std::move(parentError)));
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 
   constexpr static FutureCatchCallback* CatchPtr = &Catch;
@@ -565,7 +567,7 @@ struct FutureTaskCatch<TExecutor, TCallback, TInValue, void, CallbackArgKind::Ma
     auto task = taskBuffer.As<FutureTask<TExecutor, TCallback>>();
     Mso::Maybe<TInValue> maybeValue{std::move(parentError)};
     task->Executor.Invoke(task->Callback, maybeValue);
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 
   constexpr static FutureCatchCallback* CatchPtr = &Catch;
@@ -578,7 +580,7 @@ struct FutureTaskCatch<TExecutor, TCallback, TInValue, void, CallbackArgKind::Er
   {
     auto task = taskBuffer.As<FutureTask<TExecutor, TCallback>>();
     task->Executor.Invoke(task->Callback, std::move(parentError));
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 
   constexpr static FutureCatchCallback* CatchPtr = &Catch;
@@ -591,7 +593,7 @@ struct FutureTaskCatch<TExecutor, TCallback, void, void, CallbackArgKind::MaybeV
   {
     auto task = taskBuffer.As<FutureTask<TExecutor, TCallback>>();
     task->Executor.Invoke(task->Callback, Mso::Maybe<void>(std::move(parentError)));
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 
   constexpr static FutureCatchCallback* CatchPtr = &Catch;
@@ -605,7 +607,7 @@ struct FutureTaskCatch<TExecutor, TCallback, void, void, CallbackArgKind::MaybeV
     auto task = taskBuffer.As<FutureTask<TExecutor, TCallback>>();
     Mso::Maybe<void> maybeValue{std::move(parentError)};
     task->Executor.Invoke(task->Callback, maybeValue);
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 
   constexpr static FutureCatchCallback* CatchPtr = &Catch;

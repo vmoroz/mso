@@ -192,23 +192,23 @@ bool FuturePackedData::IsFailed() const noexcept
 //
 //=============================================================================
 
-static thread_local FutureImpl* s_currentFutureTls;
+static thread_local FutureImpl* tls_currentFuture;
 
 struct CurrentFutureImpl
 {
-  explicit CurrentFutureImpl(FutureImpl& current) noexcept : m_previous(s_currentFutureTls)
+  explicit CurrentFutureImpl(FutureImpl& current) noexcept : m_previous(tls_currentFuture)
   {
-    s_currentFutureTls = &current;
+    tls_currentFuture = &current;
   }
 
   ~CurrentFutureImpl() noexcept
   {
-    s_currentFutureTls = m_previous;
+    tls_currentFuture = m_previous;
   }
 
-  static bool IsCurrent(const FutureImpl& future) noexcept
+  static bool IsCurrent(const FutureImpl* future) noexcept
   {
-    return s_currentFutureTls == &future;
+    return tls_currentFuture == future;
   }
 
 private:
@@ -299,7 +299,7 @@ ByteArrayView FutureImpl::GetTask() noexcept
 
 void FutureImpl::Invoke() noexcept
 {
-  if (TrySetInvoking(/*crashIfFailed:*/ IsSynchronousCall()))
+  if (TrySetInvoking(/*crashIfFailed:*/ IsLocked()))
   {
     CurrentFutureImpl current{*this};
 
@@ -312,7 +312,7 @@ void FutureImpl::Invoke() noexcept
       else if (IsSet(m_traits.Options, FutureOptions::UseParentValue))
       {
         VerifyElseCrashSzTag(m_link, "Parent must not be null", 0x016055c7 /* tag_byfxh */);
-        (void)TrySetSuccess(/*crashIfFailed:*/ true);
+        (void)TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
       }
       else
       {
@@ -441,7 +441,7 @@ template <typename TLambda>
 static void LoopAndWait(TLambda lambda) noexcept
 {
   int iterationCount = 0;
-  while (lambda())
+  while (!lambda())
   {
     // We continue iterate until the lambda returns false;
     // If we cannot get the false result after some iterations, then
@@ -474,9 +474,9 @@ bool FutureImpl::TrySetInvoking(bool crashIfFailed) noexcept
   // It is possible that asynchronous execution starts before we moved to Posted state.
   // For that reason we wait if we try to get from Posting to Invoking state asynchronously.
 
-  bool isSynchronous = CurrentFutureImpl::IsCurrent(*this);
+  bool isLocked = IsLocked();
   ExpectedStates expectedStates = ExpectedStates::Posted;
-  if (isSynchronous)
+  if (isLocked)
   {
     expectedStates = expectedStates | ExpectedStates::Posting;
   }
@@ -506,12 +506,13 @@ FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates, Fut
     result = currentData.GetState();
     if (!IsExpectedState(*result, expectedStates))
     {
-      return false;
+      // If current state is a locking state, then we continue to wait until we get into a different state.
+      return !IsLockingState(*result);
     }
 
     FutureImpl* currentContinuation = currentData.GetContinuation();
     const FutureImpl* newContinuation = currentContinuation;
-    if (IsExpectedState(newState, ExpectedStates::Failed | ExpectedStates::Succeeded))
+    if (IsFinalState(newState))
     {
       newContinuation = newContinuation != nullptr ? FuturePackedData::ContinuationInvoked : nullptr;
     }
@@ -523,10 +524,47 @@ FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates, Fut
         *continuation = currentContinuation;
       }
       result = std::nullopt; // To indicate success
-      return false;
+      return true;
     }
 
-    return true;
+    return false;
+  });
+
+  return result;
+}
+
+// Returns std::nullopt when succeeded, or the current state when failed.
+std::optional<FutureState> FutureImpl::TrySetState(FutureState newState, FutureImpl** continuation) noexcept
+{
+  ExpectedStates expectedStates = GetExtectedStates(newState);
+  std::optional<FutureState> result;
+  FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
+  LoopAndWait([&]() noexcept {
+    result = currentData.GetState();
+    if (!IsExpectedState(*result, expectedStates))
+    {
+      // If current state is a locking state, then we continue to wait until we get into a different state.
+      return !IsLockingState(*result);
+    }
+
+    FutureImpl* currentContinuation = currentData.GetContinuation();
+    const FutureImpl* newContinuation = currentContinuation;
+    if (IsFinalState(newState))
+    {
+      newContinuation = newContinuation != nullptr ? FuturePackedData::ContinuationInvoked : nullptr;
+    }
+    FuturePackedData newData = FuturePackedData::Make(newState, newContinuation);
+    if (m_stateAndContinuation.compare_exchange_weak(/*ref*/ currentData, newData))
+    {
+      if (continuation)
+      {
+        *continuation = currentContinuation;
+      }
+      result = std::nullopt; // To indicate success
+      return true;
+    }
+
+    return false;
   });
 
   return result;
@@ -537,44 +575,50 @@ FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates, Fut
   return ((1 << (int)state) & (int)expectedStates) != 0;
 }
 
+/*static*/ bool FutureImpl::IsLockingState(FutureState state) noexcept
+{
+  return IsExpectedState(state, ExpectedStates::Posting | ExpectedStates::Invoking | ExpectedStates::SettingResult);
+}
+
+/*static*/ bool FutureImpl::IsFinalState(FutureState state) noexcept
+{
+  return IsExpectedState(state, ExpectedStates::Succeeded | ExpectedStates::Failed);
+}
+
 // The valid state transitions from the futureImpl.h:
 //
-//                          ┌──────────────────────────────────────────────┐
-//                          │                                              │
-//                          │                         ┏━━━━━━━━━━━━┓       │
-//                          │                    ┌───►┃  Awaiting  ┃───┐   │
-//                          │                    │    ┗━━━━━━━━━━━━┛   │   │              ╔═════════════╗
-//                          │                    │                     ▼   ▼         ┌───►║  Succeeded  ║
-//   ┏━━━━━━━━━━━┓    ┏━━━━━━━━━━━┓        ┏━━━━━━━━━━━━┓        ┏━━━━━━━━━━━━━━━┓   │    ╚═════════════╝
-//   ┃  Pending  ┃───►┃  Posting  ┃───────►┃  Invoking  ┃───────►┃ SettingResult ┃───┤
-//   ┗━━━━━━━━━━━┛    ┗━━━━━━━━━━━┛        ┗━━━━━━━━━━━━┛        ┗━━━━━━━━━━━━━━━┛   │    ╔═════════════╗
-//         │                │                    ▲                       ▲           └───►║   Failed    ║
-//         │                │    ┏━━━━━━━━━━┓    │                       │                ╚═════════════╝
-//         │                └───►┃  Posted  ┃────┘                       │
-//         │                     ┗━━━━━━━━━━┛                            │
-//         │                           │                                 │
-//         └───────────────────────────┴─────────────────────────────────┘
+//                                  ┏━━━━━━━━━━┓            ┏━━━━━━━━━━━━┓
+//                              ┌──►┃  Posted  ┃───┐    ┌──►┃  Awaiting  ┃───┐
+//                              │   ┗━━━━━━━━━━┛   │    │   ┗━━━━━━━━━━━━┛   │                ╔═════════════╗
+//                              │                  ▼    │                    ▼           ┌───►║  Succeeded  ║
+//   ┏━━━━━━━━━━━┓        ┏━━━━━━━━━━━┓        ┏━━━━━━━━━━━━┓        ┏━━━━━━━━━━━━━━━┓   │    ╚═════════════╝
+//   ┃  Pending  ┃───────►┃  Posting  ┃───────►┃  Invoking  ┃───────►┃ SettingResult ┃───┤
+//   ┗━━━━━━━━━━━┛        ┗━━━━━━━━━━━┛        ┗━━━━━━━━━━━━┛        ┗━━━━━━━━━━━━━━━┛   │    ╔═════════════╗
+//         │                    │                    │                       ▲           └───►║   Failed    ║
+//         ▼                    ▼                    ▼                       │                ╚═════════════╝
+//         └────────────────────┴────────────────────┴───────────────────────┘
 //
 ExpectedStates FutureImpl::GetExtectedStates(FutureState newState) noexcept
 {
-  auto ifLocked = [this](ExpectedStates states) { return IsSynchronousCall() ? states : ExpectedStates::None; };
+  auto whenLocked = [this](ExpectedStates states) { return IsLocked() ? states : ExpectedStates::None; };
 
   switch (newState)
   {
     case FutureState::Posting: return ExpectedStates::Pending;
-    case FutureState::Posted: return ifLocked(ExpectedStates::Posting);
-    case FutureState::Invoking: return ifLocked(ExpectedStates::Posting) | ExpectedStates::Posted;
-    case FutureState::Awaiting: return ifLocked(ExpectedStates::Invoking);
+    case FutureState::Posted: return whenLocked(ExpectedStates::Posting);
+    case FutureState::Invoking: return whenLocked(ExpectedStates::Posting) | ExpectedStates::Posted;
+    case FutureState::Awaiting: return whenLocked(ExpectedStates::Invoking);
     case FutureState::SettingResult:
       return ExpectedStates::Pending | ExpectedStates::Posted | ExpectedStates::Awaiting
-          | ifLocked(ExpectedStates::Posting | ExpectedStates::Invoking);
-    case FutureState::Succeeded: return ifLocked(ExpectedStates::SettingResult);
-    case FutureState::Failed: return ifLocked(ExpectedStates::SettingResult);
+          | whenLocked(ExpectedStates::Posting | ExpectedStates::Invoking);
+    case FutureState::Succeeded: return whenLocked(ExpectedStates::SettingResult);
+    case FutureState::Failed: return whenLocked(ExpectedStates::SettingResult);
     default: return ExpectedStates::None;
   }
 }
 
-_Use_decl_annotations_ bool FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, bool crashIfFailed) noexcept
+_Use_decl_annotations_ bool
+FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, void** lockState, bool crashIfFailed) noexcept
 {
   // We can set value only if it is not of void type.
   // We can move to SettingResult state to set value only from these states:
@@ -594,7 +638,7 @@ _Use_decl_annotations_ bool FutureImpl::TryStartSetValue(ByteArrayView& valueBuf
     // We can set value from the Pending state for the MultiPost futures or when no Task needs to be invoked first.
     expectedStates = expectedStates | ExpectedStates::Pending;
   }
-  if (IsSynchronousCall())
+  if (IsLocked())
   {
     // We can set value from the code being invoked synchronously.
     expectedStates = expectedStates | ExpectedStates::Invoking;
@@ -626,13 +670,15 @@ _Use_decl_annotations_ bool FutureImpl::TryStartSetValue(ByteArrayView& valueBuf
     }
   }
 
+  *lockState = tls_currentFuture;
+  tls_currentFuture = this;
   valueBuffer = GetValueInternal();
   return true;
 }
 
-bool FutureImpl::IsSynchronousCall() const noexcept
+bool FutureImpl::IsLocked() const noexcept
 {
-  return CurrentFutureImpl::IsCurrent(*this);
+  return CurrentFutureImpl::IsCurrent(this);
 }
 
 void AppendFutureStateToString(std::string& str, FutureState state) noexcept
@@ -685,7 +731,7 @@ bool FutureImpl::HasContinuation() const noexcept
   return (continuation != nullptr) && (continuation != FuturePackedData::ContinuationInvoked);
 }
 
-bool FutureImpl::TrySetSuccess(bool crashIfFailed) noexcept
+bool FutureImpl::TrySetSuccess(void* lockState, bool crashIfFailed) noexcept
 {
   // Success can be set from the following states:
   // 1. Pending if there is no TaskInvoke, value type is void, and there is no UseParentValue
@@ -701,11 +747,11 @@ bool FutureImpl::TrySetSuccess(bool crashIfFailed) noexcept
   {
     expectedStates = expectedStates | ExpectedStates::Pending;
   }
-  if (!m_traits.TaskInvoke && IsSynchronousCall() && IsSet(m_traits.Options, FutureOptions::UseParentValue))
+  if (!m_traits.TaskInvoke && IsLocked() && IsSet(m_traits.Options, FutureOptions::UseParentValue))
   {
     expectedStates = expectedStates | ExpectedStates::Posting;
   }
-  if (IsSynchronousCall() && IsVoidValue())
+  if (IsLocked() && IsVoidValue())
   {
     expectedStates = expectedStates | ExpectedStates::Invoking;
   }
@@ -759,7 +805,7 @@ bool FutureImpl::TrySetSuccess(bool crashIfFailed) noexcept
               MsoReserveTag(0x016055d3 /* tag_byfxt */));
         }
 
-        if (!IsSynchronousCall())
+        if (!IsLocked())
         {
           return UnexpectedState(
               *actualState,
@@ -775,7 +821,7 @@ bool FutureImpl::TrySetSuccess(bool crashIfFailed) noexcept
             MsoReserveTag(0x016055d5 /* tag_byfxv */));
 
       case FutureState::Invoking:
-        if (!IsSynchronousCall())
+        if (!IsLocked())
         {
           return UnexpectedState(
               *actualState,
@@ -802,6 +848,8 @@ bool FutureImpl::TrySetSuccess(bool crashIfFailed) noexcept
             *actualState, crashIfFailed, "Cannot move to Succeeded state.", MsoReserveTag(0x016055d9 /* tag_byfxz */));
     }
   }
+
+  tls_currentFuture = static_cast<FutureImpl*>(lockState);
 
   if (m_link && !IsSet(m_traits.Options, FutureOptions::UseParentValue))
   {
@@ -847,7 +895,7 @@ bool FutureImpl::TryStartSetError(bool crashIfFailed) noexcept
 
   // TODO:
   // case FutureState::Posting:
-  // if (!IsSynchronousCall())
+  // if (!IsLocked())
   //{
   //  std::this_thread::sleep_for(std::chrono::milliseconds(1));
   //  currentData = m_stateAndContinuation.load(std::memory_order_acquire);
@@ -868,7 +916,7 @@ bool FutureImpl::TryStartSetError(bool crashIfFailed) noexcept
   ExpectedStates expectedStates =
       ExpectedStates::Pending | ExpectedStates::Posted | ExpectedStates::Awaiting | ExpectedStates::Posting;
 
-  if (IsSynchronousCall())
+  if (IsLocked())
   {
     expectedStates = expectedStates | ExpectedStates::Invoking;
   }
@@ -912,7 +960,7 @@ void FutureImpl::SetFailed() noexcept
 bool FutureImpl::TrySetPosted() noexcept
 {
   // We can only move to FutureState::Posted if previous state was FutureState::Posting.
-  VerifyElseCrashSzTag(IsSynchronousCall(), "Current future must own the thread", 0x016055de /* tag_byfx4 */);
+  VerifyElseCrashSzTag(IsLocked(), "Current future must own the thread", 0x016055de /* tag_byfx4 */);
   return !TrySetState(FutureState::Posted, ExpectedStates::Posting);
 }
 
@@ -1314,7 +1362,7 @@ struct FutureWaitTask
 {
   static void Invoke(const ByteArrayView& taskBuffer, IFuture* future, IFuture* /*parentFuture*/) noexcept
   {
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
     SetFinished(taskBuffer);
   }
 

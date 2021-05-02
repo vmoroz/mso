@@ -16,11 +16,12 @@ struct WhenAnyTaskInvoke
   static void Invoke(const ByteArrayView& /*taskBuffer*/, _In_ IFuture* future, _In_ IFuture* parentFuture) noexcept
   {
     ByteArrayView valueBuffer;
-    if (future->TryStartSetValue(/*ref*/ valueBuffer))
+    void* lockStatus{};
+    if (future->TryStartSetValue(/*ref*/ valueBuffer, &lockStatus))
     {
       auto value = reinterpret_cast<T*>(parentFuture->GetValue().VoidDataChecked(sizeof(T)));
       ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(std::move(*value));
-      future->TrySetSuccess(/*crashIfFailed:*/ true);
+      future->TrySetSuccess(lockStatus , /*crashIfFailed:*/ true);
     }
   }
 };

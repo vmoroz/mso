@@ -29,21 +29,16 @@ namespace Futures {
 //
 // These are the valid transitions:
 //
-//                          ┌──────────────────────────────────────────────┐
-//                          │                                              │
-//                          │                         ┏━━━━━━━━━━━━┓       │
-//                          │                    ┌───►┃  Awaiting  ┃───┐   │
-//                          │                    │    ┗━━━━━━━━━━━━┛   │   │              ╔═════════════╗
-//                          │                    │                     ▼   ▼         ┌───►║  Succeeded  ║
-//   ┏━━━━━━━━━━━┓    ┏━━━━━━━━━━━┓        ┏━━━━━━━━━━━━┓        ┏━━━━━━━━━━━━━━━┓   │    ╚═════════════╝
-//   ┃  Pending  ┃───►┃  Posting  ┃───────►┃  Invoking  ┃───────►┃ SettingResult ┃───┤
-//   ┗━━━━━━━━━━━┛    ┗━━━━━━━━━━━┛        ┗━━━━━━━━━━━━┛        ┗━━━━━━━━━━━━━━━┛   │    ╔═════════════╗
-//         │                │                    ▲                       ▲           └───►║   Failed    ║
-//         │                │    ┏━━━━━━━━━━┓    │                       │                ╚═════════════╝
-//         │                └───►┃  Posted  ┃────┘                       │
-//         │                     ┗━━━━━━━━━━┛                            │
-//         │                           │                                 │
-//         └───────────────────────────┴─────────────────────────────────┘
+//                                  ┏━━━━━━━━━━┓            ┏━━━━━━━━━━━━┓
+//                              ┌──►┃  Posted  ┃───┐    ┌──►┃  Awaiting  ┃───┐
+//                              │   ┗━━━━━━━━━━┛   │    │   ┗━━━━━━━━━━━━┛   │                ╔═════════════╗
+//                              │                  ▼    │                    ▼           ┌───►║  Succeeded  ║
+//   ┏━━━━━━━━━━━┓        ┏━━━━━━━━━━━┓        ┏━━━━━━━━━━━━┓        ┏━━━━━━━━━━━━━━━┓   │    ╚═════════════╝
+//   ┃  Pending  ┃───────►┃  Posting  ┃───────►┃  Invoking  ┃───────►┃ SettingResult ┃───┤
+//   ┗━━━━━━━━━━━┛        ┗━━━━━━━━━━━┛        ┗━━━━━━━━━━━━┛        ┗━━━━━━━━━━━━━━━┛   │    ╔═════════════╗
+//         │                    │                    │                       ▲           └───►║   Failed    ║
+//         ▼                    ▼                    ▼                       │                ╚═════════════╝
+//         └────────────────────┴────────────────────┴───────────────────────┘
 //
 // "Pending" can move to:
 // - 'Posting'       - when we have a task to invoke, or we have FutureOptions::UseParentValue where we need to
@@ -93,13 +88,13 @@ namespace Futures {
 //
 // Valid transitions for MultiPost mode used for WhenAll and WhenAny are:
 //
-//                                             ╔═════════════╗
-//                                        ┌───►║  Succeeded  ║
-//   ┏━━━━━━━━━━━┓    ┏━━━━━━━━━━━━━━━┓   │    ╚═════════════╝
-//   ┃  Pending  ┃───►┃ SettingResult ┃───┤
-//   ┗━━━━━━━━━━━┛    ┗━━━━━━━━━━━━━━━┛   │    ╔═════════════╗
-//                                        └───►║   Failed    ║
-//                                             ╚═════════════╝
+//                                                 ╔═════════════╗
+//                                            ┌───►║  Succeeded  ║
+//   ┏━━━━━━━━━━━┓        ┏━━━━━━━━━━━━━━━┓   │    ╚═════════════╝
+//   ┃  Pending  ┃───────►┃ SettingResult ┃───┤
+//   ┗━━━━━━━━━━━┛        ┗━━━━━━━━━━━━━━━┛   │    ╔═════════════╗
+//                                            └───►║   Failed    ║
+//                                                 ╚═════════════╝
 //
 // In MultiPost mode we do only inline invocations. The TaskPost callback must be null.
 // The input future are going to provide their results, and then at some point we make a decision to set Success or
@@ -250,11 +245,13 @@ public:
 
   void AddContinuation(Mso::CntPtr<IFuture>&& continuation) noexcept override;
 
-  _Success_(
-      return ) bool TryStartSetValue(_Out_ ByteArrayView& valueBuffer, bool crashIfFailed = false) noexcept override;
+  _Success_(return ) bool TryStartSetValue(
+      _Out_ ByteArrayView& valueBuffer,
+      _Out_ void** lockState,
+      bool crashIfFailed = false) noexcept override;
   void Post() noexcept override;
   void StartAwaiting() noexcept override;
-  bool TrySetSuccess(bool crashIfFailed = false) noexcept override;
+  bool TrySetSuccess(_In_ void* lockState, bool crashIfFailed = false) noexcept override;
   bool TrySetError(ErrorCode&& futureError, bool crashIfFailed = false) noexcept override;
 
   bool IsDone() const noexcept override;
@@ -268,8 +265,12 @@ public:
 
 private:
   static bool IsExpectedState(FutureState state, ExpectedStates expectedStates) noexcept;
+  static bool IsLockingState(FutureState state) noexcept;
+  static bool IsFinalState(FutureState state) noexcept;
+
   std::optional<FutureState>
   TrySetState(FutureState newState, ExpectedStates expectedStates, FutureImpl** continuation = nullptr) noexcept;
+  std::optional<FutureState> TrySetState(FutureState newState, FutureImpl** continuation = nullptr) noexcept;
   ExpectedStates GetExtectedStates(FutureState newState) noexcept;
 
   bool TryStartSetError(bool crashIfFailed) noexcept;
@@ -285,7 +286,7 @@ private:
 
   void DestroyTask(bool isAfterInvoke) noexcept;
 
-  bool IsSynchronousCall() const noexcept;
+  bool IsLocked() const noexcept;
   static bool UnexpectedState(FutureState state, bool crashIfFailed, const char* errorMessage, uint32_t tag) noexcept;
   bool IsVoidValue() const noexcept;
   bool HasContinuation() const noexcept;
@@ -301,7 +302,7 @@ private:
   // m_link is either used for multiple continuations to form a single linked list,
   // or point to a parent FutureImpl during invocation. The parent FutureImpl has the input value for the task being
   // invoked. During lambda invocation we do not maintain the list of continuations. This is why we can re-use the same
-  // field for two different modes: keeping the continuation graph, and invoking continuation tasks.
+  // field for two different modes: keeping the continuation graph and invoking continuation tasks.
   Mso::CntPtr<FutureImpl> m_link;
 
   ErrorCode m_error;

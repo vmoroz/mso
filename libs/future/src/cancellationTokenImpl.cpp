@@ -115,7 +115,7 @@ LIBLET_PUBLICAPI const CancellationToken& CancellationTokenSource::GetToken() co
 LIBLET_PUBLICAPI void CancellationTokenSource::Cancel() const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x0130f547 /* tag_bmpvh */);
-  m_state->TrySetSuccess();
+  m_state->TrySetSuccess(nullptr);
 }
 
 LIBLET_PUBLICAPI void CancellationTokenSource::Abandon() const noexcept

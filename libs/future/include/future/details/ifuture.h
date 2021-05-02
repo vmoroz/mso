@@ -74,11 +74,13 @@ struct IFuture : IUnknown
 
   virtual void AddContinuation(Mso::CntPtr<IFuture>&& continuation) noexcept = 0;
 
-  _Success_(
-      return ) virtual bool TryStartSetValue(_Out_ ByteArrayView& valueBuffer, bool crashIfFailed = false) noexcept = 0;
+  _Success_(return ) virtual bool TryStartSetValue(
+      _Out_ ByteArrayView& valueBuffer,
+      _Out_ void** lockState,
+      bool crashIfFailed = false) noexcept = 0;
   virtual void Post() noexcept = 0;
   virtual void StartAwaiting() noexcept = 0;
-  virtual bool TrySetSuccess(bool crashIfFailed = false) noexcept = 0;
+  virtual bool TrySetSuccess(_In_ void* lockState, bool crashIfFailed = false) noexcept = 0;
   virtual bool TrySetError(ErrorCode&& futureError, bool crashIfFailed = false) noexcept = 0;
 
   virtual bool IsDone() const noexcept = 0;
@@ -89,19 +91,21 @@ struct IFuture : IUnknown
   void SetValue(TArgs&&... args) noexcept
   {
     ByteArrayView valueBuffer;
-    (void)TryStartSetValue(/*ref*/ valueBuffer, /*crashIfFailed:*/ true);
+    void* lockStatus{};
+    (void)TryStartSetValue(/*ref*/ valueBuffer, &lockStatus , /*crashIfFailed:*/ true);
     ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(std::forward<TArgs>(args)...);
-    (void)TrySetSuccess(/*crashIfFailed:*/ true);
+    (void)TrySetSuccess(lockStatus, /*crashIfFailed:*/ true);
   }
 
   template <class T, class... TArgs>
   bool TrySetValue(TArgs&&... args) noexcept
   {
     ByteArrayView valueBuffer;
-    if (TryStartSetValue(/*ref*/ valueBuffer))
+    void* lockStatus{};
+    if (TryStartSetValue(/*ref*/ valueBuffer, &lockStatus))
     {
       ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(std::forward<TArgs>(args)...);
-      (void)TrySetSuccess(/*crashIfFailed:*/ true);
+      (void)TrySetSuccess(lockStatus, /*crashIfFailed:*/ true);
       return true;
     }
 

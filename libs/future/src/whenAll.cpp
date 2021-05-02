@@ -110,7 +110,7 @@ LIBLET_PUBLICAPI _Callback_ void WhenAllTaskInvoke<void>::Invoke(
 
   if (++task->CompleteCount == task->FutureCount)
   {
-    future->TrySetSuccess(/*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
   }
 }
 

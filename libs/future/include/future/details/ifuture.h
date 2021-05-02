@@ -92,7 +92,7 @@ struct IFuture : IUnknown
   {
     ByteArrayView valueBuffer;
     void* lockStatus{};
-    (void)TryStartSetValue(/*ref*/ valueBuffer, &lockStatus , /*crashIfFailed:*/ true);
+    (void)TryStartSetValue(/*ref*/ valueBuffer, &lockStatus, /*crashIfFailed:*/ true);
     ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(std::forward<TArgs>(args)...);
     (void)TrySetSuccess(lockStatus, /*crashIfFailed:*/ true);
   }

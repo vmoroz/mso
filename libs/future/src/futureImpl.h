@@ -294,19 +294,47 @@ private:
   friend FutureCallback;
 
 private:
+  //
+  // The internal fields of the FutureImpl.
+  // It is very important that we pay close attention to the thread safety of these fields.
+  // Each field employs its own strategy for the thread-safe access.
+  //
+
+  // A read-only reference to static memory with a representation of pseudo-virtual table for value and task types.
+  // The FutureTraits allow us to reduce size of the compiled code by avoiding duplicated function as we would have with
+  // a real v-table. The field is set in the constructor and is never changed.
   const FutureTraits& m_traits;
 
   // We pack in the same atomic value the state and a continuation.
+  // We change the field using atomic operations that makes it safe to change from any thread.
+  // Some of the states long with a current FutureImpl stored in TLS play a role of the lock when we need to provide
+  // an exclusive access to some variables below. We refer to them as the 'virtual lock'.
   std::atomic<FuturePackedData> m_stateAndContinuation{{0}};
 
-  // m_link is either used for multiple continuations to form a single linked list,
-  // or point to a parent FutureImpl during invocation. The parent FutureImpl has the input value for the task being
-  // invoked. During lambda invocation we do not maintain the list of continuations. This is why we can re-use the same
-  // field for two different modes: keeping the continuation graph and invoking continuation tasks.
+  // m_link is either used for multiple continuations to form a single linked list, or point to a parent FutureImpl
+  // during task invocation. The parent FutureImpl has the input value for the task being invoked. During lambda
+  // invocation we do not maintain the list of continuations. This is why we can re-use the same field for two different
+  // modes: keeping the continuation graph and invoking continuation tasks.
+  // Due to the nature of the variable, it is one of the most difficult one to implement the thread-safe access.
+  // We use the following rules:
+  // - The future can read and write value of the m_link only under the virtual lock.
+  // - Otherwise, the parent future can change it only in two cases:
+  //   - to establish the ownership while adding the future as the continuation;
+  //   - to remove the continuation after the future is done and reached a final state.
   Mso::CntPtr<FutureImpl> m_link;
 
+  // The error code for a failed promise or future.
+  // This variable is initialized with the default nullptr in constructor.
+  // It can be set when we transition from the FutureState::SettingResult to FutureState::Failed under a virtual lock.
+  // It can be safely read only after we get to FutureState::Failed or FutureState::Succeeded final states because it
+  // remains read-only until it is destroyed in the destructor.
   ErrorCode m_error;
 
+  // Size of the task associated with the Future. We set it to 0 after we free the task on completion to release
+  // its resources earlier, and then to avoid the duplicated destruction in the FutureImpl destructor which we do when
+  // the task is never run.
+  // This variable is initialized in constructor. It must be read and written only under the virtual lock. The
+  // destructor can change it without the virtual lock because no other threads have access to it.
   size_t m_taskSize{0};
 };
 

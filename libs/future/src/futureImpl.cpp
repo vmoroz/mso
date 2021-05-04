@@ -938,10 +938,7 @@ void FutureImpl::SetFailed() noexcept
   if (auto actualState = TrySetState(FutureState::Failed, ExpectedStates::SettingResult, &continuation))
   {
     UnexpectedState(
-        *actualState,
-        IfFailed::Crash,
-        "Cannot move to Failed state",
-        MsoReserveTag(0x016055dd /* tag_byfx3 */));
+        *actualState, IfFailed::Crash, "Cannot move to Failed state", MsoReserveTag(0x016055dd /* tag_byfx3 */));
   }
 
   m_link = nullptr;

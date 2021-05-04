@@ -251,7 +251,7 @@ public:
       bool crashIfFailed = false) noexcept override;
   void Post() noexcept override;
   void StartAwaiting() noexcept override;
-  bool TrySetSuccess(_In_ void* lockState, bool crashIfFailed = false) noexcept override;
+  bool TrySetSuccess(_In_opt_ void* prevThreadFuture, bool crashIfFailed = false) noexcept override;
   bool TrySetError(ErrorCode&& futureError, bool crashIfFailed = false) noexcept override;
 
   bool IsDone() const noexcept override;

@@ -299,7 +299,7 @@ ByteArrayView FutureImpl::GetTask() noexcept
 
 void FutureImpl::Invoke() noexcept
 {
-  if (TrySetInvoking(/*crashIfFailed:*/ HasThreadAccess()))
+  if (TrySetState(FutureState::Invoking))
   {
     CurrentFutureImpl current{*this};
 
@@ -731,7 +731,7 @@ bool FutureImpl::HasContinuation() const noexcept
   return (continuation != nullptr) && (continuation != FuturePackedData::ContinuationInvoked);
 }
 
-bool FutureImpl::TrySetSuccess(void* lockState, bool crashIfFailed) noexcept
+bool FutureImpl::TrySetSuccess(_In_opt_ void* prevThreadFuture, bool crashIfFailed) noexcept
 {
   // Success can be set from the following states:
   // 1. Pending if there is no TaskInvoke, value type is void, and there is no UseParentValue
@@ -849,7 +849,7 @@ bool FutureImpl::TrySetSuccess(void* lockState, bool crashIfFailed) noexcept
     }
   }
 
-  tls_currentFuture = static_cast<FutureImpl*>(lockState);
+  tls_currentFuture = static_cast<FutureImpl*>(prevThreadFuture);
 
   if (m_link && !IsSet(m_traits.Options, FutureOptions::UseParentValue))
   {

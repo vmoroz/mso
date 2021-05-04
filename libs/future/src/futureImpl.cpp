@@ -299,7 +299,7 @@ ByteArrayView FutureImpl::GetTask() noexcept
 
 void FutureImpl::Invoke() noexcept
 {
-  if (TrySetInvoking(/*crashIfFailed:*/ IsLocked()))
+  if (TrySetInvoking(/*crashIfFailed:*/ HasThreadAccess()))
   {
     CurrentFutureImpl current{*this};
 
@@ -474,9 +474,9 @@ bool FutureImpl::TrySetInvoking(bool crashIfFailed) noexcept
   // It is possible that asynchronous execution starts before we moved to Posted state.
   // For that reason we wait if we try to get from Posting to Invoking state asynchronously.
 
-  bool isLocked = IsLocked();
+  bool hasThreadAccess = HasThreadAccess();
   ExpectedStates expectedStates = ExpectedStates::Posted;
-  if (isLocked)
+  if (hasThreadAccess)
   {
     expectedStates = expectedStates | ExpectedStates::Posting;
   }
@@ -600,25 +600,25 @@ std::optional<FutureState> FutureImpl::TrySetState(FutureState newState, FutureI
 //
 ExpectedStates FutureImpl::GetExtectedStates(FutureState newState) noexcept
 {
-  auto whenLocked = [this](ExpectedStates states) { return IsLocked() ? states : ExpectedStates::None; };
+  auto whenCurrent = [this](ExpectedStates states) { return HasThreadAccess() ? states : ExpectedStates::None; };
 
   switch (newState)
   {
     case FutureState::Posting: return ExpectedStates::Pending;
-    case FutureState::Posted: return whenLocked(ExpectedStates::Posting);
-    case FutureState::Invoking: return whenLocked(ExpectedStates::Posting) | ExpectedStates::Posted;
-    case FutureState::Awaiting: return whenLocked(ExpectedStates::Invoking);
+    case FutureState::Posted: return whenCurrent(ExpectedStates::Posting);
+    case FutureState::Invoking: return whenCurrent(ExpectedStates::Posting) | ExpectedStates::Posted;
+    case FutureState::Awaiting: return whenCurrent(ExpectedStates::Invoking);
     case FutureState::SettingResult:
       return ExpectedStates::Pending | ExpectedStates::Posted | ExpectedStates::Awaiting
-          | whenLocked(ExpectedStates::Posting | ExpectedStates::Invoking);
-    case FutureState::Succeeded: return whenLocked(ExpectedStates::SettingResult);
-    case FutureState::Failed: return whenLocked(ExpectedStates::SettingResult);
+          | whenCurrent(ExpectedStates::Posting | ExpectedStates::Invoking);
+    case FutureState::Succeeded: return whenCurrent(ExpectedStates::SettingResult);
+    case FutureState::Failed: return whenCurrent(ExpectedStates::SettingResult);
     default: return ExpectedStates::None;
   }
 }
 
 _Use_decl_annotations_ bool
-FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, void** lockState, bool crashIfFailed) noexcept
+FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, void** prevThreadFuture, bool crashIfFailed) noexcept
 {
   // We can set value only if it is not of void type.
   // We can move to SettingResult state to set value only from these states:
@@ -638,7 +638,7 @@ FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, void** lockState, bool 
     // We can set value from the Pending state for the MultiPost futures or when no Task needs to be invoked first.
     expectedStates = expectedStates | ExpectedStates::Pending;
   }
-  if (IsLocked())
+  if (HasThreadAccess())
   {
     // We can set value from the code being invoked synchronously.
     expectedStates = expectedStates | ExpectedStates::Invoking;
@@ -670,13 +670,13 @@ FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, void** lockState, bool 
     }
   }
 
-  *lockState = tls_currentFuture;
+  *prevThreadFuture = tls_currentFuture;
   tls_currentFuture = this;
   valueBuffer = GetValueInternal();
   return true;
 }
 
-bool FutureImpl::IsLocked() const noexcept
+bool FutureImpl::HasThreadAccess() const noexcept
 {
   return CurrentFutureImpl::IsCurrent(this);
 }
@@ -747,11 +747,11 @@ bool FutureImpl::TrySetSuccess(void* lockState, bool crashIfFailed) noexcept
   {
     expectedStates = expectedStates | ExpectedStates::Pending;
   }
-  if (!m_traits.TaskInvoke && IsLocked() && IsSet(m_traits.Options, FutureOptions::UseParentValue))
+  if (!m_traits.TaskInvoke && HasThreadAccess() && IsSet(m_traits.Options, FutureOptions::UseParentValue))
   {
     expectedStates = expectedStates | ExpectedStates::Posting;
   }
-  if (IsLocked() && IsVoidValue())
+  if (HasThreadAccess() && IsVoidValue())
   {
     expectedStates = expectedStates | ExpectedStates::Invoking;
   }
@@ -805,7 +805,7 @@ bool FutureImpl::TrySetSuccess(void* lockState, bool crashIfFailed) noexcept
               MsoReserveTag(0x016055d3 /* tag_byfxt */));
         }
 
-        if (!IsLocked())
+        if (!HasThreadAccess())
         {
           return UnexpectedState(
               *actualState,
@@ -821,7 +821,7 @@ bool FutureImpl::TrySetSuccess(void* lockState, bool crashIfFailed) noexcept
             MsoReserveTag(0x016055d5 /* tag_byfxv */));
 
       case FutureState::Invoking:
-        if (!IsLocked())
+        if (!HasThreadAccess())
         {
           return UnexpectedState(
               *actualState,
@@ -895,7 +895,7 @@ bool FutureImpl::TryStartSetError(bool crashIfFailed) noexcept
 
   // TODO:
   // case FutureState::Posting:
-  // if (!IsLocked())
+  // if (!HasThreadAccess())
   //{
   //  std::this_thread::sleep_for(std::chrono::milliseconds(1));
   //  currentData = m_stateAndContinuation.load(std::memory_order_acquire);
@@ -916,7 +916,7 @@ bool FutureImpl::TryStartSetError(bool crashIfFailed) noexcept
   ExpectedStates expectedStates =
       ExpectedStates::Pending | ExpectedStates::Posted | ExpectedStates::Awaiting | ExpectedStates::Posting;
 
-  if (IsLocked())
+  if (HasThreadAccess())
   {
     expectedStates = expectedStates | ExpectedStates::Invoking;
   }
@@ -960,7 +960,7 @@ void FutureImpl::SetFailed() noexcept
 bool FutureImpl::TrySetPosted() noexcept
 {
   // We can only move to FutureState::Posted if previous state was FutureState::Posting.
-  VerifyElseCrashSzTag(IsLocked(), "Current future must own the thread", 0x016055de /* tag_byfx4 */);
+  VerifyElseCrashSzTag(HasThreadAccess(), "Current future must own the thread", 0x016055de /* tag_byfx4 */);
   return !TrySetState(FutureState::Posted, ExpectedStates::Posting);
 }
 

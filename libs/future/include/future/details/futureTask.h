@@ -179,10 +179,10 @@ struct ResultSetter
   static void Set(IFuture* future, T&& value) noexcept
   {
     ByteArrayView valueBuffer;
-    void* lockStatus{};
-    future->TryStartSetValue(/*ref*/ valueBuffer, &lockStatus, /*crashIfFailed:*/ true);
+    void* prevThreadFuture{};
+    future->TryStartSetValue(/*ref*/ valueBuffer, &prevThreadFuture, /*crashIfFailed:*/ true);
     ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(std::move(value));
-    future->TrySetSuccess(lockStatus, /*crashIfFailed:*/ true);
+    future->TrySetSuccess(prevThreadFuture, /*crashIfFailed:*/ true);
   }
 };
 
@@ -194,10 +194,10 @@ struct ResultSetter<Mso::Maybe<T>>
     if (value.IsValue())
     {
       ByteArrayView valueBuffer;
-      void* lockStatus{};
-      future->TryStartSetValue(/*ref*/ valueBuffer, &lockStatus, /*crashIfFailed:*/ true);
+      void* prevThreadFuture{};
+      future->TryStartSetValue(/*ref*/ valueBuffer, &prevThreadFuture, /*crashIfFailed:*/ true);
       ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(value.TakeValue());
-      future->TrySetSuccess(lockStatus, /*crashIfFailed:*/ true);
+      future->TrySetSuccess(prevThreadFuture, /*crashIfFailed:*/ true);
     }
     else
     {

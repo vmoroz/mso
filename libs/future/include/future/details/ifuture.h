@@ -76,7 +76,7 @@ struct IFuture : IUnknown
 
   _Success_(return ) virtual bool TryStartSetValue(
       _Out_ ByteArrayView& valueBuffer,
-      _Out_ void** lockState,
+      _Out_ void** prevThreadFuture,
       bool crashIfFailed = false) noexcept = 0;
   virtual void Post() noexcept = 0;
   virtual void StartAwaiting() noexcept = 0;
@@ -91,21 +91,21 @@ struct IFuture : IUnknown
   void SetValue(TArgs&&... args) noexcept
   {
     ByteArrayView valueBuffer;
-    void* lockStatus{};
-    (void)TryStartSetValue(/*ref*/ valueBuffer, &lockStatus, /*crashIfFailed:*/ true);
+    void* prevThreadFuture{};
+    (void)TryStartSetValue(/*ref*/ valueBuffer, &prevThreadFuture, /*crashIfFailed:*/ true);
     ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(std::forward<TArgs>(args)...);
-    (void)TrySetSuccess(lockStatus, /*crashIfFailed:*/ true);
+    (void)TrySetSuccess(prevThreadFuture, /*crashIfFailed:*/ true);
   }
 
   template <class T, class... TArgs>
   bool TrySetValue(TArgs&&... args) noexcept
   {
     ByteArrayView valueBuffer;
-    void* lockStatus{};
-    if (TryStartSetValue(/*ref*/ valueBuffer, &lockStatus))
+    void* prevThreadFuture{};
+    if (TryStartSetValue(/*ref*/ valueBuffer, &prevThreadFuture))
     {
       ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(std::forward<TArgs>(args)...);
-      (void)TrySetSuccess(lockStatus, /*crashIfFailed:*/ true);
+      (void)TrySetSuccess(prevThreadFuture, /*crashIfFailed:*/ true);
       return true;
     }
 

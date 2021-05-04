@@ -190,8 +190,8 @@ struct WhenAllTaskInvoke
     {
       // All parent futures completed: copy results to the WhenAllFutureTask value storage.
       ByteArrayView valueBuffer;
-      void* lockStatus{};
-      (void)future->TryStartSetValue(/*ref*/ valueBuffer, &lockStatus, /*crashIfFailed:*/ true);
+      void* prevThreadFuture{};
+      (void)future->TryStartSetValue(/*ref*/ valueBuffer, &prevThreadFuture, /*crashIfFailed:*/ true);
       T* valuePtr = task->GetValuePtr();
       for (size_t i = 0; i < task->FutureCount; ++i)
       {
@@ -199,7 +199,7 @@ struct WhenAllTaskInvoke
             T(std::move(*reinterpret_cast<T*>(task->ParentFutures[i].Get()->GetValue().VoidData())));
       }
       ::new (valueBuffer.VoidData()) Mso::Async::ArrayView<T>(valuePtr, task->FutureCount);
-      (void)future->TrySetSuccess(lockStatus, /*crashIfFailed:*/ true);
+      (void)future->TrySetSuccess(prevThreadFuture, /*crashIfFailed:*/ true);
     }
   }
 };
@@ -256,10 +256,10 @@ struct WhenAllTupleTaskInvoke
     if (++task->CompleteCount == futureCount)
     {
       ByteArrayView valueBuffer;
-      void* lockStatus{};
-      (void)future->TryStartSetValue(/*ref*/ valueBuffer, &lockStatus, /*crashIfFailed:*/ true);
+      void* prevThreadFuture{};
+      (void)future->TryStartSetValue(/*ref*/ valueBuffer, &prevThreadFuture, /*crashIfFailed:*/ true);
       CreateTuple<Ts...>(/*ref*/ valueBuffer, task->ParentFutures, std::make_index_sequence<futureCount>());
-      (void)future->TrySetSuccess(lockStatus, /*crashIfFailed:*/ true);
+      (void)future->TrySetSuccess(prevThreadFuture, /*crashIfFailed:*/ true);
     }
   }
 };

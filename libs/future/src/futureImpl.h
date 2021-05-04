@@ -75,9 +75,9 @@ namespace Futures {
 // moves to the FutureState::Awaiting state. When the returned future is completed, it moves to
 // FutureState::SettingResult state to set value or error code. A Future accepts setting failure from another thread
 // while it is not in a 'locking' state: FutureState::Pending, FutureState::Posted, FutureState::Awaiting. In the
-// 'locking' states failure can be set only from the thread that locked the Future. Future gets to failed state when it
-// is canceled, invoked task returns an error code, or previous future failed and our future did not handle the error,
-// and this error just propagated to our future.
+// 'locking' states failure can be set only from the thread that currently executes the Future. Future gets to failed
+// state when it is canceled, invoked task returns an error code, or previous future failed and our future did not
+// handle the error, and this error just propagated to our future.
 //
 // Promise or Future return value can only be initialized after the state is set to FutureState::SettingResult and then
 // to FutureState::Succeeded. Otherwise, we consider the value storage to be uninitialized and do not call the value
@@ -247,7 +247,7 @@ public:
 
   _Success_(return ) bool TryStartSetValue(
       _Out_ ByteArrayView& valueBuffer,
-      _Out_ void** lockState,
+      _Out_ void** prevThreadFuture,
       bool crashIfFailed = false) noexcept override;
   void Post() noexcept override;
   void StartAwaiting() noexcept override;
@@ -286,7 +286,7 @@ private:
 
   void DestroyTask(bool isAfterInvoke) noexcept;
 
-  bool IsLocked() const noexcept;
+  bool HasThreadAccess() const noexcept;
   static bool UnexpectedState(FutureState state, bool crashIfFailed, const char* errorMessage, uint32_t tag) noexcept;
   bool IsVoidValue() const noexcept;
   bool HasContinuation() const noexcept;

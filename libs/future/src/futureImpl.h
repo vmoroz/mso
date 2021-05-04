@@ -270,7 +270,7 @@ private:
 
   std::optional<FutureState>
   TrySetState(FutureState newState, ExpectedStates expectedStates, FutureImpl** continuation = nullptr) noexcept;
-  std::optional<FutureState> TrySetState(FutureState newState, FutureImpl** continuation = nullptr) noexcept;
+  bool TrySetState(FutureState newState, FutureImpl** continuation = nullptr) noexcept;
   ExpectedStates GetExtectedStates(FutureState newState) noexcept;
 
   bool TryStartSetError(bool crashIfFailed) noexcept;

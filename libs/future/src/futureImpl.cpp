@@ -533,18 +533,18 @@ FutureImpl::TrySetState(FutureState newState, ExpectedStates expectedStates, Fut
   return result;
 }
 
-// Returns std::nullopt when succeeded, or the current state when failed.
-std::optional<FutureState> FutureImpl::TrySetState(FutureState newState, FutureImpl** continuation) noexcept
+// Returns true if succeeded, If continuation is not nulptr, then we return the previous continuation.
+bool FutureImpl::TrySetState(FutureState newState, FutureImpl** continuation) noexcept
 {
   ExpectedStates expectedStates = GetExtectedStates(newState);
-  std::optional<FutureState> result;
+  bool result{false};
   FuturePackedData currentData = m_stateAndContinuation.load(std::memory_order_acquire);
   LoopAndWait([&]() noexcept {
-    result = currentData.GetState();
-    if (!IsExpectedState(*result, expectedStates))
+    FutureState state = currentData.GetState();
+    if (!IsExpectedState(state, expectedStates))
     {
       // If current state is a locking state, then we continue to wait until we get into a different state.
-      return !IsLockingState(*result);
+      return !IsLockingState(state);
     }
 
     FutureImpl* currentContinuation = currentData.GetContinuation();
@@ -560,7 +560,7 @@ std::optional<FutureState> FutureImpl::TrySetState(FutureState newState, FutureI
       {
         *continuation = currentContinuation;
       }
-      result = std::nullopt; // To indicate success
+      result = true;
       return true;
     }
 

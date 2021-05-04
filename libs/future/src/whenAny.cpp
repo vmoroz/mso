@@ -44,13 +44,13 @@ LIBLET_PUBLICAPI _Callback_ void WhenAnyTaskInvoke<void>::Invoke(
     _In_ IFuture* future,
     _In_ IFuture* /*parentFuture*/) noexcept
 {
-  future->TrySetSuccess(nullptr, /*crashIfFailed:*/ false);
+  (void)future->TrySetSuccess(nullptr, IfFailed::ReturnFalse);
 }
 
 LIBLET_PUBLICAPI void
 WhenAnyTaskCatch::Catch(const ByteArrayView& /*taskBuffer*/, IFuture* future, ErrorCode&& parentError) noexcept
 {
-  future->TrySetError(std::move(parentError), /*crashIfFailed:*/ false);
+  (void)future->TrySetError(std::move(parentError), IfFailed::ReturnFalse);
 }
 
 } // namespace Futures

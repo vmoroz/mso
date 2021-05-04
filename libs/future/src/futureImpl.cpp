@@ -6,8 +6,8 @@
 #include "eventWaitHandle/eventWaitHandle.h"
 #include "future/future.h"
 
-#define CheckFutureStateTag(condition, state, crashIfFailed, errorMessage, tag) \
-  Statement(if (!(condition)) { return UnexpectedState(state, crashIfFailed, errorMessage, tag); })
+#define CheckFutureStateTag(condition, state, ifFailed, errorMessage, tag) \
+  Statement(if (!(condition)) { return UnexpectedState(state, ifFailed, errorMessage, tag); })
 
 namespace Mso {
 namespace Futures {
@@ -237,7 +237,7 @@ FutureImpl::~FutureImpl() noexcept
     // Only set error if there are any continuations to observe it.
     if (HasContinuation())
     {
-      TrySetError(CancellationErrorProvider().MakeErrorCode(true), /*crashIfFailed:*/ true);
+      TrySetError(CancellationErrorProvider().MakeErrorCode(true), IfFailed::Crash);
       data = m_stateAndContinuation.load(std::memory_order_acquire);
     }
   }
@@ -312,7 +312,7 @@ void FutureImpl::Invoke() noexcept
       else if (IsSet(m_traits.Options, FutureOptions::UseParentValue))
       {
         VerifyElseCrashSzTag(m_link, "Parent must not be null", 0x016055c7 /* tag_byfxh */);
-        (void)TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
+        (void)TrySetSuccess(nullptr, IfFailed::Crash);
       }
       else
       {
@@ -327,7 +327,7 @@ void FutureImpl::Invoke() noexcept
       }
       else
       {
-        (void)TrySetError(std::move(m_error), /*crashIfFailed:*/ true);
+        (void)TrySetError(std::move(m_error), IfFailed::Crash);
       }
     }
   }
@@ -467,7 +467,7 @@ static void LoopAndWait(TLambda lambda) noexcept
   }
 }
 
-bool FutureImpl::TrySetInvoking(bool crashIfFailed) noexcept
+bool FutureImpl::TrySetInvoking(IfFailed ifFailed) noexcept
 {
   // We can start Invoking either from Posting or from Posted states.
   // From Posting state we must do it synchronously, while from Posted it can be done asynchronously.
@@ -490,7 +490,7 @@ bool FutureImpl::TrySetInvoking(bool crashIfFailed) noexcept
   if (actualState)
   {
     return UnexpectedState(
-        *actualState, crashIfFailed, "Cannot move to Invoking state", MsoReserveTag(0x016055cb /* tag_byfxl */));
+        *actualState, ifFailed, "Cannot move to Invoking state", MsoReserveTag(0x016055cb /* tag_byfxl */));
   }
 
   return true;
@@ -618,7 +618,7 @@ ExpectedStates FutureImpl::GetExtectedStates(FutureState newState) noexcept
 }
 
 _Use_decl_annotations_ bool
-FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, void** prevThreadFuture, bool crashIfFailed) noexcept
+FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, void** prevThreadFuture, IfFailed ifFailed) noexcept
 {
   // We can set value only if it is not of void type.
   // We can move to SettingResult state to set value only from these states:
@@ -628,7 +628,7 @@ FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, void** prevThreadFuture
 
   if (m_traits.ValueSize == 0)
   {
-    VerifyElseCrashSzTag(!crashIfFailed, "Value must not be of void type", 0x016055cc /* tag_byfxm */);
+    VerifyElseCrashSzTag(ifFailed != IfFailed::Crash, "Value must not be of void type", 0x016055cc /* tag_byfxm */);
     return false;
   }
 
@@ -652,19 +652,19 @@ FutureImpl::TryStartSetValue(ByteArrayView& valueBuffer, void** prevThreadFuture
       case FutureState::Pending:
         return UnexpectedState(
             *unexpectedState,
-            crashIfFailed,
+            ifFailed,
             "TaskInvoke must be called before setting value.",
             MsoReserveTag(0x016055cd /* tag_byfxn */));
       case FutureState::Invoking:
         return UnexpectedState(
             *unexpectedState,
-            crashIfFailed,
+            ifFailed,
             "Value can be set from Invoking state only synchronously",
             MsoReserveTag(0x016055ce /* tag_byfxo */));
       default:
         return UnexpectedState(
             *unexpectedState,
-            crashIfFailed,
+            ifFailed,
             "We cannot move to SettingResult from this state.",
             MsoReserveTag(0x016055cf /* tag_byfxp */));
     }
@@ -697,9 +697,9 @@ void AppendFutureStateToString(std::string& str, FutureState state) noexcept
   }
 }
 
-bool FutureImpl::UnexpectedState(FutureState state, bool crashIfFailed, const char* errorMessage, uint32_t tag) noexcept
+bool FutureImpl::UnexpectedState(FutureState state, IfFailed ifFailed, const char* errorMessage, uint32_t tag) noexcept
 {
-  if (crashIfFailed)
+  if (ifFailed == IfFailed::Crash)
   {
     std::string errorText = "State: ";
     AppendFutureStateToString(errorText, state);
@@ -731,7 +731,7 @@ bool FutureImpl::HasContinuation() const noexcept
   return (continuation != nullptr) && (continuation != FuturePackedData::ContinuationInvoked);
 }
 
-bool FutureImpl::TrySetSuccess(_In_opt_ void* prevThreadFuture, bool crashIfFailed) noexcept
+bool FutureImpl::TrySetSuccess(_In_opt_ void* prevThreadFuture, IfFailed ifFailed) noexcept
 {
   // Success can be set from the following states:
   // 1. Pending if there is no TaskInvoke, value type is void, and there is no UseParentValue
@@ -772,7 +772,7 @@ bool FutureImpl::TrySetSuccess(_In_opt_ void* prevThreadFuture, bool crashIfFail
           {
             return UnexpectedState(
                 *actualState,
-                crashIfFailed,
+                ifFailed,
                 "Task must be invoked before moving to Succeeded state.",
                 MsoReserveTag(0x016055d0 /* tag_byfxq */));
           }
@@ -781,7 +781,7 @@ bool FutureImpl::TrySetSuccess(_In_opt_ void* prevThreadFuture, bool crashIfFail
           {
             return UnexpectedState(
                 *actualState,
-                crashIfFailed,
+                ifFailed,
                 "Futures that use parent value must move to Posting state before moving to Succeeded state.",
                 MsoReserveTag(0x016055d1 /* tag_byfxr */));
           }
@@ -789,7 +789,7 @@ bool FutureImpl::TrySetSuccess(_In_opt_ void* prevThreadFuture, bool crashIfFail
 
         return UnexpectedState(
             *actualState,
-            crashIfFailed,
+            ifFailed,
             "Non-void value must be set before moving to Succeeded state.",
             MsoReserveTag(0x016055d2 /* tag_byfxs */));
 
@@ -800,7 +800,7 @@ bool FutureImpl::TrySetSuccess(_In_opt_ void* prevThreadFuture, bool crashIfFail
         {
           return UnexpectedState(
               *actualState,
-              crashIfFailed,
+              ifFailed,
               "Task must be invoked before moving to Succeeded state.",
               MsoReserveTag(0x016055d3 /* tag_byfxt */));
         }
@@ -809,14 +809,14 @@ bool FutureImpl::TrySetSuccess(_In_opt_ void* prevThreadFuture, bool crashIfFail
         {
           return UnexpectedState(
               *actualState,
-              crashIfFailed,
+              ifFailed,
               "From Posting state we can move to Succeeded state only synchronously.",
               MsoReserveTag(0x016055d4 /* tag_byfxu */));
         }
 
         return UnexpectedState(
             *actualState,
-            crashIfFailed,
+            ifFailed,
             "We can only move to Succeeded state from Posting state if future uses parent value.",
             MsoReserveTag(0x016055d5 /* tag_byfxv */));
 
@@ -825,27 +825,27 @@ bool FutureImpl::TrySetSuccess(_In_opt_ void* prevThreadFuture, bool crashIfFail
         {
           return UnexpectedState(
               *actualState,
-              crashIfFailed,
+              ifFailed,
               "From Invoking state we can move to Succeeded state only synchronously.",
               MsoReserveTag(0x016055d6 /* tag_byfxw */));
         }
 
         return UnexpectedState(
             *actualState,
-            crashIfFailed,
+            ifFailed,
             "Non-void value must be set before moving to Succeeded state.",
             MsoReserveTag(0x016055d7 /* tag_byfxx */));
 
       case FutureState::Awaiting:
         return UnexpectedState(
             *actualState,
-            crashIfFailed,
+            ifFailed,
             "Non-void value must be set before moving to Succeeded state.",
             MsoReserveTag(0x016055d8 /* tag_byfxy */));
 
       default:
         return UnexpectedState(
-            *actualState, crashIfFailed, "Cannot move to Succeeded state.", MsoReserveTag(0x016055d9 /* tag_byfxz */));
+            *actualState, ifFailed, "Cannot move to Succeeded state.", MsoReserveTag(0x016055d9 /* tag_byfxz */));
     }
   }
 
@@ -871,9 +871,9 @@ bool FutureImpl::TrySetSuccess(_In_opt_ void* prevThreadFuture, bool crashIfFail
   return true;
 }
 
-bool FutureImpl::TrySetError(ErrorCode&& futureError, bool crashIfFailed) noexcept
+bool FutureImpl::TrySetError(ErrorCode&& futureError, IfFailed ifFailed) noexcept
 {
-  if (TryStartSetError(crashIfFailed))
+  if (TryStartSetError(ifFailed))
   {
     m_error = std::move(futureError);
     SetFailed();
@@ -883,13 +883,13 @@ bool FutureImpl::TrySetError(ErrorCode&& futureError, bool crashIfFailed) noexce
   return false;
 }
 
-bool FutureImpl::TryStartSetError(bool crashIfFailed) noexcept
+bool FutureImpl::TryStartSetError(IfFailed ifFailed) noexcept
 {
   // TODO:
   // CheckFutureStateTag(
   //   m_link == nullptr,
   //   state,
-  //   crashIfFailed,
+  //   ifFailed,
   //   "Error cannot be set from Pending state if future is a part of linked list",
   //   MsoReserveTag(0x016055da /* tag_byfx0 */));
 
@@ -924,7 +924,7 @@ bool FutureImpl::TryStartSetError(bool crashIfFailed) noexcept
   if (auto actualState = TrySetState(FutureState::SettingResult, expectedStates))
   {
     return UnexpectedState(
-        *actualState, crashIfFailed, "From this state we cannot set error", MsoReserveTag(0x016055dc /* tag_byfx2 */));
+        *actualState, ifFailed, "From this state we cannot set error", MsoReserveTag(0x016055dc /* tag_byfx2 */));
   }
 
   return true;
@@ -939,7 +939,7 @@ void FutureImpl::SetFailed() noexcept
   {
     UnexpectedState(
         *actualState,
-        /*crashIfFailed:*/ true,
+        IfFailed::Crash,
         "Cannot move to Failed state",
         MsoReserveTag(0x016055dd /* tag_byfx3 */));
   }
@@ -982,10 +982,10 @@ bool FutureImpl::IsFailed() const noexcept
 void FutureImpl::Post() noexcept
 {
   Mso::CntPtr<FutureImpl> next;
-  (void)TryPostInternal(nullptr, /*ref*/ next, /*crashIfFailed:*/ true);
+  (void)TryPostInternal(nullptr, /*ref*/ next, IfFailed::Crash);
 }
 
-bool FutureImpl::TryPostInternal(FutureImpl* parent, Mso::CntPtr<FutureImpl>& next, bool crashIfFailed) noexcept
+bool FutureImpl::TryPostInternal(FutureImpl* parent, Mso::CntPtr<FutureImpl>& next, IfFailed ifFailed) noexcept
 {
   if (!IsSet(m_traits.Options, FutureOptions::IsMultiPost))
   {
@@ -1003,7 +1003,7 @@ bool FutureImpl::TryPostInternal(FutureImpl* parent, Mso::CntPtr<FutureImpl>& ne
           m_link == nullptr, "State must be FutureState::Pending if m_link is not null", 0x016055df /* tag_byfx5 */);
       next = nullptr;
       return UnexpectedState(
-          *unexpectedState, crashIfFailed, "Post expects Pending state", MsoReserveTag(0x016055e0 /* tag_byfx6 */));
+          *unexpectedState, ifFailed, "Post expects Pending state", MsoReserveTag(0x016055e0 /* tag_byfx6 */));
     }
 
     CurrentFutureImpl current{*this}; // For synchronous call checks.
@@ -1038,7 +1038,7 @@ bool FutureImpl::TryPostInternal(FutureImpl* parent, Mso::CntPtr<FutureImpl>& ne
       {
         UnexpectedState(
             parent->m_stateAndContinuation.load(std::memory_order_acquire).GetState(),
-            /*crashIfFailed:*/ true,
+            IfFailed::Crash,
             "Unexpected parent state while posting",
             MsoReserveTag(0x016055e2 /* tag_byfx8 */));
       }
@@ -1094,7 +1094,7 @@ void FutureImpl::PostContinuation(Mso::CntPtr<FutureImpl>&& continuation) noexce
   {
     // TryPostInternal returns next continuation in the single linked list.
     Mso::CntPtr<FutureImpl> next;
-    (void)continuation->TryPostInternal(this, /*ref*/ next, /*crashIfFailed:*/ false);
+    (void)continuation->TryPostInternal(this, /*ref*/ next, IfFailed::ReturnFalse);
     continuation = std::move(next);
   }
 }
@@ -1362,13 +1362,13 @@ struct FutureWaitTask
 {
   static void Invoke(const ByteArrayView& taskBuffer, IFuture* future, IFuture* /*parentFuture*/) noexcept
   {
-    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
+    future->TrySetSuccess(nullptr, IfFailed::Crash);
     SetFinished(taskBuffer);
   }
 
   static void Catch(const ByteArrayView& taskBuffer, IFuture* future, ErrorCode&& parentError) noexcept
   {
-    future->TrySetError(std::move(parentError), /*crashIfFailed:*/ true);
+    future->TrySetError(std::move(parentError), IfFailed::Crash);
     SetFinished(taskBuffer);
   }
 

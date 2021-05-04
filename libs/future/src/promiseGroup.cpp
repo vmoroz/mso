@@ -75,37 +75,37 @@ LIBLET_PUBLICAPI Future<void> PromiseGroup<void>::AddFuture() const noexcept
 LIBLET_PUBLICAPI void PromiseGroup<void>::SetValue() const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x01605618 /* tag_byfyy */);
-  m_state->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
+  (void)m_state->TrySetSuccess(nullptr, Futures::IfFailed::Crash);
 }
 
 LIBLET_PUBLICAPI bool PromiseGroup<void>::TrySetValue() const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x01605619 /* tag_byfyz */);
-  return m_state->TrySetSuccess(nullptr, /*crashIfFailed:*/ false);
+  return m_state->TrySetSuccess(nullptr, Futures::IfFailed::ReturnFalse);
 }
 
 LIBLET_PUBLICAPI void PromiseGroup<void>::SetError(const ErrorCode& errorCode) const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x0160561a /* tag_byfy0 */);
-  m_state->TrySetError(Mso::ErrorCode(errorCode), /*crashIfFailed:*/ true);
+  (void)m_state->TrySetError(Mso::ErrorCode(errorCode), Futures::IfFailed::Crash);
 }
 
 LIBLET_PUBLICAPI void PromiseGroup<void>::SetError(ErrorCode&& errorCode) const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x0160561b /* tag_byfy1 */);
-  m_state->TrySetError(std::move(errorCode), /*crashIfFailed:*/ true);
+  (void)m_state->TrySetError(std::move(errorCode), Futures::IfFailed::Crash);
 }
 
 LIBLET_PUBLICAPI bool PromiseGroup<void>::TrySetError(const ErrorCode& errorCode) const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x0160561c /* tag_byfy2 */);
-  return m_state->TrySetError(Mso::ErrorCode(errorCode), /*crashIfFailed:*/ false);
+  return m_state->TrySetError(Mso::ErrorCode(errorCode), Futures::IfFailed::ReturnFalse);
 }
 
 LIBLET_PUBLICAPI bool PromiseGroup<void>::TrySetError(ErrorCode&& errorCode) const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x0160561d /* tag_byfy3 */);
-  return m_state->TrySetError(std::move(errorCode), /*crashIfFailed:*/ false);
+  return m_state->TrySetError(std::move(errorCode), Futures::IfFailed::ReturnFalse);
 }
 
 LIBLET_PUBLICAPI void PromiseGroup<void>::SetMaybe(const Mso::Maybe<void>& value) const noexcept
@@ -113,11 +113,11 @@ LIBLET_PUBLICAPI void PromiseGroup<void>::SetMaybe(const Mso::Maybe<void>& value
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x0160561e /* tag_byfy4 */);
   if (!value.IsError())
   {
-    m_state->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
+    (void)m_state->TrySetSuccess(nullptr, Futures::IfFailed::Crash);
   }
   else
   {
-    m_state->TrySetError(Mso::ErrorCode(value.GetError()), /*crashIfFailed:*/ true);
+    (void)m_state->TrySetError(Mso::ErrorCode(value.GetError()), Futures::IfFailed::Crash);
   }
 }
 
@@ -126,11 +126,11 @@ LIBLET_PUBLICAPI void PromiseGroup<void>::SetMaybe(Mso::Maybe<void>&& value) con
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x0160561f /* tag_byfy5 */);
   if (!value.IsError())
   {
-    m_state->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
+    (void)m_state->TrySetSuccess(nullptr, Futures::IfFailed::Crash);
   }
   else
   {
-    m_state->TrySetError(value.TakeError(), /*crashIfFailed:*/ true);
+    (void)m_state->TrySetError(value.TakeError(), Futures::IfFailed::Crash);
   }
 }
 
@@ -139,11 +139,11 @@ LIBLET_PUBLICAPI bool PromiseGroup<void>::TrySetMaybe(const Mso::Maybe<void>& va
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x01605620 /* tag_byfy6 */);
   if (!value.IsError())
   {
-    return m_state->TrySetSuccess(nullptr, /*crashIfFailed:*/ false);
+    return m_state->TrySetSuccess(nullptr, Futures::IfFailed::ReturnFalse);
   }
   else
   {
-    return m_state->TrySetError(Mso::ErrorCode(value.GetError()), /*crashIfFailed:*/ false);
+    return m_state->TrySetError(Mso::ErrorCode(value.GetError()), Futures::IfFailed::ReturnFalse);
   }
 }
 
@@ -152,11 +152,11 @@ LIBLET_PUBLICAPI bool PromiseGroup<void>::TrySetMaybe(Mso::Maybe<void>&& value) 
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x01605621 /* tag_byfy7 */);
   if (!value.IsError())
   {
-    return m_state->TrySetSuccess(nullptr, /*crashIfFailed:*/ false);
+    return m_state->TrySetSuccess(nullptr, Futures::IfFailed::ReturnFalse);
   }
   else
   {
-    return m_state->TrySetError(value.TakeError(), /*crashIfFailed:*/ false);
+    return m_state->TrySetError(value.TakeError(), Futures::IfFailed::ReturnFalse);
   }
 }
 

@@ -176,7 +176,7 @@ template <class T>
 inline bool PromiseGroup<T>::TrySetError(ErrorCode&& errorCode) const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x016056c5 /* tag_byf1f */);
-  return m_state->TrySetError(std::move(errorCode), /*crashIfFailed:*/ false);
+  return m_state->TrySetError(std::move(errorCode), Futures::IfFailed::ReturnFalse);
 }
 
 template <class T>

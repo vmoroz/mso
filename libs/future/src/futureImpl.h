@@ -248,11 +248,11 @@ public:
   _Success_(return ) bool TryStartSetValue(
       _Out_ ByteArrayView& valueBuffer,
       _Out_ void** prevThreadFuture,
-      bool crashIfFailed = false) noexcept override;
+      IfFailed ifFailed = IfFailed::ReturnFalse) noexcept override;
   void Post() noexcept override;
   void StartAwaiting() noexcept override;
-  bool TrySetSuccess(_In_opt_ void* prevThreadFuture, bool crashIfFailed = false) noexcept override;
-  bool TrySetError(ErrorCode&& futureError, bool crashIfFailed = false) noexcept override;
+  bool TrySetSuccess(_In_opt_ void* prevThreadFuture, IfFailed ifFailed = IfFailed::ReturnFalse) noexcept override;
+  bool TrySetError(ErrorCode&& futureError, IfFailed ifFailed = IfFailed::ReturnFalse) noexcept override;
 
   bool IsDone() const noexcept override;
   bool IsSucceeded() const noexcept override;
@@ -273,21 +273,24 @@ private:
   bool TrySetState(FutureState newState, FutureImpl** continuation = nullptr) noexcept;
   ExpectedStates GetExtectedStates(FutureState newState) noexcept;
 
-  bool TryStartSetError(bool crashIfFailed) noexcept;
-  bool TrySetInvoking(bool crashIfFailed = false) noexcept;
+  bool TryStartSetError(IfFailed ifFailed) noexcept;
+  bool TrySetInvoking(IfFailed ifFailed = IfFailed::ReturnFalse) noexcept;
   void SetFailed() noexcept;
   bool TrySetPosted() noexcept;
 
   ByteArrayView GetCallback() noexcept;
   ByteArrayView GetValueInternal() noexcept;
 
-  bool TryPostInternal(FutureImpl* parent, Mso::CntPtr<FutureImpl>& next, bool crashIfFailed = false) noexcept;
+  bool TryPostInternal(
+      FutureImpl* parent,
+      Mso::CntPtr<FutureImpl>& next,
+      IfFailed ifFailed = IfFailed::ReturnFalse) noexcept;
   void PostContinuation(Mso::CntPtr<FutureImpl>&& continuation) noexcept;
 
   void DestroyTask(bool isAfterInvoke) noexcept;
 
   bool HasThreadAccess() const noexcept;
-  static bool UnexpectedState(FutureState state, bool crashIfFailed, const char* errorMessage, uint32_t tag) noexcept;
+  static bool UnexpectedState(FutureState state, IfFailed ifFailed, const char* errorMessage, uint32_t tag) noexcept;
   bool IsVoidValue() const noexcept;
   bool HasContinuation() const noexcept;
 

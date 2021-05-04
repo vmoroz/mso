@@ -110,7 +110,7 @@ LIBLET_PUBLICAPI _Callback_ void WhenAllTaskInvoke<void>::Invoke(
 
   if (++task->CompleteCount == task->FutureCount)
   {
-    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
+    (void)future->TrySetSuccess(nullptr, IfFailed::Crash);
   }
 }
 
@@ -118,7 +118,7 @@ LIBLET_PUBLICAPI void
 WhenAllTaskCatch::Catch(const ByteArrayView& /*taskBuffer*/, IFuture* future, ErrorCode&& parentError) noexcept
 {
   // We should not crash because multiple parents may decide to set error. We only return the first error.
-  future->TrySetError(std::move(parentError), /*crashIfFailed:*/ false);
+  (void)future->TrySetError(std::move(parentError), IfFailed::ReturnFalse);
 }
 
 } // namespace Futures

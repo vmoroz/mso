@@ -65,6 +65,12 @@ struct FutureTraits
   FutureCatchCallback* TaskCatch; // Catches parent future error.
 };
 
+enum class IfFailed
+{
+  ReturnFalse,
+  Crash,
+};
+
 struct IFuture : IUnknown
 {
   virtual const FutureTraits& GetTraits() const noexcept = 0;
@@ -77,11 +83,11 @@ struct IFuture : IUnknown
   _Success_(return ) virtual bool TryStartSetValue(
       _Out_ ByteArrayView& valueBuffer,
       _Out_ void** prevThreadFuture,
-      bool crashIfFailed = false) noexcept = 0;
+      IfFailed ifFailed = IfFailed::ReturnFalse) noexcept = 0;
   virtual void Post() noexcept = 0;
   virtual void StartAwaiting() noexcept = 0;
-  virtual bool TrySetSuccess(_In_ void* lockState, bool crashIfFailed = false) noexcept = 0;
-  virtual bool TrySetError(ErrorCode&& futureError, bool crashIfFailed = false) noexcept = 0;
+  virtual bool TrySetSuccess(_In_ void* lockState, IfFailed ifFailed = IfFailed::ReturnFalse) noexcept = 0;
+  virtual bool TrySetError(ErrorCode&& futureError, IfFailed ifFailed = IfFailed::ReturnFalse) noexcept = 0;
 
   virtual bool IsDone() const noexcept = 0;
   virtual bool IsSucceeded() const noexcept = 0;
@@ -92,9 +98,9 @@ struct IFuture : IUnknown
   {
     ByteArrayView valueBuffer;
     void* prevThreadFuture{};
-    (void)TryStartSetValue(/*ref*/ valueBuffer, &prevThreadFuture, /*crashIfFailed:*/ true);
+    (void)TryStartSetValue(/*ref*/ valueBuffer, &prevThreadFuture, IfFailed::Crash);
     ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(std::forward<TArgs>(args)...);
-    (void)TrySetSuccess(prevThreadFuture, /*crashIfFailed:*/ true);
+    (void)TrySetSuccess(prevThreadFuture, IfFailed::Crash);
   }
 
   template <class T, class... TArgs>
@@ -105,7 +111,7 @@ struct IFuture : IUnknown
     if (TryStartSetValue(/*ref*/ valueBuffer, &prevThreadFuture))
     {
       ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(std::forward<TArgs>(args)...);
-      (void)TrySetSuccess(prevThreadFuture, /*crashIfFailed:*/ true);
+      (void)TrySetSuccess(prevThreadFuture, IfFailed::Crash);
       return true;
     }
 

@@ -21,7 +21,7 @@ struct WhenAnyTaskInvoke
     {
       auto value = reinterpret_cast<T*>(parentFuture->GetValue().VoidDataChecked(sizeof(T)));
       ::new (valueBuffer.VoidDataChecked(sizeof(T))) T(std::move(*value));
-      future->TrySetSuccess(prevThreadFuture, /*crashIfFailed:*/ true);
+      (void)future->TrySetSuccess(prevThreadFuture, IfFailed::Crash);
     }
   }
 };

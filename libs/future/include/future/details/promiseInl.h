@@ -200,35 +200,35 @@ template <class T>
 inline bool Promise<T>::TryCancel() const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x016056d0 /* tag_byf1q */);
-  return m_state->TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true), /*crashIfFailed:*/ false);
+  return m_state->TrySetError(Mso::CancellationErrorProvider().MakeErrorCode(true), Futures::IfFailed::ReturnFalse);
 }
 
 template <class T>
 inline void Promise<T>::SetError(const ErrorCode& errorCode) const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x016056d1 /* tag_byf1r */);
-  (void)m_state->TrySetError(Mso::ErrorCode(errorCode), /*crashIfFailed:*/ true);
+  (void)m_state->TrySetError(Mso::ErrorCode(errorCode), Futures::IfFailed::Crash);
 }
 
 template <class T>
 inline void Promise<T>::SetError(ErrorCode&& errorCode) const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x016056d2 /* tag_byf1s */);
-  (void)m_state->TrySetError(std::move(errorCode), /*crashIfFailed:*/ true);
+  (void)m_state->TrySetError(std::move(errorCode), Futures::IfFailed::Crash);
 }
 
 template <class T>
 inline bool Promise<T>::TrySetError(const ErrorCode& errorCode) const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x016056d3 /* tag_byf1t */);
-  return m_state->TrySetError(Mso::ErrorCode(errorCode), /*crashIfFailed:*/ false);
+  return m_state->TrySetError(Mso::ErrorCode(errorCode), Futures::IfFailed::ReturnFalse);
 }
 
 template <class T>
 inline bool Promise<T>::TrySetError(ErrorCode&& errorCode) const noexcept
 {
   VerifyElseCrashSzTag(!m_state.IsEmpty(), "State is empty.", 0x016056d4 /* tag_byf1u */);
-  return m_state->TrySetError(std::move(errorCode), /*crashIfFailed:*/ false);
+  return m_state->TrySetError(std::move(errorCode), Futures::IfFailed::ReturnFalse);
 }
 
 template <class T>
@@ -241,7 +241,7 @@ inline void Promise<T>::SetMaybe(const Mso::Maybe<T>& value) const noexcept
   }
   else
   {
-    (void)m_state->TrySetError(Mso::ErrorCode(value.GetError()), /*crashIfFailed:*/ true);
+    (void)m_state->TrySetError(Mso::ErrorCode(value.GetError()), Futures::IfFailed::Crash);
   }
 }
 

@@ -8,7 +8,7 @@ namespace Mso::Futures {
 LIBLET_PUBLICAPI void
 CopyTaskInvoke<void>::Invoke(const ByteArrayView& /*taskBuffer*/, IFuture* future, IFuture* /*parentFuture*/) noexcept
 {
-  future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
+  (void)future->TrySetSuccess(nullptr, Futures::IfFailed::Crash);
 }
 
 LIBLET_PUBLICAPI void
@@ -20,7 +20,7 @@ CopyTaskCatch::Catch(const ByteArrayView& /*taskBuffer*/, IFuture* future, Error
 LIBLET_PUBLICAPI void
 MoveTaskInvoke<void>::Invoke(const ByteArrayView& /*taskBuffer*/, IFuture* future, IFuture* /*parentFuture*/) noexcept
 {
-  future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
+  (void)future->TrySetSuccess(nullptr, Futures::IfFailed::Crash);
 }
 
 LIBLET_PUBLICAPI void
@@ -28,9 +28,9 @@ FutureCompletionTask::Catch(const ByteArrayView& taskBuffer, IFuture* future, Er
 {
   // We do not handle error in the completion task, and instead propagating it to the future that waits for completion.
   auto task = taskBuffer.As<FutureCompletionTask>();
-  task->FutureToComplete->TrySetError(ErrorCode(parentError), /*crashIfFailed:*/ false);
+  task->FutureToComplete->TrySetError(ErrorCode(parentError), Futures::IfFailed::ReturnFalse);
   task->FutureToComplete.Clear();
-  future->TrySetError(std::move(parentError), /*crashIfFailed:*/ true);
+  (void)future->TrySetError(std::move(parentError), Futures::IfFailed::Crash);
 }
 
 LIBLET_PUBLICAPI void FutureCompletionTask::Destroy(const ByteArrayView& taskBuffer) noexcept
@@ -55,11 +55,11 @@ LIBLET_PUBLICAPI void ResultSetter<Mso::Maybe<void>>::Set(IFuture* future, Mso::
 {
   if (value.IsValue())
   {
-    future->TrySetSuccess(nullptr, /*crashIfFailed:*/ true);
+    (void)future->TrySetSuccess(nullptr, Futures::IfFailed::Crash);
   }
   else
   {
-    future->TrySetError(value.TakeError(), /*crashIfFailed:*/ true);
+    (void)future->TrySetError(value.TakeError(), Futures::IfFailed::Crash);
   }
 }
 

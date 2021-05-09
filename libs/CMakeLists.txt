@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 add_subdirectory(activeObject)
+add_subdirectory(autoRestore)
 add_subdirectory(compilerAdapters)
 add_subdirectory(comUtil)
 add_subdirectory(cppExtensions)

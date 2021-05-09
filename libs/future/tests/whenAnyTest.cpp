@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 #include <thread>
-#include "cppExtensions/autoRestore.h"
+#include "autoRestore/autoRestore.h"
 #include "future/future.h"
 #include "future/futureWait.h"
 #include "motifCpp/libletAwareMemLeakDetection.h"

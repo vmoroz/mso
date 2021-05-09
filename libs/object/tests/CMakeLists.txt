@@ -17,5 +17,6 @@ liblet_tests(
     unknownObjectTest.cpp
     weakPtrTest.cpp
   DEPENDS
+    Mso::autoRestore
     Mso::eventWaitHandle
   )

@@ -2,6 +2,8 @@
 # Licensed under the MIT license.
 
 liblet_tests(
+  DEPENDS
+    Mso::autoRestore
   SOURCES
     arrayViewTest.cpp
     cancellationTokenTest.cpp

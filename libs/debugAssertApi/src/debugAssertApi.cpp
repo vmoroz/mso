@@ -3,7 +3,7 @@
 
 #include <compilerAdapters/cppMacrosDebug.h>
 #include <compilerAdapters/functionDecorations.h>
-#include <cppExtensions/autoRestore.h>
+#include <autoRestore/autoRestore.h>
 #include <debugAssertApi/debugAssertApi.h>
 #include <debugAssertApi/debugAssertDisabler.h>
 #include <algorithm>

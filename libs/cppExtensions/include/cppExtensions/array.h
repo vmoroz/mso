@@ -2,8 +2,8 @@
 // Licensed under the MIT license.
 
 #pragma once
-#ifndef MSO_CPPEXTENSIONS_AUTORESTORE_H
-#define MSO_CPPEXTENSIONS_AUTORESTORE_H
+#ifndef MSO_CPPEXTENSIONS_ARRAY_H
+#define MSO_CPPEXTENSIONS_ARRAY_H
 
 #include <cstddef>
 
@@ -18,4 +18,4 @@ constexpr size_t SizeOf([[maybe_unused]] T (&arr)[N]) noexcept
 
 } // namespace Mso
 
-#endif // MSO_CPPEXTENSIONS_AUTORESTORE_H
+#endif // MSO_CPPEXTENSIONS_ARRAY_H

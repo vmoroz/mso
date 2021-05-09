@@ -3,8 +3,8 @@
 
 liblet(debugAssertApi
   DEPENDS
+    Mso::autoRestore
     Mso::compilerAdapters
-    Mso::cppExtensions
     Mso::oacr
     Mso::tagUtils
 )

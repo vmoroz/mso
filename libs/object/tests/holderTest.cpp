@@ -8,13 +8,13 @@
 
 ****************************************************************************/
 
+#include <autoRestore/autoRestore.h>
 #include <motifCpp/testCheck.h>
 #include <compilerAdapters/functionDecorations.h>
 #include <smartPtr/smartPointerBase.h>
 #include <smartPtr/smartPointers.h>
 #include <smartPtr/cntPtr.h>
 #include <comUtil/qiCast.h>
-#include <cppExtensions/autoRestore.h>
 
 /*------------------------------------------------------------------------------
   %%Id: e308ef40-4b24-4cd2-98cb-a269c6345d81
